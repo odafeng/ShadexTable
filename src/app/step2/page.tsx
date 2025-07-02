@@ -44,6 +44,7 @@ export default function Step2VariableSelect() {
     setCtxCatVars(catVars);
     setCtxContVars(contVars);
     setLoading(true);
+    console.log(process.env.NEXT_PUBLIC_API_URL)
     try {
       const res = await fetch(`${API_URL}/analyze`, {
         method: "POST",

@@ -10,7 +10,8 @@ export default nextConfig;
 module.exports = {
   reactStrictMode: true,
   experimental: {
-    serverActions: true,
-  },
-};
-
+    serverActions: {
+      enabled: true,
+    },
+  }
+}

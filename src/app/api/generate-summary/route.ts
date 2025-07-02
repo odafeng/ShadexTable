@@ -1,4 +1,3 @@
-// app/api/generate-summary/route.ts
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
@@ -6,7 +5,7 @@ export async function POST(req: NextRequest) {
   const apiKey = process.env.OPENAI_API_KEY;
 
   if (!apiKey) {
-    return NextResponse.json({ error: "Missing OpenAI API Key" }, { status: 500 });
+    return NextResponse.json({ error: "❌ Missing OpenAI API Key" }, { status: 500 });
   }
 
   try {
@@ -21,7 +20,8 @@ export async function POST(req: NextRequest) {
         messages: [
           {
             role: "system",
-            content: "你是一位協助撰寫醫學論文的AI助手。請根據下列Table 1統計結果，用一段正式學術英文簡短撰寫約200字Results摘要段落，不需要推論，只需要描述各變項的敘述統計與p值的差異即可。",
+            content:
+              "你是一位協助撰寫醫學論文的AI助手。請根據下列Table 1統計結果，用一段正式學術英文簡短撰寫約200字Results摘要段落，不需要推論，只需要描述各變項的敘述統計與p值的差異即可。",
           },
           {
             role: "user",
@@ -34,10 +34,17 @@ export async function POST(req: NextRequest) {
     });
 
     const json = await openaiRes.json();
+
+    // 如果 OpenAI 有錯誤就回報
+    if (!openaiRes.ok) {
+      console.error("OpenAI error:", json);
+      return NextResponse.json({ error: json.error?.message || "OpenAI API error" }, { status: 500 });
+    }
+
     const content = json.choices?.[0]?.message?.content || "❌ 無法產生摘要";
     return NextResponse.json({ summary: content });
   } catch (err) {
-    console.error(err);
+    console.error("Server error:", err);
     return NextResponse.json({ error: "OpenAI API request failed" }, { status: 500 });
   }
 }

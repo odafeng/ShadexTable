@@ -5,3 +5,12 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+
+// next.config.js
+module.exports = {
+  reactStrictMode: true,
+  experimental: {
+    serverActions: true,
+  },
+};
+

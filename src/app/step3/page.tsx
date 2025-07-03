@@ -174,7 +174,7 @@ export default function Step3Summary() {
           </CardHeader>
           <CardContent className="space-y-6">
             <Tabs defaultValue="table">
-              <TabsList className="flex flex-wrap gap-2">
+              <TabsList className="w-full overflow-x-auto whitespace-nowrap flex-nowrap flex gap-2 px-1">
                 <TabsTrigger value="table">📊 統計表</TabsTrigger>
                 <TabsTrigger value="summary">🧠 AI 摘要</TabsTrigger>
               </TabsList>

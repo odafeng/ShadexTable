@@ -1,5 +1,6 @@
 "use client";
 
+import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/nextjs";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { UploadCloud, Sparkles, Info, FileUp, Filter } from "lucide-react";
@@ -12,15 +13,40 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { MultiSelect } from "@/components/ui/custom/multiselect";
-import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
 import { motion } from "framer-motion";
 import DashboardLayout from "@/components/ui/layout/DashboardLayout";
 
-// NOTE: 此檔案為 Step 1 + Step 2 增強版請拆開兩頁使用
+// ✅ 包住登入邏輯，不動原本 UI
+export default function Step1Page() {
+  return (
+    <>
+      <SignedIn>
+        <Step1Inner />
+      </SignedIn>
+      <SignedOut>
+        <RedirectToSignIn />
+      </SignedOut>
+    </>
+  );
+}
 
-export default function Step1And2() {
+// ✅ 原本 UI 完全不變，只是改名成 Step1Inner（避免 default export 重複）
+function Step1Inner() {
   const router = useRouter();
   const {
     parsedData,
@@ -46,7 +72,13 @@ export default function Step1And2() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0] || null;
-    if (selected && !["text/csv", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"].includes(selected.type)) {
+    if (
+      selected &&
+      ![
+        "text/csv",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      ].includes(selected.type)
+    ) {
       setError("請上傳 CSV 或 Excel 檔案。");
       setFile(null);
     } else {
@@ -123,12 +155,20 @@ export default function Step1And2() {
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-              <p className="text-sm text-muted-foreground mt-2">拖曳檔案至此或點擊選取</p>
+              <p className="text-sm text-muted-foreground mt-2">
+                拖曳檔案至此或點擊選取
+              </p>
             </div>
 
-            {uploadProgress > 0 && uploadProgress < 100 && <Progress value={uploadProgress} className="h-2 w-full" />}
+            {uploadProgress > 0 && uploadProgress < 100 && (
+              <Progress value={uploadProgress} className="h-2 w-full" />
+            )}
 
-            {file && <p className="text-sm text-muted-foreground">✅ 已選擇：{file.name}</p>}
+            {file && (
+              <p className="text-sm text-muted-foreground">
+                ✅ 已選擇：{file.name}
+              </p>
+            )}
             {error && <p className="text-sm text-red-500">{error}</p>}
 
             <div className="flex justify-end">

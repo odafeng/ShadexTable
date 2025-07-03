@@ -3,14 +3,37 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAnalysis } from "@/context/AnalysisContext";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 import { MultiSelect } from "@/components/ui/custom/multiselect";
-import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { motion } from "framer-motion";
 import { Settings2, Sparkles } from "lucide-react";
 import DashboardLayout from "@/components/ui/layout/DashboardLayout";
@@ -39,12 +62,12 @@ export default function Step2VariableSelect() {
   const selectableContVars = allColumns.filter((c) => !catVars.includes(c));
   const isValid = catVars.length > 0 || contVars.length > 0;
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
   const handleAnalyze = async () => {
     setCtxGroupVar(groupVar);
     setCtxCatVars(catVars);
     setCtxContVars(contVars);
     setLoading(true);
-    console.log(process.env.NEXT_PUBLIC_API_URL)
     try {
       const res = await fetch(`${API_URL}/analyze`, {
         method: "POST",
@@ -84,10 +107,11 @@ export default function Step2VariableSelect() {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
+        className="px-4 sm:px-6 md:px-8"
       >
-        <Card className="rounded-2xl shadow-lg border border-muted">
+        <Card className="w-full max-w-3xl mx-auto rounded-2xl shadow-lg border border-muted">
           <CardHeader>
-            <CardTitle className="text-xl font-semibold text-primary flex gap-2 items-center">
+            <CardTitle className="text-lg md:text-xl font-semibold text-primary flex gap-2 items-center">
               <Settings2 className="w-5 h-5" /> Step 2：選擇變項
             </CardTitle>
           </CardHeader>
@@ -102,7 +126,9 @@ export default function Step2VariableSelect() {
                 <SelectContent className="max-h-64 overflow-y-auto">
                   <SelectItem value="__no_grouping__">（不分組）</SelectItem>
                   {allColumns.map((col) => (
-                    <SelectItem key={col} value={col}>{col}</SelectItem>
+                    <SelectItem key={col} value={col}>
+                      {col}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -113,7 +139,9 @@ export default function Step2VariableSelect() {
                 <Label>類別變項</Label>
                 <TooltipProvider>
                   <Tooltip>
-                    <TooltipTrigger className="text-muted-foreground cursor-help">ⓘ</TooltipTrigger>
+                    <TooltipTrigger className="text-muted-foreground text-xs sm:text-sm cursor-help">
+                      ⓘ
+                    </TooltipTrigger>
                     <TooltipContent>
                       多選一或多個類別型欄位（如性別、分期等）
                     </TooltipContent>
@@ -133,7 +161,9 @@ export default function Step2VariableSelect() {
                 <Label>連續變項</Label>
                 <TooltipProvider>
                   <Tooltip>
-                    <TooltipTrigger className="text-muted-foreground cursor-help">ⓘ</TooltipTrigger>
+                    <TooltipTrigger className="text-muted-foreground text-xs sm:text-sm cursor-help">
+                      ⓘ
+                    </TooltipTrigger>
                     <TooltipContent>
                       多選一或多個數值欄位（如年齡、BMI、檢驗值）
                     </TooltipContent>
@@ -149,13 +179,22 @@ export default function Step2VariableSelect() {
             </div>
 
             <div className="flex items-center space-x-2">
-              <Checkbox id="fillna" checked={fillNA} onCheckedChange={(val) => setFillNA(!!val)} />
+              <Checkbox
+                id="fillna"
+                checked={fillNA}
+                onCheckedChange={(val) => setFillNA(!!val)}
+              />
               <Label htmlFor="fillna">填補缺值</Label>
             </div>
 
-            <div className="flex justify-end">
-              <Button disabled={!isValid || loading} onClick={handleAnalyze} className="gap-2">
-                <Sparkles className="w-4 h-4" />{loading ? "分析中..." : "開始分析"}
+            <div className="flex justify-end pt-4">
+              <Button
+                disabled={!isValid || loading}
+                onClick={handleAnalyze}
+                className="gap-2 w-full sm:w-auto"
+              >
+                <Sparkles className="w-4 h-4" />
+                {loading ? "分析中..." : "開始分析"}
               </Button>
             </div>
           </CardContent>
@@ -171,8 +210,15 @@ export default function Step2VariableSelect() {
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <Button variant="ghost" onClick={() => navigator.clipboard.writeText(errorMsg || "")}>📋 複製錯誤訊息</Button>
-                <Button variant="default" onClick={() => setShowError(false)}>關閉</Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => navigator.clipboard.writeText(errorMsg || "")}
+                >
+                  📋 複製錯誤訊息
+                </Button>
+                <Button variant="default" onClick={() => setShowError(false)}>
+                  關閉
+                </Button>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>

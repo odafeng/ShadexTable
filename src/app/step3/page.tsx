@@ -160,8 +160,9 @@ export default function Step3Summary() {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-      >
-        <Card className="rounded-2xl shadow-lg border border-muted">
+        className="px-4 sm:px-6 md:px-8"
+  >
+    <Card className="w-full max-w-6xl mx-auto rounded-2xl shadow-lg border border-muted">
           <CardHeader>
             <CardTitle className="text-lg md:text-xl font-semibold text-primary flex items-center gap-2">
               <BarChart3 className="w-5 h-5" /> Step 3：統計摘要
@@ -169,13 +170,13 @@ export default function Step3Summary() {
           </CardHeader>
           <CardContent className="space-y-6">
             <Tabs defaultValue="table">
-              <TabsList>
+              <TabsList className="flex flex-wrap gap-2">
                 <TabsTrigger value="table">📊 統計表</TabsTrigger>
                 <TabsTrigger value="summary">🧠 AI 摘要</TabsTrigger>
               </TabsList>
-
               <TabsContent value="table">
-                <ScrollArea className="h-[480px] rounded-md border p-2">
+                <div className="overflow-x-auto"></div>
+                <ScrollArea className="min-w-[700px] h-[480px] rounded-md border p-2">
                   <table className="min-w-full text-sm border border-gray-300 table-auto rounded-md">
                     <thead className="bg-gray-100">
                       <tr>
@@ -228,15 +229,14 @@ export default function Step3Summary() {
                     </tbody>
                   </table>
                 </ScrollArea>
-
-                <div className="flex justify-end gap-3 mt-4">
-                  <Button variant="outline" onClick={exportToExcel}>
+                <div className="flex flex-col sm:flex-row justify-end gap-3 mt-4">
+                  <Button variant="outline" onClick={exportToExcel} className="w-full sm:w-auto">
                     導出 Excel
                   </Button>
-                  <Button variant="outline" onClick={exportToWord}>
+                  <Button variant="outline" onClick={exportToWord} className="w-full sm:w-auto">
                     導出 Word
                   </Button>
-                  <Button onClick={handleGenerateAIResult} disabled={loading} className="gap-2">
+                  <Button onClick={handleGenerateAIResult} disabled={loading} className="gap-2 w-full sm:w-auto">
                     <Sparkles className="w-4 h-4" /> {loading ? "產生中..." : "AI 產生結果摘要"}
                   </Button>
                 </div>
@@ -244,7 +244,7 @@ export default function Step3Summary() {
 
               <TabsContent value="summary">
                 {summaryText ? (
-                  <div className="border rounded-lg p-4 bg-gray-50 text-sm text-gray-800 whitespace-pre-wrap relative">
+                  <div className="relative border rounded-lg p-4 bg-gray-50 text-sm text-gray-800 whitespace-pre-wrap">
                     <strong className="block text-primary mb-2">🧠 AI 產出摘要：</strong>
                     <div>{summaryText}</div>
                     <Button
@@ -258,7 +258,7 @@ export default function Step3Summary() {
                   </div>
                 ) : (
                   <p className="text-sm text-muted-foreground italic">
-                    尚未產生摘要，請點擊上方按鈕。
+                    尚未產生摘要，請點擊AI產出按鈕。
                   </p>
                 )}
               </TabsContent>

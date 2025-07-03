@@ -3,35 +3,22 @@
 import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/nextjs";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { UploadCloud, Sparkles, Info, FileUp, Filter } from "lucide-react";
+import { UploadCloud, FileUp } from "lucide-react";
 import * as XLSX from "xlsx";
 import { useAnalysis } from "@/context/AnalysisContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { MultiSelect } from "@/components/ui/custom/multiselect";
 import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
 import { motion } from "framer-motion";
 import DashboardLayout from "@/components/ui/layout/DashboardLayout";
 
-// ✅ 包住登入邏輯，不動原本 UI
 export default function Step1Page() {
   return (
     <>
@@ -45,7 +32,6 @@ export default function Step1Page() {
   );
 }
 
-// ✅ 原本 UI 完全不變，只是改名成 Step1Inner（避免 default export 重複）
 function Step1Inner() {
   const router = useRouter();
   const {
@@ -62,12 +48,6 @@ function Step1Inner() {
 
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string>("");
-  const [groupVar, setGroupVar] = useState<string>("");
-  const [catVars, setCatVars] = useState<string[]>([]);
-  const [contVars, setContVars] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [showError, setShowError] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -121,6 +101,7 @@ function Step1Inner() {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
+        className="px-4 sm:px-6 md:px-8"
       >
         <Card className="w-full max-w-2xl mx-auto rounded-2xl shadow-xl border border-muted bg-white">
           <CardHeader>
@@ -138,7 +119,7 @@ function Step1Inner() {
               <strong>請注意：</strong> 請務必移除所有個資欄位（如姓名、病歷號等），避免違反資料安全規範！
             </motion.div>
 
-            <div className="rounded-xl border-2 border-dashed border-accent bg-accent/10 px-6 py-8 text-center">
+            <div className="rounded-xl border-2 border-dashed border-accent bg-accent/10 px-4 sm:px-6 py-6 sm:py-8 text-center">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -146,7 +127,7 @@ function Step1Inner() {
                       type="file"
                       accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                       onChange={handleFileChange}
-                      className="mx-auto w-full max-w-sm cursor-pointer text-sm"
+                      className="mx-auto w-full max-w-xs sm:max-w-sm cursor-pointer text-sm"
                     />
                   </TooltipTrigger>
                   <TooltipContent>
@@ -169,13 +150,15 @@ function Step1Inner() {
                 ✅ 已選擇：{file.name}
               </p>
             )}
-            {error && <p className="text-sm text-red-500">{error}</p>}
+            {error && (
+              <p className="text-sm text-red-500 mt-2">{error}</p>
+            )}
 
-            <div className="flex justify-end">
+            <div className="flex justify-end pt-4">
               <Button
                 onClick={handleUpload}
                 disabled={!file}
-                className="bg-primary text-white hover:bg-primary/90 rounded-lg px-6 py-2 gap-2"
+                className="bg-primary text-white hover:bg-primary/90 rounded-lg px-5 sm:px-6 py-2 gap-2 w-full sm:w-auto"
               >
                 <FileUp className="w-4 h-4" /> 上傳並分析
               </Button>

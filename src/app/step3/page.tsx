@@ -1,3 +1,4 @@
+// ✅ 修正版 page.tsx with mobile RWD fix and AI summary visibility — 保留統計表渲染
 "use client";
 
 import { useEffect, useState } from "react";
@@ -21,7 +22,6 @@ import {
   HoverCardTrigger,
   HoverCardContent,
 } from "@/components/ui/hover-card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import DashboardLayout from "@/components/ui/layout/DashboardLayout";
 import { BarChart3, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
@@ -33,6 +33,8 @@ export default function Step3Summary() {
   const router = useRouter();
   const [summaryText, setSummaryText] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+  const rowsPerPage = 10;
 
   useEffect(() => {
     if (!resultTable || resultTable.length === 0) {
@@ -64,6 +66,11 @@ export default function Step3Summary() {
     }
   });
 
+  const filteredRows = resultTable.filter(
+    (row) => row.Variable?.replace(/\*/g, "") !== groupVar
+  );
+  const pageCount = Math.ceil(filteredRows.length / rowsPerPage);
+
   const renderCell = (val: any) => {
     if (
       val === undefined ||
@@ -78,17 +85,15 @@ export default function Step3Summary() {
   };
 
   const exportToExcel = () => {
-    const data = resultTable
-      .filter((row) => row.Variable?.replace(/\*/g, "") !== groupVar)
-      .map((row) => {
-        const filtered: any = {};
-        exportColumns.forEach((col) => {
-          const isGroupCol = !["Variable", "P", "Method"].includes(col);
-          const label = isGroupCol ? `${col} (n=${groupCounts[col] ?? "?"})` : col;
-          filtered[label] = row[col] !== "nan" ? row[col] : "";
-        });
-        return filtered;
+    const data = filteredRows.map((row) => {
+      const filtered: any = {};
+      exportColumns.forEach((col) => {
+        const isGroupCol = !["Variable", "P", "Method"].includes(col);
+        const label = isGroupCol ? `${col} (n=${groupCounts[col] ?? "?"})` : col;
+        filtered[label] = row[col] !== "nan" ? row[col] : "";
       });
+      return filtered;
+    });
 
     const worksheet = XLSX.utils.json_to_sheet(data);
     const workbook = XLSX.utils.book_new();
@@ -123,8 +128,7 @@ export default function Step3Summary() {
     setLoading(true);
     setSummaryText(null);
 
-    const coreData = resultTable
-      .filter((row) => row.Variable?.replace(/\*/g, "") !== groupVar)
+    const coreData = filteredRows
       .map((row) => {
         const summary = exportColumns
           .map((col) => `${col}: ${row[col] ?? "—"}`)
@@ -161,10 +165,10 @@ export default function Step3Summary() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="px-4 sm:px-6 md:px-8"
-  >
-    <Card className="w-full max-w-6xl mx-auto rounded-2xl shadow-lg border border-muted">
+      >
+        <Card className="w-full max-w-6xl mx-auto rounded-2xl shadow-lg border border-muted">
           <CardHeader>
-            <CardTitle className="text-lg md:text-xl font-semibold text-primary flex items-center gap-2">
+            <CardTitle className="text-lg md:text-xl font-semibold text-primary flex items-center gap-2 whitespace-nowrap">
               <BarChart3 className="w-5 h-5" /> Step 3：統計摘要
             </CardTitle>
           </CardHeader>
@@ -174,16 +178,16 @@ export default function Step3Summary() {
                 <TabsTrigger value="table">📊 統計表</TabsTrigger>
                 <TabsTrigger value="summary">🧠 AI 摘要</TabsTrigger>
               </TabsList>
+
               <TabsContent value="table">
-                <div className="overflow-x-auto"></div>
-                <ScrollArea className="min-w-[700px] h-[480px] rounded-md border p-2">
-                  <table className="min-w-full text-sm border border-gray-300 table-auto rounded-md">
-                    <thead className="bg-gray-100">
+                <div className="overflow-x-auto w-full">
+                  <table className="min-w-[700px] text-sm border border-gray-300 table-auto whitespace-nowrap">
+                    <thead className="bg-gray-100 sticky top-0 z-10">
                       <tr>
                         {columns.map((key) => (
                           <th
                             key={key}
-                            className="px-4 py-3 border border-gray-200 font-semibold text-gray-700 whitespace-nowrap text-left"
+                            className="px-4 py-3 border border-gray-200 font-semibold text-gray-700 text-left bg-gray-100"
                           >
                             {key === "Variable" ? (
                               <HoverCard>
@@ -206,15 +210,16 @@ export default function Step3Summary() {
                       </tr>
                     </thead>
                     <tbody>
-                      {resultTable.map((row, idx) => {
-                        const varName = row["Variable"]?.replace(/\*/g, "");
-                        if (varName === groupVar) return null;
-                        return (
+                      {filteredRows
+                        .slice(currentPage * rowsPerPage, (currentPage + 1) * rowsPerPage)
+                        .map((row, idx) => (
                           <tr key={idx} className="border-t border-gray-200 hover:bg-gray-50">
                             {columns.map((key, i) => (
                               <td
                                 key={key}
-                                className={`px-4 py-3 border border-gray-100 text-sm text-gray-800 whitespace-nowrap ${i === 0 ? "font-medium text-left" : "text-right"}`}
+                                className={`px-4 py-3 border border-gray-100 text-sm text-gray-800 ${
+                                  i === 0 ? "font-medium text-left" : "text-right"
+                                }`}
                               >
                                 {i === 0 && typeof row[key] === "string" && row[key].startsWith("**") ? (
                                   <strong>{row[key].replace(/\*\*/g, "")}</strong>
@@ -224,11 +229,27 @@ export default function Step3Summary() {
                               </td>
                             ))}
                           </tr>
-                        );
-                      })}
+                        ))}
                     </tbody>
                   </table>
-                </ScrollArea>
+                </div>
+
+                <div className="flex justify-center items-center gap-4 mt-4 text-sm text-muted-foreground whitespace-nowrap">
+                  <Button variant="ghost" disabled={currentPage === 0} onClick={() => setCurrentPage(currentPage - 1)}>
+                    ⬅ 上一頁
+                  </Button>
+                  <span>
+                    Page {currentPage + 1} / {pageCount}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    disabled={(currentPage + 1) * rowsPerPage >= filteredRows.length}
+                    onClick={() => setCurrentPage(currentPage + 1)}
+                  >
+                    下一頁 ➡
+                  </Button>
+                </div>
+
                 <div className="flex flex-col sm:flex-row justify-end gap-3 mt-4">
                   <Button variant="outline" onClick={exportToExcel} className="w-full sm:w-auto">
                     導出 Excel
@@ -243,24 +264,18 @@ export default function Step3Summary() {
               </TabsContent>
 
               <TabsContent value="summary">
-                {summaryText ? (
-                  <div className="relative border rounded-lg p-4 bg-gray-50 text-sm text-gray-800 whitespace-pre-wrap">
-                    <strong className="block text-primary mb-2">🧠 AI 產出摘要：</strong>
-                    <div>{summaryText}</div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="absolute top-2 right-2 text-xs"
-                      onClick={handleCopySummary}
-                    >
-                      📋 複製
-                    </Button>
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground italic">
-                    尚未產生摘要，請點擊AI產出按鈕。
-                  </p>
-                )}
+                <div className="border rounded-lg p-4 bg-gray-50 text-sm text-gray-800 whitespace-pre-wrap relative">
+                  <strong className="block text-primary mb-2">🧠 AI 產出摘要：</strong>
+                  <div>{summaryText || "尚未產生摘要，請點擊按鈕產出。"}</div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="absolute top-2 right-2 text-xs"
+                    onClick={handleCopySummary}
+                  >
+                    📋 複製
+                  </Button>
+                </div>
               </TabsContent>
             </Tabs>
           </CardContent>

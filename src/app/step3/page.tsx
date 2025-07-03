@@ -1,3 +1,4 @@
+// ✅ 修正版 page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -177,14 +178,14 @@ export default function Step3Summary() {
               </TabsList>
 
               <TabsContent value="table">
-                <div className="overflow-x-auto rounded-md border max-h-[480px]">
-                  <table className="min-w-[700px] text-sm border border-gray-300 table-auto">
+                <div className="overflow-x-auto w-full">
+                  <table className="min-w-[700px] text-sm border border-gray-300 table-auto whitespace-nowrap">
                     <thead className="bg-gray-100 sticky top-0 z-10">
                       <tr>
                         {columns.map((key) => (
                           <th
                             key={key}
-                            className="px-4 py-3 border border-gray-200 font-semibold text-gray-700 whitespace-nowrap text-left bg-gray-100"
+                            className="px-4 py-3 border border-gray-200 font-semibold text-gray-700 text-left bg-gray-100"
                           >
                             {key === "Variable" ? (
                               <HoverCard>
@@ -214,7 +215,7 @@ export default function Step3Summary() {
                             {columns.map((key, i) => (
                               <td
                                 key={key}
-                                className={`px-4 py-3 border border-gray-100 text-sm text-gray-800 whitespace-nowrap ${
+                                className={`px-4 py-3 border border-gray-100 text-sm text-gray-800 ${
                                   i === 0 ? "font-medium text-left" : "text-right"
                                 }`}
                               >
@@ -231,7 +232,7 @@ export default function Step3Summary() {
                   </table>
                 </div>
 
-                <div className="flex justify-center items-center gap-4 mt-4 text-sm text-muted-foreground">
+                <div className="flex justify-center items-center gap-4 mt-4 text-sm text-muted-foreground whitespace-nowrap">
                   <Button variant="ghost" disabled={currentPage === 0} onClick={() => setCurrentPage(currentPage - 1)}>
                     ⬅ 上一頁
                   </Button>
@@ -261,24 +262,18 @@ export default function Step3Summary() {
               </TabsContent>
 
               <TabsContent value="summary">
-                {summaryText ? (
-                  <div className="relative border rounded-lg p-4 bg-gray-50 text-sm text-gray-800 whitespace-pre-wrap">
-                    <strong className="block text-primary mb-2">🧠 AI 產出摘要：</strong>
-                    <div>{summaryText}</div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="absolute top-2 right-2 text-xs"
-                      onClick={handleCopySummary}
-                    >
-                      📋 複製
-                    </Button>
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground italic">
-                    尚未產生摘要，請點擊AI產出按鈕。
-                  </p>
-                )}
+                <div className="border rounded-lg p-4 bg-gray-50 text-sm text-gray-800 whitespace-pre-wrap relative">
+                  <strong className="block text-primary mb-2">🧠 AI 產出摘要：</strong>
+                  <div>{summaryText || "尚未產生摘要，請點擊按鈕產出。"}</div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="absolute top-2 right-2 text-xs"
+                    onClick={handleCopySummary}
+                  >
+                    📋 複製
+                  </Button>
+                </div>
               </TabsContent>
             </Tabs>
           </CardContent>

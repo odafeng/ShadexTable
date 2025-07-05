@@ -8,7 +8,7 @@ export default function LandingPlaceholder() {
   return (
     <main className="min-h-screen bg-[#F8FAFC] text-[#1D3557] flex flex-col items-center justify-center px-4 py-12 text-center">
       <Image
-        src="/logo/shady_logo_light.svg"
+        src="/logo/shady_logo_dark.svg"
         alt="ShadyTable Logo"
         width={80}
         height={80}
@@ -18,12 +18,12 @@ export default function LandingPlaceholder() {
       <p className="text-[#64748B] max-w-md mb-6 text-base md:text-lg">
         我們正在打造全新的首頁體驗，敬請期待！
         <br />
-        如您已是會員，可直接前往控制台開始使用。
+        如您已是會員，可直接開始使用。
       </p>
       <div className="flex flex-col sm:flex-row gap-4">
         <Link href="/step1">
           <Button className="bg-[#457B9D] text-white hover:bg-[#1D3557] text-sm px-6 py-2 rounded-lg">
-            前往控制台
+            開始使用 ShadyTable
           </Button>
         </Link>
         <Link href="/sign-in">

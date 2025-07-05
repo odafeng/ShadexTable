@@ -1,7 +1,7 @@
 "use client";
 
 import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/nextjs";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { UploadCloud, FileUp } from "lucide-react";
 import * as XLSX from "xlsx";
@@ -14,7 +14,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
 import { motion } from "framer-motion";
 import DashboardLayout from "@/components/ui/layout/DashboardLayout";
@@ -152,6 +157,44 @@ function Step1Inner() {
             )}
             {error && (
               <p className="text-sm text-red-500 mt-2">{error}</p>
+            )}
+
+            {parsedData.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  ✅ 已上傳檔案，以下為預覽資料（最多顯示前五列）：
+                </p>
+                <div className="overflow-auto border rounded-lg text-sm max-h-64">
+                  <table className="min-w-full border-collapse text-left">
+                    <thead className="bg-gray-100 sticky top-0 z-10">
+                      <tr>
+                        {Object.keys(parsedData[0]).map((key) => (
+                          <th
+                            key={key}
+                            className="px-3 py-2 border-b font-medium text-gray-700 whitespace-nowrap"
+                          >
+                            {key}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {parsedData.slice(0, 5).map((row, i) => (
+                        <tr key={i} className="hover:bg-gray-50">
+                          {Object.values(row).map((val, j) => (
+                            <td
+                              key={j}
+                              className="px-3 py-2 border-b whitespace-nowrap"
+                            >
+                              {String(val)}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             )}
 
             <div className="flex justify-end pt-4">

@@ -14,14 +14,18 @@ export default function LandingPage() {
           <Image src="/logo/shady_logo_light.svg" alt="ShadyTable Logo" width={32} height={32} />
           ShadyTable
         </div>
-        <nav className="hidden md:flex space-x-6 text-sm">
-          <a href="#" className="hover:text-blue-400">功能特色</a>
-          <a href="#" className="hover:text-blue-400">定價方案</a>
-          <a href="#" className="hover:text-blue-400">常見問題</a>
-          <a href="#" className="hover:text-blue-400">關於我們</a>
-        </nav>
-        <Button variant="secondary" className="text-sm font-medium">登入</Button>
-        <Button variant="secondary" className="text-sm font-medium">立即體驗</Button>
+        <div className="flex items-center gap-4">
+          <nav className="hidden md:flex space-x-6 text-sm">
+            <a href="#" className="hover:text-blue-400">功能特色</a>
+            <a href="#" className="hover:text-blue-400">定價方案</a>
+            <a href="#" className="hover:text-blue-400">常見問題</a>
+            <a href="#" className="hover:text-blue-400">關於我們</a>
+          </nav>
+          <div className="flex gap-2">
+            <Button variant="secondary" className="text-sm font-medium">登入</Button>
+            <Button className="bg-white text-[#0F172A] hover:bg-gray-100 text-sm font-medium">立即體驗</Button>
+          </div>
+        </div>
       </header>
 
       {/* Hero Section */}
@@ -41,7 +45,7 @@ export default function LandingPage() {
         </div>
         <div className="relative">
           <Image
-            src="/screenshots/table_card.png"
+            src="/screenshots/result_preview.png"
             alt="Upload Preview"
             width={500}
             height={300}
@@ -66,21 +70,21 @@ export default function LandingPage() {
       {/* Features */}
       <section className="bg-white px-6 md:px-16 py-16 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
         <div>
-          <Image src="/icons/chart-bar.svg" alt="分析圖示" width={40} height={40} className="mx-auto mb-4" />
+          <Image src="/icons/barchart-filled.svg" alt="分析圖示" width={64} height={64} className="mx-auto mb-4" />
           <h3 className="text-xl font-semibold mb-2">一鍵分析</h3>
           <p className="text-sm text-[#64748B]">
-            ⾃動依據變項種類，<br />提供合適檢定方法
+            ⾃動依據變項種類，<br />選擇合適檢定方法
           </p>
         </div>
         <div>
-          <Image src="/icons/ai-brain.svg" alt="AI 摘要圖示" width={40} height={40} className="mx-auto mb-4" />
+          <Image src="/icons/brain-filled.svg" alt="AI 摘要圖示" width={64} height={64} className="mx-auto mb-4" />
           <h3 className="text-xl font-semibold mb-2">AI 摘要</h3>
           <p className="text-sm text-[#64748B]">
             ⾃動產生AI結果摘要段落<br />投稿、報告超方便
           </p>
         </div>
         <div>
-          <Image src="/icons/word-excel.svg" alt="Word Excel圖示" width={40} height={40} className="mx-auto mb-4" />
+          <Image src="/icons/file-export-filled.svg" alt="Word Excel圖示" width={64} height={64} className="mx-auto mb-4" />
           <h3 className="text-xl font-semibold mb-2">輕鬆產表</h3>
           <p className="text-sm text-[#64748B]">
             一目瞭然的摘要表格<br />Word 與 Excel 匯出

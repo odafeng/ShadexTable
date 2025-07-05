@@ -26,7 +26,7 @@ export default function LandingPage() {
             <a href="#" className="hover:text-blue-400">關於我們</a>
           </nav>
           <div className="flex gap-2">
-            <Link href="/sign-in">
+            <Link href="/sign-in?redirect_url=/step1">
               <Button className="bg-white text-[#0F172A] hover:bg-gray-100 text-sm font-semibold">登入</Button>
             </Link>
             <Button className="bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium">立即體驗</Button>
@@ -49,7 +49,7 @@ export default function LandingPage() {
             <a href="#" className="hover:text-blue-400">關於我們</a>
           </nav>
           <div className="flex gap-2">
-            <Link href="/sign-in">
+            <Link href="/sign-in?redirect_url=/step1">
               <Button className="bg-white text-[#0F172A] hover:bg-gray-100 text-sm font-semibold w-full">登入</Button>
             </Link>
             <Button className="bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium w-full">立即體驗</Button>

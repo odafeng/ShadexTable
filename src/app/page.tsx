@@ -39,8 +39,12 @@ export default function LandingPage() {
             只需3步驟
           </p>
           <div className="flex gap-4 flex-wrap">
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white text-base px-6 py-2">立即體驗免費方案</Button>
-            <span className="text-[#64748B] text-sm self-center">觀看 30 秒示範影片</span>
+            <Button className="bg-blue-600 hover:bg-blue-700 text-white text-base px-6 py-2">
+              立即體驗免費方案
+            </Button>
+            <Button variant="outline" className="text-base px-6 py-2">
+              觀看 30 秒示範影片
+            </Button>
           </div>
         </div>
         <div className="relative">
@@ -70,21 +74,21 @@ export default function LandingPage() {
       {/* Features */}
       <section className="bg-white px-6 md:px-16 py-16 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
         <div>
-          <Image src="/icons/barchart-filled.svg" alt="分析圖示" width={64} height={64} className="mx-auto mb-4" />
+          <Image src="/icons/barchart-filled.svg" alt="分析圖示" width={64} height={64} className="mx-auto mb-4 object-contain" />
           <h3 className="text-xl font-semibold mb-2">一鍵分析</h3>
           <p className="text-sm text-[#64748B]">
             ⾃動依據變項種類，<br />選擇合適檢定方法
           </p>
         </div>
         <div>
-          <Image src="/icons/brain-filled.svg" alt="AI 摘要圖示" width={64} height={64} className="mx-auto mb-4" />
+          <Image src="/icons/brain-filled.svg" alt="AI 摘要圖示" width={64} height={64} className="mx-auto mb-4 object-contain" />
           <h3 className="text-xl font-semibold mb-2">AI 摘要</h3>
           <p className="text-sm text-[#64748B]">
             ⾃動產生AI結果摘要段落<br />投稿、報告超方便
           </p>
         </div>
         <div>
-          <Image src="/icons/file-export-filled.svg" alt="Word Excel圖示" width={64} height={64} className="mx-auto mb-4" />
+          <Image src="/icons/file-export-filled.svg" alt="Word Excel圖示" width={64} height={64} className="mx-auto mb-4 object-contain" />
           <h3 className="text-xl font-semibold mb-2">輕鬆產表</h3>
           <p className="text-sm text-[#64748B]">
             一目瞭然的摘要表格<br />Word 與 Excel 匯出

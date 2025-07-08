@@ -37,9 +37,13 @@ import {
 import { motion } from "framer-motion";
 import { Settings2, Sparkles } from "lucide-react";
 import DashboardLayout from "@/components/ui/layout/DashboardLayout";
+import { useAuth } from "@clerk/nextjs";
+
+
 
 export default function Step2VariableSelect() {
   const router = useRouter();
+  const { getToken } = useAuth();
   const {
     parsedData,
     setGroupVar: setCtxGroupVar,
@@ -63,39 +67,51 @@ export default function Step2VariableSelect() {
   const isValid = catVars.length > 0 || contVars.length > 0;
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+ 
   const handleAnalyze = async () => {
-    setCtxGroupVar(groupVar);
-    setCtxCatVars(catVars);
-    setCtxContVars(contVars);
-    setLoading(true);
-    try {
-      const res = await fetch(`${API_URL}/analyze`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          data: parsedData,
-          groupVar,
-          catVars,
-          contVars,
-          fillNA,
-        }),
-      });
+  setCtxGroupVar(groupVar);
+  setCtxCatVars(catVars);
+  setCtxContVars(contVars);
+  setLoading(true);
 
-      const result = await res.json();
-
-      if (!res.ok) throw new Error(result?.detail || "分析失敗，請稍後再試");
-      if (!result.table || !Array.isArray(result.table)) throw new Error("後端回傳格式錯誤");
-
-      setResultTable(result.table);
-      router.push("/step3");
-    } catch (err: any) {
-      console.error("❌ 分析失敗：", err);
-      setErrorMsg(err.message || "未知錯誤");
+  try {
+    const token = await getToken(); // ✅ 拿到使用者 token
+    if (!token) {
+     setErrorMsg("⚠️ 無法取得登入憑證，請重新登入");
       setShowError(true);
-    } finally {
       setLoading(false);
+    return;
     }
-  };
+    const res = await fetch(`${API_URL}/analyze`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`, // ✅ 加上 token
+      },
+      body: JSON.stringify({
+        data: parsedData,
+        groupVar,
+        catVars,
+        contVars,
+        fillNA,
+      }),
+    });
+
+    const result = await res.json();
+
+    if (!res.ok) throw new Error(result?.detail || "分析失敗，請稍後再試");
+    if (!result.table || !Array.isArray(result.table)) throw new Error("後端回傳格式錯誤");
+
+    setResultTable(result.table);
+    router.push("/step3");
+  } catch (err: any) {
+    console.error("❌ 分析失敗：", err);
+    setErrorMsg(err.message || "未知錯誤");
+    setShowError(true);
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     if (parsedData.length === 0) router.push("/step1");

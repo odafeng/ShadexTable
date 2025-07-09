@@ -4,27 +4,25 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useEffect } from "react";
+import { useSession } from "@clerk/nextjs"; // ✅ 改用 Clerk 官方 hook
 
 export default function LandingPlaceholder() {
+  const { session } = useSession();
+
   useEffect(() => {
     async function tryGetToken() {
-      const check = async () => {
-        try {
-          if (window.Clerk?.session) {
-            const token = await window.Clerk.session.getToken({ template: "shadytable-api" });
-            console.log("📌 JWT Token (shadytable-api):", token);
-          } else {
-            setTimeout(check, 200); // wait until Clerk session is ready
-          }
-        } catch (error) {
-          console.error("❌ 無法取得 Clerk token:", error);
+      try {
+        if (session) {
+          const token = await session.getToken({ template: "shadytable-api" });
+          console.log("📌 JWT Token (shadytable-api):", token);
         }
-      };
-      check();
+      } catch (error) {
+        console.error("❌ 無法取得 Clerk token:", error);
+      }
     }
 
     tryGetToken();
-  }, []);
+  }, [session]); // ✅ 依賴 session 變化再觸發
 
   return (
     <main className="min-h-screen bg-[#F8FAFC] text-[#1D3557] flex flex-col items-center justify-center px-4 py-12 text-center">

@@ -39,8 +39,6 @@ import { Settings2, Sparkles } from "lucide-react";
 import DashboardLayout from "@/components/ui/layout/DashboardLayout";
 import { useAuth } from "@clerk/nextjs";
 
-
-
 export default function Step2VariableSelect() {
   const router = useRouter();
   const { getToken } = useAuth();
@@ -49,6 +47,7 @@ export default function Step2VariableSelect() {
     setGroupVar: setCtxGroupVar,
     setCatVars: setCtxCatVars,
     setContVars: setCtxContVars,
+    setGroupCounts,
     fillNA,
     setFillNA,
     setResultTable,
@@ -60,6 +59,8 @@ export default function Step2VariableSelect() {
   const [loading, setLoading] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [showError, setShowError] = useState(false);
+  const [pointCost, setPointCost] = useState(1);
+  const [userPoints, setUserPoints] = useState<number | null>(null);
 
   const allColumns = parsedData.length > 0 ? Object.keys(parsedData[0]) : [];
   const selectableCatVars = allColumns.filter((c) => !contVars.includes(c));
@@ -67,55 +68,92 @@ export default function Step2VariableSelect() {
   const isValid = catVars.length > 0 || contVars.length > 0;
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
- 
-  const handleAnalyze = async () => {
-  setCtxGroupVar(groupVar);
-  setCtxCatVars(catVars);
-  setCtxContVars(contVars);
-  setLoading(true);
-
-  try {
-    const token = await getToken(); // ✅ 拿到使用者 token
-    if (!token) {
-     setErrorMsg("⚠️ 無法取得登入憑證，請重新登入");
-      setShowError(true);
-      setLoading(false);
-    return;
+  useEffect(() => {
+    if (!groupVar) {
+      setPointCost(1);
+    } else {
+      const groups = parsedData
+        .map((row) => row[groupVar])
+        .filter((v) => v !== undefined && v !== null);
+      const uniqueGroups = Array.from(new Set(groups));
+      if (uniqueGroups.length === 2) {
+        setPointCost(2);
+      } else {
+        setPointCost(3);
+      }
     }
-    const res = await fetch(`${API_URL}/analyze`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`, // ✅ 加上 token
-      },
-      body: JSON.stringify({
-        data: parsedData,
-        groupVar,
-        catVars,
-        contVars,
-        fillNA,
-      }),
-    });
+  }, [groupVar, parsedData]);
 
-    const result = await res.json();
+  useEffect(() => {
+    const fetchPoints = async () => {
+      const token = await getToken();
+      const res = await fetch(`${API_URL}/me/points`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const json = await res.json();
+      setUserPoints(json.points);
+    };
+    fetchPoints();
+  }, []);
 
-    if (!res.ok) throw new Error(result?.detail || "分析失敗，請稍後再試");
-    if (!result.table || !Array.isArray(result.table)) throw new Error("後端回傳格式錯誤");
+  const handleAnalyze = async () => {
+    setCtxGroupVar(groupVar);
+    setCtxCatVars(catVars);
+    setCtxContVars(contVars);
+    setLoading(true);
 
-    setResultTable(result.table);
-    router.push("/step3");
-  } catch (err: any) {
-    console.error("❌ 分析失敗：", err);
-    setErrorMsg(err.message || "未知錯誤");
-    setShowError(true);
-  } finally {
-    setLoading(false);
-  }
-};
+    try {
+      const token = await getToken();
+      if (!token) {
+        setErrorMsg("⚠️ 無法取得登入憑證，請重新登入");
+        setShowError(true);
+        setLoading(false);
+        return;
+      }
+      const res = await fetch(`${API_URL}/analyze`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          data: parsedData,
+          groupVar,
+          catVars,
+          contVars,
+          fillNA,
+        }),
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        if (res.status === 402) {
+          throw new Error("⚠️ 點數不足，請前往購買頁面補充點數");
+        }
+        throw new Error(result?.detail || "分析失敗，請稍後再試");
+      }
+      if (!result.table || !Array.isArray(result.table)) {
+        throw new Error("後端回傳格式錯誤");
+      }
+
+      setResultTable(result.table);
+      setGroupCounts(result.groupCounts);
+      router.push("/step3");
+    } catch (err: any) {
+      console.error("❌ 分析失敗：", err);
+      setErrorMsg(err.message || "未知錯誤");
+      setShowError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (parsedData.length === 0) router.push("/step1");
   }, [parsedData, router]);
+
+  const isPointEnough = userPoints === null || userPoints >= pointCost;
 
   return (
     <DashboardLayout>
@@ -134,21 +172,30 @@ export default function Step2VariableSelect() {
 
           <CardContent className="space-y-6">
             <div className="space-y-2">
-              <Label>分組變項</Label>
-              <Select onValueChange={(v) => setGroupVar(v === "__no_grouping__" ? "" : v)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="選擇變項..." />
-                </SelectTrigger>
-                <SelectContent className="max-h-64 overflow-y-auto">
-                  <SelectItem value="__no_grouping__">（不分組）</SelectItem>
-                  {allColumns.map((col) => (
-                    <SelectItem key={col} value={col}>
-                      {col}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+             <Label>分組變項</Label>
+             <Select onValueChange={(v) => setGroupVar(v === "__no_grouping__" ? "" : v)}>
+              <SelectTrigger>
+                <SelectValue placeholder="選擇變項..." />
+              </SelectTrigger>
+              <SelectContent className="max-h-64 overflow-y-auto">
+                <SelectItem value="__no_grouping__">（不分組）</SelectItem>
+                {allColumns.map((col) => (
+                  <SelectItem key={col} value={col}>
+                    {col}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+             </Select>
+               
+              {parsedData.length > 0 && (  // 選擇分組變項後顯示預計扣幾點
+                <p className="text-sm text-muted-foreground mt-1">
+                💡 本次分析將扣除 <span className="font-semibold text-primary">{pointCost} 點</span>，
+                目前剩餘 <span className="font-semibold">{userPoints ?? "?"} 點</span>
+                </p>
+              )}
+
+
+          </div>
 
             <div className="space-y-2">
               <div className="flex items-center gap-2">
@@ -194,24 +241,48 @@ export default function Step2VariableSelect() {
               />
             </div>
 
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="fillna"
-                checked={fillNA}
-                onCheckedChange={(val) => setFillNA(!!val)}
-              />
-              <Label htmlFor="fillna">填補缺值</Label>
-            </div>
+            <TooltipProvider>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="fillna"
+                  checked={fillNA}
+                  onCheckedChange={(val) => setFillNA(!!val)}
+                />
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Label htmlFor="fillna" className="cursor-help">
+                      填補缺值
+                    </Label>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    連續變項補平均數，類別變項補眾數
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            </TooltipProvider>
 
             <div className="flex justify-end pt-4">
-              <Button
-                disabled={!isValid || loading}
-                onClick={handleAnalyze}
-                className="gap-2 w-full sm:w-auto"
-              >
-                <Sparkles className="w-4 h-4" />
-                {loading ? "分析中..." : "開始分析"}
-              </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span>
+                      <Button
+                        disabled={!isValid || loading || !isPointEnough}
+                        onClick={handleAnalyze}
+                        className="gap-2 w-full sm:w-auto"
+                      >
+                        <Sparkles className="w-4 h-4" />
+                        {loading ? "分析中..." : `開始分析（扣 ${pointCost} 點）`}
+                      </Button>
+                    </span>
+                  </TooltipTrigger>
+                  {!isPointEnough && (
+                    <TooltipContent>
+                      ⚠️ 點數不足，請先購買再進行分析
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </CardContent>
         </Card>

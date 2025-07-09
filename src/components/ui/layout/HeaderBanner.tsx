@@ -7,6 +7,7 @@ import { UserButton, SignedIn, SignedOut, SignOutButton } from "@clerk/nextjs";
 import { usePoints } from "@/hooks/usePoints";
 
 export default function HeaderBanner() {
+  const { points, loading } = usePoints();
   return (
     <header className="bg-[#1D3557] text-white py-6 px-4 sm:px-6 shadow-sm">
       <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 flex-wrap">
@@ -50,13 +51,22 @@ export default function HeaderBanner() {
           </SignedOut>
 
           <SignedIn>
-            <Link href="/dashboard/points" className="w-full sm:w-auto">
-              <Button className="bg-[#457B9D] text-white hover:bg-[#1D3557] px-5 py-2 text-sm rounded-lg w-full sm:w-auto">
-                控制台
-              </Button>
-            </Link>
-            <div className="w-full sm:w-auto flex justify-center sm:justify-end">
+            <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto items-center">
+              <Link href="/dashboard/points" className="w-full sm:w-auto">
+                <Button className="bg-[#457B9D] text-white hover:bg-[#1D3557] px-5 py-2 text-sm rounded-lg w-full sm:w-auto"> 
+                  控制台
+                </Button>
+              </Link>
+          
+              {!loading && points !== null && (
+                <span className="text-sm bg-white/10 px-3 py-1 rounded-full text-white font-medium">
+                {points} 點可用
+                </span>
+              )}
+          
+             <div className="w-full sm:w-auto flex justify-center sm:justify-end">
               <UserButton afterSignOutUrl="/" />
+            </div>
             </div>
           </SignedIn>
         </div>
@@ -66,7 +76,7 @@ export default function HeaderBanner() {
 }
 
 function ControlPanelWithPoints() {
-  const { points, loading, error } = usePoints();
+  const { points, loading } = usePoints();
 
   return (
     <div className="flex items-center gap-2">

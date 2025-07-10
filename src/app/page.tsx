@@ -7,6 +7,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { SignedIn, SignedOut } from "@clerk/nextjs";
 import { UserButton } from "@clerk/nextjs";
+import { Instagram, Facebook, Mail } from "lucide-react";
+import { ThreadsIcon } from "@/components/ui/icons/ThreadsIcon";
 
 export default function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -23,10 +25,10 @@ export default function LandingPage() {
 
           <div className="hidden md:flex items-center gap-4">
             <nav className="flex space-x-6 text-sm">
-              <a href="/features" className="hover:text-blue-400">功能特色</a>
-              <a href="/pricing" className="hover:text-blue-400">定價方案</a>
-              <a href="#" className="hover:text-blue-400">常見問題</a>
-              <a href="#" className="hover:text-blue-400">關於我們</a>
+              <a href="/marketing/features" className="hover:text-blue-400">功能特色</a>
+              <a href="/marketing/pricing" className="hover:text-blue-400">定價方案</a>
+              <a href="/marketing/faq" className="hover:text-blue-400">常見問題</a>
+              <a href="/marketing/about-us" className="hover:text-blue-400">關於我們</a>
             </nav>
 
 <SignedOut>
@@ -54,7 +56,7 @@ export default function LandingPage() {
     whitespace-nowrap min-w-fit text-center z-50 
     backdrop-blur-sm translate-y-1 group-hover:translate-y-0"
     >
-      <span className="mr-1 text-sm">🎁</span> 立即註冊，獲得 1 點免費試用！
+      <span className="mr-1 text-sm">🎁</span> 立即註冊，獲得 2 點免費試用！
      </div>
     </div>
   </div>
@@ -124,7 +126,7 @@ export default function LandingPage() {
               臨床研究分析，<br className="hidden md:block" />一鍵完成。
             </h1>
             <p className="text-lg mb-8 text-[#475569]">
-              自動統計方法選擇，一鍵產生表格與摘要<br />只需3步驟
+              全台灣第一款專為臨床研究人員打造的<br />雲端統計工具
             </p>
             <div className="flex gap-4 flex-wrap">
               <Link href="https://youtu.be/hA6ID9GMgeQ">
@@ -138,13 +140,13 @@ export default function LandingPage() {
                 </Button>
               </Link>
             </div>
-              <p className="text-sm text-blue-600 font-medium mt-4">
-                現在註冊即可獲得 <span className="font-bold">1 點免費試用點數</span>！
+              <p className="text-sm text-blue-600 font-medium mt-4 md-16">
+                現在註冊即可獲得 <span className="font-bold">2 點免費試用點數</span>！
               </p>
           </div>
           <div className="w-full max-w-[960px] aspect-[16/9] rounded-xl overflow-hidden shadow-inner bg-gradient-to-tr from-slate-100 to-slate-200">
             <iframe
-              src="https://www.youtube.com/embed/yGM9tCAVZeM?autoplay=1&mute=1&controls=0&loop=1&playlist=yGM9tCAVZeM&modestbranding=1&disablekb=1&rel=0"
+              src="https://www.youtube.com/embed/dVZjj5fAoGI?autoplay=1&mute=1&loop=1&playlist=dVZjj5fAoGI&controls=0&modestbranding=1&rel=0&showinfo=0&disablekb=1"
               title="ShadyTable 示範影片"
               allow="autoplay"
               className="w-full h-full pointer-events-none"
@@ -179,6 +181,77 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+{/* Footer */}
+<footer className="bg-[#F1F5F9] dark:bg-[#1E293B] text-[#475569] dark:text-gray-300 py-8 mt-8">
+      <div className="max-w-screen-xl mx-auto px-8 md:px-12 xl:px-24 flex flex-col md:flex-row justify-between items-center gap-4 text-sm">
+        {/* Left: copyright */}
+        <div className="text-center md:text-left">
+          © {new Date().getFullYear()} ShadyTable by AI Medicus. All rights reserved.
+        </div>
+
+        {/* Right: link group */}
+        <div className="flex gap-4 flex-wrap justify-center md:justify-end items-center">
+          <Link
+            href="/marketing/privacy"
+            className="hover:underline hover:text-blue-600 dark:hover:text-blue-400"
+          >
+            隱私權政策
+          </Link>
+          <Link
+            href="/marketing/terms"
+            className="hover:underline hover:text-blue-600 dark:hover:text-blue-400"
+          >
+            使用者條款
+          </Link>
+          <Link
+            href="/marketing/technical"
+            className="hover:underline hover:text-blue-600 dark:hover:text-blue-400"
+          >
+            技術說明文件
+          </Link>
+
+          {/* Social Icons with lucide-react */}
+          <div className="flex gap-3 items-center ml-4">
+            <a
+              href="https://www.instagram.com/shadytable"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-blue-600 dark:hover:text-blue-400"
+              aria-label="Instagram"
+            >
+              <Instagram className="w-5 h-5" />
+            </a>
+            <a
+              href="https://www.facebook.com/shadytable"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-blue-600 dark:hover:text-blue-400"
+              aria-label="Facebook"
+            >
+              <Facebook className="w-5 h-5" />
+            </a>
+            <a
+              href="https://www.threads.net/@shadytable"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Threads"
+              className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+            >
+              <ThreadsIcon className="w-5 h-5" />
+</a>
+            <a
+              href="mailto:support@shadytable.com"
+              className="hover:text-blue-600 dark:hover:text-blue-400"
+              aria-label="Email"
+            >
+              <Mail className="w-5 h-5" />
+            </a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
     </main>
   );
 }

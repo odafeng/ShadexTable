@@ -30,7 +30,7 @@ export default function PointsPage() {
 }
 
 function PointsInner() {
-  const { points, loading, error } = usePoints();
+  const { points, isPro, aiTodayUsed, loading, error } = usePoints();
 
   return (
     <div className="p-6 max-w-3xl mx-auto space-y-6">
@@ -44,21 +44,49 @@ function PointsInner() {
               <CardDescription>分析資料時會自動扣點</CardDescription>
             </div>
           </div>
-          <div className="text-3xl font-bold text-green-600">
-            {loading ? <Skeleton className="h-8 w-16" /> : error ? "⚠" : `${points} 點`}
+          <div className="text-right">
+            {loading ? (
+              <Skeleton className="h-8 w-16" />
+            ) : error ? (
+              "⚠"
+            ) : isPro ? (
+              <div>
+                <div className="text-lg font-bold text-green-600">Pro 用戶</div>
+                <div className="text-xs text-muted-foreground">無限次分析</div>
+              </div>
+            ) : (
+              <div className="text-3xl font-bold text-green-600">{points} 點</div>
+            )}
           </div>
         </CardHeader>
         <CardContent className="pt-2">
           <p className="text-sm text-muted-foreground">
             每次分析依照條件消耗 1~4 點，點數不足時將無法繼續分析。你可以透過下方按鈕加值更多點數。
           </p>
-          <div className="mt-4 flex justify-end">
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white text-sm">
-              <PlusCircle className="w-4 h-4 mr-2" />
-              加值點數
-            </Button>
+          <div className="mt-2">
+            {loading ? (
+              <Skeleton className="h-5 w-48" />
+            ) : isPro ? (
+              <p className="text-sm text-green-700">
+                👑 Pro 方案用戶｜AI 摘要已用 <span className="font-semibold">{aiTodayUsed}</span>/5 次
+              </p>
+            ) : (
+              <p className="text-sm text-gray-600">
+                🚫 非 Pro 用戶｜<a href="/marketing/pricing" className="text-blue-600 hover:underline">立即升級</a>
+              </p>
+            )}
           </div>
+
+          {!isPro && (
+            <div className="mt-4 flex justify-end">
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white text-sm">
+                <PlusCircle className="w-4 h-4 mr-2" />
+                  加值點數  
+              </Button>
+            </div>
+          )}
         </CardContent>
+
       </Card>
 
       {/* 點數說明區塊 */}

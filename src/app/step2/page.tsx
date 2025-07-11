@@ -187,16 +187,19 @@ export default function Step2VariableSelect() {
               </SelectContent>
              </Select>
                
-              {parsedData.length > 0 && (  // 選擇分組變項後顯示預計扣幾點
-                <p className="text-sm text-muted-foreground mt-1">
-                💡 本次分析將扣除 <span className="font-semibold text-primary">{pointCost} 點</span>，
-                目前剩餘 <span className="font-semibold">{userPoints ?? "?"} 點</span>
-                </p>
+              {parsedData.length > 0 && (
+                <div className="mt-1 space-y-1">
+                  <p className="text-sm text-muted-foreground">
+                  💡 本次分析將扣除 <span className="font-semibold text-primary">{pointCost} 點</span>，
+                      目前剩餘 <span className="font-semibold">{userPoints ?? "?"} 點</span>
+                  </p>
+                  <p className="text-sm text-red-600 font-semibold">
+                  ⚠️ 注意：目前系統不支援配對(paired)分析
+                  </p>
+                </div>
               )}
-
-
-          </div>
-
+            </div>
+          
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <Label>類別變項</Label>

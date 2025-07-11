@@ -145,12 +145,19 @@ export default function LandingPage() {
               </p>
           </div>
           <div className="w-full max-w-[960px] aspect-[16/9] rounded-xl overflow-hidden shadow-inner bg-gradient-to-tr from-slate-100 to-slate-200">
-            <iframe
-              src="https://www.youtube.com/embed/dVZjj5fAoGI?autoplay=1&mute=1&loop=1&playlist=dVZjj5fAoGI&controls=0&modestbranding=1&rel=0&showinfo=0&disablekb=1"
-              title="ShadyTable 示範影片"
-              allow="autoplay"
-              className="w-full h-full pointer-events-none"
-            />
+            <video
+              autoPlay
+              muted
+              loop
+              playsInline
+              className="w-full h-full object-cover"
+            >
+              <source
+                src="https://res.cloudinary.com/dpmewq6aj/video/upload/v1752251893/landing_demo_imou3s.mp4"
+                type="video/mp4"
+              />
+              您的瀏覽器不支援影片播放
+            </video>
           </div>
         </div>
       </section>

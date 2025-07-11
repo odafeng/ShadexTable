@@ -45,12 +45,9 @@ export default function TechnicalPage() {
               <div>
                 <h2 className="text-xl font-semibold mb-2">📊 支援的統計分析</h2>
                 <ul className="list-disc list-inside space-y-1">
-                  <li>常模檢定：Shapiro-Wilk test（預計支援 Kolmogorov–Smirnov test）</li>
+                  <li>常態檢定：Shapiro-Wilk test</li>
                   <li>類別 vs 類別：卡方檢定、Fisher's exact test</li>
                   <li>類別 vs 連續變項：t-test / Mann-Whitney U / ANOVA / Kruskal-Wallis</li>
-                  <li>配對資料：paired t-test / Wilcoxon signed-rank test（預計支援）</li>
-                  <li>Logistic Regression：報告 OR、CI 與 p 值（預計支援）</li>
-                  <li>KM 生存分析：log-rank test（預計支援）</li>
                 </ul>
               </div>
               <div>
@@ -78,9 +75,6 @@ export default function TechnicalPage() {
                   <li>Normality: Shapiro-Wilk test (Kolmogorov–Smirnov test coming soon)</li>
                   <li>Cat vs Cat: Chi-squared / Fisher’s exact</li>
                   <li>Cat vs Cont: t-test / Mann-Whitney U / ANOVA / Kruskal-Wallis</li>
-                  <li>Paired: paired t-test / Wilcoxon signed-rank (planned)</li>
-                  <li>Logistic regression with OR, CI, and p-value (planned)</li>
-                  <li>KM survival analysis with log-rank test (planned)</li>
                 </ul>
               </div>
               <div>

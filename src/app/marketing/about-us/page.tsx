@@ -60,7 +60,7 @@ export default function AboutPage() {
             <p>
               我們打造 ShadyTable，目的就是：
               <span className="font-semibold">讓臨床研究者專注在研究問題，而非卡死在統計細節上。</span>
-              透過自動辨識變項、自動產表與摘要，讓統計變得如同使用搜尋引擎一樣簡單。
+              透過自動選擇檢定方法、自動產表與摘要，讓統計變得如同使用搜尋引擎一樣簡單。
             </p>
             <p className="font-medium">
               只要 3 步驟，拖曳資料 → 一鍵分析 → 結果即刻可用。格式清晰，支援投稿與報告。

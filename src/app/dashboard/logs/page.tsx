@@ -1,13 +1,19 @@
 "use client";
 
 import { useLogs } from "@/hooks/useLogs";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 export default function AnalysisHistory() {
   const { logs, loading, error } = useLogs();
+  const router = useRouter();
 
-  if (loading) return <p className="text-sm text-muted-foreground">🔄 分析紀錄讀取中...</p>;
-  if (error) return <p className="text-sm text-red-500">❌ 無法取得紀錄，請稍後再試</p>;
-  if (!logs || logs.length === 0) return <p className="text-sm text-muted-foreground">尚無分析紀錄</p>;
+  if (loading)
+    return <p className="text-sm text-muted-foreground">🔄 分析紀錄讀取中...</p>;
+  if (error)
+    return <p className="text-sm text-red-500">❌ 無法取得紀錄，請稍後再試</p>;
+  if (!logs || logs.length === 0)
+    return <p className="text-sm text-muted-foreground">尚無分析紀錄</p>;
 
   return (
     <div className="space-y-4">
@@ -37,6 +43,15 @@ export default function AnalysisHistory() {
             ))}
           </tbody>
         </table>
+      </div>
+
+      <div className="pt-4 text-right">
+        <Button
+          onClick={() => router.push("/dashboard")}
+          className="bg-primary text-white hover:bg-primary/90"
+        >
+          回首頁
+        </Button>
       </div>
     </div>
   );

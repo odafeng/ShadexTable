@@ -1,7 +1,7 @@
 "use client";
 
-import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/nextjs";
-import { useState } from "react";
+import { SignedIn, SignedOut, RedirectToSignIn, useAuth } from "@clerk/nextjs";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { UploadCloud, FileUp } from "lucide-react";
 import * as XLSX from "xlsx";
@@ -39,6 +39,7 @@ export default function Step1Page() {
 
 function Step1Inner() {
   const router = useRouter();
+  const { getToken } = useAuth();
   const {
     parsedData,
     setFile: setCtxFile,
@@ -56,6 +57,12 @@ function Step1Inner() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [columnsPreview, setColumnsPreview] = useState<any[]>([]);
   const [showPreview, setShowPreview] = useState(false);
+
+  useEffect(() => {
+    getToken().then((token) => {
+      if (token) localStorage.setItem("__session", token);
+    });
+  }, [getToken]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0] || null;
@@ -91,11 +98,12 @@ function Step1Inner() {
 
   const fetchColumnProfile = async (data: any[]) => {
     try {
+      const token = localStorage.getItem("__session") || "";
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/columns-profile`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("__session") || ""}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ data }),
       });
@@ -135,7 +143,7 @@ function Step1Inner() {
     };
     reader.readAsArrayBuffer(file);
   };
-
+  
   return (
     <DashboardLayout>
       <motion.div

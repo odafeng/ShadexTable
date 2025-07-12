@@ -22,6 +22,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { label: "📤 上傳資料", href: "/step1" },
     { label: "🔧 變項選擇", href: "/step2" },
     { label: "📄 統計摘要", href: "/step3" },
+    { label: "📚 分析歷程", href: "/dashboard/logs" },
   ];
 
   return (

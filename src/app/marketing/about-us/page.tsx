@@ -39,6 +39,25 @@ export default function AboutPage() {
 
           <Separator />
 
+          {/* Section 1.5: 創辦者介紹與名稱來源 */}
+          <section className="text-lg leading-relaxed space-y-6">
+            <h2 className="text-2xl font-bold">👨‍⚕️ 我們來自臨床現場</h2>
+            <p>
+              我是一位來自台灣的大腸直腸外科主治醫師。每天穿梭於手術房與門診之間，也深知臨床研究對於改善醫療品質的重要性。
+            </p>
+            <p className="text-muted-foreground">
+              但身為第一線醫師，我也體會到統計流程對我們來說是多麼不友善。ShadyTable的誕生，正是希望能幫助像我這樣的臨床工作者，在最短時間內完成最有效率的分析。
+            </p>
+            <p>
+              而「Shady」這個名字，靈感來自我們最熟悉的一個角色：<span className="font-semibold">「學弟」</span>——那個你一喊就到、會幫你處理各種瑣事、永遠值得信賴的存在。
+            </p>
+            <p className="font-medium text-foreground">
+              ShadyTable 就是你在統計上的好學弟，一個懂臨床、會跑統計、能做表、能寫段落的 AI 研究助手。
+            </p>
+          </section>
+
+          <Separator />
+
           {/* Section 2: 問題來源 */}
           <section className="text-lg leading-relaxed space-y-6">
             <h2 className="text-2xl font-bold">🩺 為什麼我們決定打造 ShadyTable？</h2>
@@ -153,6 +172,6 @@ export default function AboutPage() {
           </motion.div>
         </Container>
       </motion.main>
-      </>
+    </>
   );
 }

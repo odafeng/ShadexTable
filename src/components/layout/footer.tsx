@@ -15,6 +15,14 @@ export default function Footer() {
 
         {/* Right: link group */}
         <div className="flex gap-4 flex-wrap justify-center md:justify-end items-center">
+          
+          <Link
+            href="/marketing/faq"
+            className="hover:underline hover:text-blue-600 dark:hover:text-blue-400"
+          >
+            常見問題
+          </Link>
+
           <Link
             href="/marketing/privacy"
             className="hover:underline hover:text-blue-600 dark:hover:text-blue-400"

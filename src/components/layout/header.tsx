@@ -19,11 +19,24 @@ export default function Header() {
         </div>
 
         <div className="hidden md:flex items-center gap-4">
-          <nav className="flex space-x-6 text-sm">
-            <Link href="/marketing/features" className="hover:text-blue-400">功能特色</Link>
-            <Link href="/marketing/pricing" className="hover:text-blue-400">定價方案</Link>
-            <Link href="/marketing/faq" className="hover:text-blue-400">常見問題</Link>
-            <Link href="/marketing/about-us" className="hover:text-blue-400">關於我們</Link>
+          <nav className="flex space-x-6 text-sm items-center">
+            <a href="/marketing/features" className="hover:text-blue-400">功能特色</a>
+            <a href="/marketing/pricing" className="hover:text-blue-400">定價方案</a>
+            <a href="/marketing/about-us" className="hover:text-blue-400">關於Shady</a>
+            <a href="/marketing/contact" className="hover:text-blue-400">聯絡與回饋</a>
+
+            {/* 下拉選單 - 其他模組 */}
+            <div className="relative group">
+              <div className="hover:text-blue-400 cursor-pointer">其他模組</div>
+              <div className="absolute left-0 mt-2 w-48 rounded shadow-lg z-50
+              bg-white text-black opacity-0 invisible group-hover:opacity-100 group-hover:visible
+              transition-all duration-200 ease-in-out"
+              >
+                <a href="/shadysurv" className="block px-4 py-2 hover:bg-gray-100">ShadySurv 生存曲線</a>
+                <a href="/shadyreg" className="block px-4 py-2 hover:bg-gray-100">ShadyReg 迴歸分析</a>
+                <a href="/shadyfigures" className="block px-4 py-2 hover:bg-gray-100">ShadyFigures 製圖工具</a>
+              </div>
+            </div>
           </nav>
 
           <SignedOut>

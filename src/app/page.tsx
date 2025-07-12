@@ -23,7 +23,7 @@ export default function LandingPage() {
             ShadyTable
           </div>
 
-          <nav className="flex space-x-6 text-sm items-center">
+          <nav className="flex justify-end space-x-6 text-sm items-center px-6">
             <a href="/marketing/features" className="hover:text-blue-400">功能特色</a>
             <a href="/marketing/pricing" className="hover:text-blue-400">定價方案</a>
             <a href="/marketing/about-us" className="hover:text-blue-400">關於Shady</a>

@@ -54,6 +54,8 @@ function Step1Inner() {
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string>("");
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [columnsPreview, setColumnsPreview] = useState<any[]>([]);
+  const [showPreview, setShowPreview] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0] || null;
@@ -80,13 +82,33 @@ function Step1Inner() {
       const sheet = workbook.Sheets[sheetName];
       const json = XLSX.utils.sheet_to_json(sheet);
       setParsedData(json);
+      fetchColumnProfile(json);
     };
     if (selected) {
       reader.readAsArrayBuffer(selected);
     }
   };
 
-  const handleUpload = async () => {
+  const fetchColumnProfile = async (data: any[]) => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/columns-profile`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("__session") || ""}`,
+        },
+        body: JSON.stringify({ data }),
+      });
+
+      const json = await res.json();
+      setColumnsPreview(json.columns || []);
+      setShowPreview(true);
+    } catch (err) {
+      console.error("❌ 欄位解析失敗", err);
+    }
+  };
+
+  const handleUpload = () => {
     if (!file) {
       setError("請先選擇檔案後再上傳。");
       return;
@@ -171,6 +193,52 @@ function Step1Inner() {
             )}
             {error && (
               <p className="text-sm text-red-500 mt-2">{error}</p>
+            )}
+
+            {showPreview && columnsPreview.length > 0 && (
+              <div className="rounded-lg border border-gray-300 bg-white p-4 shadow-sm space-y-2">
+                <p className="text-sm font-medium text-primary">📊 自動欄位解析結果：</p>
+                <div className="overflow-auto max-h-64">
+                  <table className="min-w-full text-sm border border-gray-200">
+                    <thead className="bg-gray-50 sticky top-0">
+                      <tr>
+                        <th className="px-3 py-2 border-b text-left">欄位</th>
+                        <th className="px-3 py-2 border-b text-left">型別</th>
+                        <th className="px-3 py-2 border-b text-left">遺漏值</th>
+                        <th className="px-3 py-2 border-b text-left">Unique 值</th>
+                        <th className="px-3 py-2 border-b text-left">範例</th>
+                        <th className="px-3 py-2 border-b text-left">系統建議型別</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {columnsPreview.map((col, i) => {
+                        const isNumeric = col.dtype?.includes("int") || col.dtype?.includes("float");
+                        const uniqueCount = col.unique_count ?? 0;
+
+                        let suggestion = "不明";
+                        if (isNumeric && uniqueCount <= 10) suggestion = "類別變項";
+                        else if (isNumeric && uniqueCount > 10) suggestion = "連續變項";
+                        else if (!isNumeric && uniqueCount <= 10) suggestion = "類別變項";
+
+                        return (
+                          <tr key={i} className="hover:bg-gray-50">
+                            <td className="px-3 py-2 border-b">{col.column}</td>
+                            <td className="px-3 py-2 border-b">{col.dtype}</td>
+                            <td className="px-3 py-2 border-b">{col.missing_pct}</td>
+                            <td className="px-3 py-2 border-b">{col.unique_count}</td>
+                            <td className="px-3 py-2 border-b">{col.example?.join(", ") || "—"}</td>
+                            <td className="px-3 py-2 border-b text-blue-600 font-medium">{suggestion}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  📌 根據型別與 Unique 值，系統會預測欄位應為類別或連續變項。
+                  若顯示有誤，請返回 Excel 修正欄位格式（如把數值類型改成文字），再重新上傳。
+                </p>
+              </div>
             )}
 
             {parsedData.length > 0 && (

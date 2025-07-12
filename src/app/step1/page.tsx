@@ -65,36 +65,52 @@ function Step1Inner() {
   }, [getToken]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selected = e.target.files?.[0] || null;
-    if (
-      selected &&
-      ![
-        "text/csv",
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      ].includes(selected.type)
-    ) {
-      setError("請上傳 CSV 或 Excel 檔案。");
-      setFile(null);
-      return;
-    }
+  const selected = e.target.files?.[0] || null;
+  if (
+    selected &&
+    ![
+      "text/csv",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    ].includes(selected.type)
+  ) {
+    setError("請上傳 CSV 或 Excel 檔案。");
+    setFile(null);
+    return;
+  }
 
-    setError("");
-    setFile(selected);
+  setError("");
+  setFile(selected);
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const data = new Uint8Array(e.target?.result as ArrayBuffer);
-      const workbook = XLSX.read(data, { type: "array" });
-      const sheetName = workbook.SheetNames[0];
-      const sheet = workbook.Sheets[sheetName];
-      const json = XLSX.utils.sheet_to_json(sheet);
-      setParsedData(json);
-      fetchColumnProfile(json);
-    };
-    if (selected) {
-      reader.readAsArrayBuffer(selected);
-    }
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const data = new Uint8Array(e.target?.result as ArrayBuffer);
+    const workbook = XLSX.read(data, { type: "array" });
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    const json = XLSX.utils.sheet_to_json<Record<string, any>>(sheet);
+
+
+    // ✅ 修正：補齊所有欄位，避免表格錯位
+    const allKeys = Array.from(
+      new Set(json.flatMap((row) => Object.keys(row)))
+    );
+    const normalizedData = json.map((row) => {
+      const completeRow: any = {};
+      allKeys.forEach((key) => {
+        completeRow[key] = key in row ? row[key] : "";
+      });
+      return completeRow;
+    });
+
+    setParsedData(normalizedData);
+    fetchColumnProfile(normalizedData);
   };
+
+  if (selected) {
+    reader.readAsArrayBuffer(selected);
+  }
+};
+
 
   const fetchColumnProfile = async (data: any[]) => {
     try {
@@ -130,11 +146,24 @@ function Step1Inner() {
       const workbook = XLSX.read(data, { type: "array" });
       const sheetName = workbook.SheetNames[0];
       const sheet = workbook.Sheets[sheetName];
-      const json = XLSX.utils.sheet_to_json(sheet);
+      const json = XLSX.utils.sheet_to_json<Record<string, any>>(sheet);
+
+
+      const allKeys = Array.from(
+        new Set(json.flatMap((row) => Object.keys(row)))
+      );
+      const normalizedData = json.map((row) => {
+        const completeRow: any = {};
+        allKeys.forEach((key) => {
+         completeRow[key] = key in row ? row[key] : "";
+        });
+        return completeRow;
+      });
+
       setUploadProgress(80);
 
       setCtxFile(file);
-      setParsedData(json);
+      setParsedData(normalizedData);
 
       setTimeout(() => {
         setUploadProgress(100);
@@ -143,7 +172,7 @@ function Step1Inner() {
     };
     reader.readAsArrayBuffer(file);
   };
-  
+
   return (
     <DashboardLayout>
       <motion.div

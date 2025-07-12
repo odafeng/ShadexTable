@@ -4,6 +4,8 @@ import type { Metadata } from "next";
 import { AnalysisProvider } from "@/context/AnalysisContext";
 import { Toaster } from "sonner";
 import { ClerkProvider } from "@clerk/nextjs";
+import Head from 'next/head';
+
 
 const geistSans = Geist({
   subsets: ["latin"],
@@ -18,6 +20,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "ShadyTable",
   description: "讓醫療統計變得簡單、有型、可信任。",
+  robots: {
+    index: false,
+    follow: false,
+  }
 };
 
 export default function RootLayout({

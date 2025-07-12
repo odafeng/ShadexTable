@@ -37,6 +37,16 @@ export default function Step1Page() {
   );
 }
 
+function fallbackGuess(col: any): string {
+  const isNumeric = col.dtype?.includes("int") || col.dtype?.includes("float");
+  const uniqueCount = col.unique_count ?? 0;
+  if (col.dtype?.includes("datetime") || col.dtype?.includes("date")) return "日期變項";
+  if (isNumeric && uniqueCount <= 10) return "類別變項";
+  if (isNumeric && uniqueCount > 10) return "連續變項";
+  if (!isNumeric && uniqueCount <= 10) return "類別變項";
+  return "不明";
+}
+
 function Step1Inner() {
   const router = useRouter();
   const { getToken } = useAuth();
@@ -65,52 +75,47 @@ function Step1Inner() {
   }, [getToken]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  const selected = e.target.files?.[0] || null;
-  if (
-    selected &&
-    ![
-      "text/csv",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    ].includes(selected.type)
-  ) {
-    setError("請上傳 CSV 或 Excel 檔案。");
-    setFile(null);
-    return;
-  }
+    const selected = e.target.files?.[0] || null;
+    if (
+      selected &&
+      ![
+        "text/csv",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      ].includes(selected.type)
+    ) {
+      setError("請上傳 CSV 或 Excel 檔案。");
+      setFile(null);
+      return;
+    }
 
-  setError("");
-  setFile(selected);
+    setError("");
+    setFile(selected);
 
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const data = new Uint8Array(e.target?.result as ArrayBuffer);
-    const workbook = XLSX.read(data, { type: "array" });
-    const sheetName = workbook.SheetNames[0];
-    const sheet = workbook.Sheets[sheetName];
-    const json = XLSX.utils.sheet_to_json<Record<string, any>>(sheet);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const data = new Uint8Array(e.target?.result as ArrayBuffer);
+      const workbook = XLSX.read(data, { type: "array" });
+      const sheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
+      const json = XLSX.utils.sheet_to_json<Record<string, any>>(sheet);
 
-
-    // ✅ 修正：補齊所有欄位，避免表格錯位
-    const allKeys = Array.from(
-      new Set(json.flatMap((row) => Object.keys(row)))
-    );
-    const normalizedData = json.map((row) => {
-      const completeRow: any = {};
-      allKeys.forEach((key) => {
-        completeRow[key] = key in row ? row[key] : "";
+      const allKeys = Array.from(new Set(json.flatMap((row) => Object.keys(row))));
+      const normalizedData = json.map((row) => {
+        const completeRow: any = {};
+        allKeys.forEach((key) => {
+          completeRow[key] = key in row ? row[key] : "";
+        });
+        return completeRow;
       });
-      return completeRow;
-    });
 
-    setParsedData(normalizedData);
-    fetchColumnProfile(normalizedData);
+      setParsedData(normalizedData);
+      fetchColumnProfile(normalizedData);
+    };
+
+    if (selected) {
+      reader.readAsArrayBuffer(selected);
+    }
   };
-
-  if (selected) {
-    reader.readAsArrayBuffer(selected);
-  }
-};
-
 
   const fetchColumnProfile = async (data: any[]) => {
     try {
@@ -148,14 +153,11 @@ function Step1Inner() {
       const sheet = workbook.Sheets[sheetName];
       const json = XLSX.utils.sheet_to_json<Record<string, any>>(sheet);
 
-
-      const allKeys = Array.from(
-        new Set(json.flatMap((row) => Object.keys(row)))
-      );
+      const allKeys = Array.from(new Set(json.flatMap((row) => Object.keys(row))));
       const normalizedData = json.map((row) => {
         const completeRow: any = {};
         allKeys.forEach((key) => {
-         completeRow[key] = key in row ? row[key] : "";
+          completeRow[key] = key in row ? row[key] : "";
         });
         return completeRow;
       });
@@ -239,35 +241,27 @@ function Step1Inner() {
                   <table className="min-w-full text-sm border border-gray-200">
                     <thead className="bg-gray-50 sticky top-0">
                       <tr>
-                        <th className="px-3 py-2 border-b text-left">欄位</th>
-                        <th className="px-3 py-2 border-b text-left">型別</th>
-                        <th className="px-3 py-2 border-b text-left">遺漏值</th>
-                        <th className="px-3 py-2 border-b text-left">Unique 值</th>
-                        <th className="px-3 py-2 border-b text-left">範例</th>
-                        <th className="px-3 py-2 border-b text-left">系統建議型別</th>
+                        <th className="px-3 py-2 border-b text-left whitespace-nowrap">欄位</th>
+                        <th className="px-3 py-2 border-b text-left whitespace-nowrap">型別</th>
+                        <th className="px-3 py-2 border-b text-left whitespace-nowrap">遺漏值</th>
+                        <th className="px-3 py-2 border-b text-left whitespace-nowrap">Unique 值</th>
+                        <th className="px-3 py-2 border-b text-left whitespace-nowrap">範例</th>
+                        <th className="px-3 py-2 border-b text-left whitespace-nowrap">系統建議型別</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {columnsPreview.map((col, i) => {
-                        const isNumeric = col.dtype?.includes("int") || col.dtype?.includes("float");
-                        const uniqueCount = col.unique_count ?? 0;
-
-                        let suggestion = "不明";
-                        if (isNumeric && uniqueCount <= 10) suggestion = "類別變項";
-                        else if (isNumeric && uniqueCount > 10) suggestion = "連續變項";
-                        else if (!isNumeric && uniqueCount <= 10) suggestion = "類別變項";
-
-                        return (
-                          <tr key={i} className="hover:bg-gray-50">
-                            <td className="px-3 py-2 border-b">{col.column}</td>
-                            <td className="px-3 py-2 border-b">{col.dtype}</td>
-                            <td className="px-3 py-2 border-b">{col.missing_pct}</td>
-                            <td className="px-3 py-2 border-b">{col.unique_count}</td>
-                            <td className="px-3 py-2 border-b">{col.example?.join(", ") || "—"}</td>
-                            <td className="px-3 py-2 border-b text-blue-600 font-medium">{suggestion}</td>
-                          </tr>
-                        );
-                      })}
+                      {columnsPreview.map((col, i) => (
+                        <tr key={i} className="hover:bg-gray-50">
+                          <td className="px-3 py-2 border-b whitespace-nowrap">{col.column}</td>
+                          <td className="px-3 py-2 border-b whitespace-nowrap">{col.dtype}</td>
+                          <td className="px-3 py-2 border-b whitespace-nowrap">{col.missing_pct}</td>
+                          <td className="px-3 py-2 border-b whitespace-nowrap">{col.unique_count}</td>
+                          <td className="px-3 py-2 border-b whitespace-nowrap">{col.example?.join(", ") || "—"}</td>
+                          <td className="px-3 py-2 border-b whitespace-nowrap text-blue-600 font-medium">
+                            {col.suggested_type || fallbackGuess(col)}
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>
@@ -300,12 +294,9 @@ function Step1Inner() {
                     <tbody>
                       {parsedData.slice(0, 5).map((row, i) => (
                         <tr key={i} className="hover:bg-gray-50">
-                          {Object.values(row).map((val, j) => (
-                            <td
-                              key={j}
-                              className="px-3 py-2 border-b whitespace-nowrap"
-                            >
-                              {String(val)}
+                          {Object.keys(parsedData[0]).map((col, j) => (
+                            <td key={j} className="px-3 py-2 border-b whitespace-nowrap">
+                              {String(row[col] ?? "")}
                             </td>
                           ))}
                         </tr>

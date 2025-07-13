@@ -54,19 +54,14 @@ export default function AnalysisHistory() {
 
   if (error)
     return (
-      <p className="text-sm text-red-500">
-        ❌ 無法取得紀錄，請稍後再試
-      </p>
+      <p className="text-sm text-red-500">❌ 無法取得紀錄，請稍後再試</p>
     );
 
   if (!logs || logs.length === 0)
     return (
-      <p className="text-sm text-muted-foreground">
-        尚無分析紀錄
-      </p>
+      <p className="text-sm text-muted-foreground">尚無分析紀錄</p>
     );
 
-  // 分頁邏輯
   const totalPages = Math.ceil(logs.length / itemsPerPage);
   const paginatedLogs = logs.slice(
     (page - 1) * itemsPerPage,
@@ -75,13 +70,13 @@ export default function AnalysisHistory() {
 
   return (
     <motion.div
-      className="space-y-6"
+      className="max-w-6xl mx-auto px-4 py-6 space-y-6"
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
       {/* ✅ Header + 控制台按鈕 */}
-      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-2">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-4">
         <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
           📊 分析歷程
         </h2>
@@ -95,7 +90,6 @@ export default function AnalysisHistory() {
           </Button>
         </Link>
       </div>
-
 
       {/* ✅ 表格 */}
       <div className="overflow-x-auto rounded-lg shadow ring-1 ring-gray-200 dark:ring-gray-700">
@@ -121,11 +115,15 @@ export default function AnalysisHistory() {
                 <td className="px-4 py-2 border-b whitespace-nowrap">
                   {formatLocalTime(log.timestamp)}
                 </td>
-                <td className="px-4 py-2 border-b text-center">{log.group_count}</td>
+                <td className="px-4 py-2 border-b text-center">
+                  {log.group_count}
+                </td>
                 <td className="px-4 py-2 border-b text-center">
                   {log.ai_enabled ? "✅" : "—"}
                 </td>
-                <td className="px-4 py-2 border-b text-center">{log.points_spent}</td>
+                <td className="px-4 py-2 border-b text-center">
+                  {log.points_spent}
+                </td>
                 <td className="px-4 py-2 border-b">{log.summary}</td>
               </motion.tr>
             ))}

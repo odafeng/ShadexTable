@@ -25,26 +25,31 @@ export async function POST(req: NextRequest) {
     // 表頭
     tableRows.push(
       new TableRow({
-        children: exportCols.map((col) =>
-          new TableCell({
+        children: exportCols.map((col) => {
+          const isGroupCol = col !== "Variable" && col !== "P";
+          const text =
+            col === "Variable"
+              ? "" // ✅ 不顯示 Variable 字樣
+              : col === "P"
+              ? "p value"
+              : `${col} (n = ${groupCounts[col] || "?"})`;
+
+          return new TableCell({
             children: [
               new Paragraph({
                 children: [
                   new TextRun({
-                    text:
-                      col === "Variable"
-                        ? "Variable"
-                        : col === "P"
-                        ? "p value"
-                        : `${col} (n = ${groupCounts[col] || "?"})`,
+                    text,
                     bold: true,
                     size: 21,
+                    font: "Arial",
                   }),
                 ],
+                spacing: { line: 360 }, // ✅ 1.5 倍行距
               }),
             ],
-          })
-        ),
+          });
+        }),
       })
     );
 
@@ -58,20 +63,25 @@ export async function POST(req: NextRequest) {
           new TableRow({
             children: exportCols.map((col) => {
               const raw = row[col];
-              const text = raw === "nan" || raw == null ? "" : String(raw);
               const cleanText =
-                col === "Variable" ? text.replace(/\*/g, "") : text;
+                raw === "nan" || raw == null ? "" : String(raw);
+              const displayText =
+                col === "Variable"
+                  ? cleanText.replace(/\*/g, "")
+                  : cleanText;
 
               return new TableCell({
                 children: [
                   new Paragraph({
                     children: [
                       new TextRun({
-                        text: cleanText,
+                        text: displayText,
                         bold: col === "Variable" && isMainVariable,
                         size: 21,
+                        font: "Arial",
                       }),
                     ],
+                    spacing: { line: 360 }, // ✅ 1.5 倍行距
                   }),
                 ],
               });
@@ -85,7 +95,7 @@ export async function POST(req: NextRequest) {
         {
           properties: {},
           children: [
-            // 標題
+            // 表格標題
             new Paragraph({
               children: [
                 new TextRun({
@@ -93,13 +103,14 @@ export async function POST(req: NextRequest) {
                     "Table 1. Baseline Characteristics of the Study Population",
                   bold: true,
                   size: 24,
+                  font: "Arial",
                 }),
               ],
               alignment: AlignmentType.LEFT,
               spacing: { after: 200 },
             }),
 
-            // 表格
+            // 表格本體
             new Table({
               rows: tableRows,
               width: { size: 100, type: WidthType.PERCENTAGE },
@@ -113,7 +124,7 @@ export async function POST(req: NextRequest) {
               },
             }),
 
-            // 註解
+            // 註記
             new Paragraph({
               children: [
                 new TextRun({
@@ -121,6 +132,7 @@ export async function POST(req: NextRequest) {
                     "Note. Data are presented as mean ± standard deviation or number (%), as appropriate.",
                   italics: true,
                   size: 20,
+                  font: "Arial",
                 }),
               ],
               spacing: { before: 200 },

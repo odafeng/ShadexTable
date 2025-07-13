@@ -17,18 +17,19 @@ export default function AnalysisHistory() {
 
   // ✅ 時間轉台灣當地時區
   const formatLocalTime = (isoString: string) => {
-    const date = new Date(isoString);
-    return date.toLocaleString("zh-TW", {
-      timeZone: "Asia/Taipei",
-      year: "numeric",
-      month: "numeric",
-      day: "numeric",
-      hour: "numeric",
-      minute: "numeric",
-      second: "numeric",
-      hour12: true,
-    });
-  };
+  const utcDate = new Date(isoString);
+  const localDate = new Date(utcDate.getTime() + 8 * 60 * 60 * 1000); // ✅ +8 小時
+
+  return localDate.toLocaleString("zh-TW", {
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    second: "numeric",
+    hour12: true,
+  });
+};
 
   return (
     <div className="space-y-4">

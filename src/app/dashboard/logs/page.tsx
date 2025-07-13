@@ -85,12 +85,17 @@ export default function AnalysisHistory() {
         <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
           📊 分析歷程
         </h2>
-        <Link href="/dashboard/points">
-          <Button className="bg-blue-600 hover:bg-blue-700 text-white shadow-md transition-all duration-300">
+        <Link href="/dashboard/points" className="self-start sm:self-center">
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-blue-700 border-blue-600 hover:bg-blue-50 transition-all duration-300"
+          >
             回控制台
           </Button>
         </Link>
       </div>
+
 
       {/* ✅ 表格 */}
       <div className="overflow-x-auto rounded-lg shadow ring-1 ring-gray-200 dark:ring-gray-700">

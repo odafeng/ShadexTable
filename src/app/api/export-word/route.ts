@@ -130,7 +130,7 @@ export async function POST(req: NextRequest) {
               children: [
                 new TextRun({
                   text:
-                    "Note. Data are presented as mean ± standard deviation or number (%), as appropriate.",
+                    "Note. Data are presented as mean ± standard deviation, median (range) or number (%), as appropriate.",
                   italics: true,
                   font: "Arial",
                   size: 20,

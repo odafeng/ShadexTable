@@ -18,11 +18,11 @@ export async function POST(req: NextRequest) {
     const baseCols = ["Variable", "P", "Method", "Missing", "Normal"];
     const allKeys = Object.keys(resultTable?.[0] || {});
     const groupKeys = allKeys.filter((k) => !baseCols.includes(k));
-    const exportCols = ["Variable", ...groupKeys, "P", "Method"];
+    const exportCols = ["Variable", ...groupKeys, "P"];
 
     const tableRows: TableRow[] = [];
 
-    // Header row
+    // 表頭
     tableRows.push(
       new TableRow({
         children: exportCols.map((col) =>
@@ -35,15 +35,12 @@ export async function POST(req: NextRequest) {
                       col === "Variable"
                         ? "Variable"
                         : col === "P"
-                        ? "P"
-                        : col === "Method"
-                        ? "Method"
-                        : `${col} (n=${groupCounts[col] || "?"})`,
+                        ? "p value"
+                        : `${col} (n = ${groupCounts[col] || "?"})`,
                     bold: true,
-                    size: 21, // 10.5pt
+                    size: 21,
                   }),
                 ],
-                spacing: { after: 100 },
               }),
             ],
           })
@@ -51,27 +48,30 @@ export async function POST(req: NextRequest) {
       })
     );
 
-    // Data rows
+    // 資料列
     resultTable
       .filter((row: any) => row.Variable?.replace(/\*/g, "") !== groupVar)
       .forEach((row: any) => {
-        const isBoldRow = row.Variable?.startsWith("**");
+        const isMainVariable = row.Variable?.startsWith("**");
+
         tableRows.push(
           new TableRow({
             children: exportCols.map((col) => {
               const raw = row[col];
               const text = raw === "nan" || raw == null ? "" : String(raw);
+              const cleanText =
+                col === "Variable" ? text.replace(/\*/g, "") : text;
+
               return new TableCell({
                 children: [
                   new Paragraph({
                     children: [
                       new TextRun({
-                        text,
-                        bold: col === "Variable" && isBoldRow,
+                        text: cleanText,
+                        bold: col === "Variable" && isMainVariable,
                         size: 21,
                       }),
                     ],
-                    spacing: { after: 100 },
                   }),
                 ],
               });
@@ -85,18 +85,24 @@ export async function POST(req: NextRequest) {
         {
           properties: {},
           children: [
+            // 標題
             new Paragraph({
-              text: "Table 1 Summary",
-              heading: "Heading1",
+              children: [
+                new TextRun({
+                  text:
+                    "Table 1. Baseline Characteristics of the Study Population",
+                  bold: true,
+                  size: 24,
+                }),
+              ],
               alignment: AlignmentType.LEFT,
               spacing: { after: 200 },
             }),
+
+            // 表格
             new Table({
               rows: tableRows,
-              width: {
-                size: 100,
-                type: WidthType.PERCENTAGE,
-              },
+              width: { size: 100, type: WidthType.PERCENTAGE },
               borders: {
                 top: { style: "none", size: 0, color: "auto" },
                 bottom: { style: "none", size: 0, color: "auto" },
@@ -105,6 +111,19 @@ export async function POST(req: NextRequest) {
                 insideHorizontal: { style: "none", size: 0, color: "auto" },
                 insideVertical: { style: "none", size: 0, color: "auto" },
               },
+            }),
+
+            // 註解
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text:
+                    "Note. Data are presented as mean ± standard deviation or number (%), as appropriate.",
+                  italics: true,
+                  size: 20,
+                }),
+              ],
+              spacing: { before: 200 },
             }),
           ],
         },
@@ -123,6 +142,9 @@ export async function POST(req: NextRequest) {
     });
   } catch (err) {
     console.error("Error generating Word:", err);
-    return NextResponse.json({ error: "Failed to generate Word document." }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to generate Word document." },
+      { status: 500 }
+    );
   }
 }

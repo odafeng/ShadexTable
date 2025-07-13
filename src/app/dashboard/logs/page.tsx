@@ -81,11 +81,11 @@ export default function AnalysisHistory() {
       transition={{ duration: 0.5 }}
     >
       {/* ✅ Header + 控制台按鈕 */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-2">
         <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
           📊 分析歷程
         </h2>
-        <Link href="/dashboard/points" className="self-start sm:self-center">
+        <Link href="/dashboard/points">
           <Button
             variant="outline"
             size="sm"

@@ -22,14 +22,13 @@ export async function POST(req: NextRequest) {
 
     const tableRows: TableRow[] = [];
 
-    // 表頭
+    // 表頭列
     tableRows.push(
       new TableRow({
         children: exportCols.map((col) => {
-          const isGroupCol = col !== "Variable" && col !== "P";
-          const text =
+          const label =
             col === "Variable"
-              ? "" // ✅ 不顯示 Variable 字樣
+              ? ""
               : col === "P"
               ? "p value"
               : `${col} (n = ${groupCounts[col] || "?"})`;
@@ -39,13 +38,13 @@ export async function POST(req: NextRequest) {
               new Paragraph({
                 children: [
                   new TextRun({
-                    text,
+                    text: label,
                     bold: true,
-                    size: 21,
                     font: "Arial",
+                    size: 21,
                   }),
                 ],
-                spacing: { line: 360 }, // ✅ 1.5 倍行距
+                spacing: { line: 360 },
               }),
             ],
           });
@@ -59,35 +58,40 @@ export async function POST(req: NextRequest) {
       .forEach((row: any) => {
         const isMainVariable = row.Variable?.startsWith("**");
 
-        tableRows.push(
-          new TableRow({
-            children: exportCols.map((col) => {
-              const raw = row[col];
-              const cleanText =
-                raw === "nan" || raw == null ? "" : String(raw);
-              const displayText =
-                col === "Variable"
-                  ? cleanText.replace(/\*/g, "")
-                  : cleanText;
+        const rowCells = exportCols.map((col) => {
+          const raw = row[col];
 
-              return new TableCell({
+          // ✅ 強制過濾空值符號
+          const cleanRaw =
+            raw === null || raw === "nan" || raw === "undefined" || raw === "—"
+              ? ""
+              : String(raw);
+
+          // ✅ 主變項名稱處理與粗體邏輯
+          const isVariableCol = col === "Variable";
+          const displayText = isVariableCol
+            ? cleanRaw.replace(/\*/g, "")
+            : cleanRaw;
+
+          return new TableCell({
+            children: [
+              new Paragraph({
                 children: [
-                  new Paragraph({
-                    children: [
-                      new TextRun({
-                        text: displayText,
-                        bold: col === "Variable" && isMainVariable,
-                        size: 21,
-                        font: "Arial",
-                      }),
-                    ],
-                    spacing: { line: 360 }, // ✅ 1.5 倍行距
+                  new TextRun({
+                    text: displayText,
+                    bold: isVariableCol && isMainVariable,
+                    font: "Arial",
+                    size: 21,
                   }),
                 ],
-              });
-            }),
-          })
-        );
+                spacing: { line: 360 },
+                indent: isVariableCol && !isMainVariable ? { left: 500 } : undefined, // ✅ 子變項縮排
+              }),
+            ],
+          });
+        });
+
+        tableRows.push(new TableRow({ children: rowCells }));
       });
 
     const doc = new Document({
@@ -95,22 +99,20 @@ export async function POST(req: NextRequest) {
         {
           properties: {},
           children: [
-            // 表格標題
             new Paragraph({
               children: [
                 new TextRun({
                   text:
                     "Table 1. Baseline Characteristics of the Study Population",
                   bold: true,
-                  size: 24,
                   font: "Arial",
+                  size: 24,
                 }),
               ],
               alignment: AlignmentType.LEFT,
               spacing: { after: 200 },
             }),
 
-            // 表格本體
             new Table({
               rows: tableRows,
               width: { size: 100, type: WidthType.PERCENTAGE },
@@ -124,15 +126,14 @@ export async function POST(req: NextRequest) {
               },
             }),
 
-            // 註記
             new Paragraph({
               children: [
                 new TextRun({
                   text:
                     "Note. Data are presented as mean ± standard deviation or number (%), as appropriate.",
                   italics: true,
-                  size: 20,
                   font: "Arial",
+                  size: 20,
                 }),
               ],
               spacing: { before: 200 },
@@ -153,7 +154,7 @@ export async function POST(req: NextRequest) {
       },
     });
   } catch (err) {
-    console.error("Error generating Word:", err);
+    console.error("❌ Word 匯出錯誤：", err);
     return NextResponse.json(
       { error: "Failed to generate Word document." },
       { status: 500 }

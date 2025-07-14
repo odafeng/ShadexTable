@@ -37,15 +37,6 @@ export default function Step1Page() {
   );
 }
 
-function fallbackGuess(col: any): string {
-  const isNumeric = col.dtype?.includes("int") || col.dtype?.includes("float");
-  const uniqueCount = col.unique_count ?? 0;
-  if (col.dtype?.includes("datetime") || col.dtype?.includes("date")) return "日期變項";
-  if (isNumeric && uniqueCount <= 10) return "類別變項";
-  if (isNumeric && uniqueCount > 10) return "連續變項";
-  if (!isNumeric && uniqueCount <= 10) return "類別變項";
-  return "不明";
-}
 
 function Step1Inner() {
   const router = useRouter();
@@ -252,7 +243,7 @@ function Step1Inner() {
                           <td className="px-3 py-2 border-b whitespace-nowrap">{col.column}</td>
                           <td className="px-3 py-2 border-b whitespace-nowrap">{col.missing_pct}</td>
                           <td className="px-3 py-2 border-b whitespace-nowrap text-blue-600 font-medium">
-                            {col.suggested_type || fallbackGuess(col)}
+                            {col.suggested_type ?? "不明"}
                           </td>
                         </tr>
                       ))}

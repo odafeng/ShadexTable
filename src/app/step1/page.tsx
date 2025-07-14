@@ -253,10 +253,7 @@ function Step1Inner() {
                       {columnsPreview.map((col, i) => (
                         <tr key={i} className="hover:bg-gray-50">
                           <td className="px-3 py-2 border-b whitespace-nowrap">{col.column}</td>
-                          <td className="px-3 py-2 border-b whitespace-nowrap">{col.dtype}</td>
                           <td className="px-3 py-2 border-b whitespace-nowrap">{col.missing_pct}</td>
-                          <td className="px-3 py-2 border-b whitespace-nowrap">{col.unique_count}</td>
-                          <td className="px-3 py-2 border-b whitespace-nowrap">{col.example?.join(", ") || "—"}</td>
                           <td className="px-3 py-2 border-b whitespace-nowrap text-blue-600 font-medium">
                             {col.suggested_type || fallbackGuess(col)}
                           </td>

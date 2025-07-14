@@ -242,10 +242,7 @@ function Step1Inner() {
                     <thead className="bg-gray-50 sticky top-0">
                       <tr>
                         <th className="px-3 py-2 border-b text-left whitespace-nowrap">欄位</th>
-                        <th className="px-3 py-2 border-b text-left whitespace-nowrap">型別</th>
                         <th className="px-3 py-2 border-b text-left whitespace-nowrap">遺漏值</th>
-                        <th className="px-3 py-2 border-b text-left whitespace-nowrap">Unique 值</th>
-                        <th className="px-3 py-2 border-b text-left whitespace-nowrap">範例</th>
                         <th className="px-3 py-2 border-b text-left whitespace-nowrap">系統建議型別</th>
                       </tr>
                     </thead>

@@ -36,8 +36,6 @@ import {
 } from "@/components/ui/tooltip";
 import { usePoints } from "@/hooks/usePoints";
 
-
-
 export default function Step3Summary() {
   const { resultTable, groupVar, groupCounts } = useAnalysis();
   const router = useRouter();

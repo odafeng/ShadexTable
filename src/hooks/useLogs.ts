@@ -28,7 +28,7 @@ export function useLogs() {
   };
 
   const { data, error, isLoading, mutate } = useSWR(
-    isLoaded ? "/me/logs" : null, // ✅ 等 token 準備好再送出
+    isLoaded ? "/user/me/logs" : null, // ✅ 等 token 準備好再送出
     fetcher
   );
 

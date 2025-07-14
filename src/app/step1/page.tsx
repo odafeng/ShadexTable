@@ -23,6 +23,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { motion } from "framer-motion";
 import DashboardLayout from "@/components/ui/layout/DashboardLayout";
+import { typeColorClass } from "@/lib/constants";
 
 export default function Step1Page() {
   return (
@@ -242,7 +243,11 @@ function Step1Inner() {
                         <tr key={i} className="hover:bg-gray-50">
                           <td className="px-3 py-2 border-b whitespace-nowrap">{col.column}</td>
                           <td className="px-3 py-2 border-b whitespace-nowrap">{col.missing_pct}</td>
-                          <td className="px-3 py-2 border-b whitespace-nowrap text-blue-600 font-medium">
+                          <td
+                            className={`px-3 py-2 border-b whitespace-nowrap font-medium ${
+                              typeColorClass[col.suggested_type] || "text-gray-500"
+                            }`}
+                          >
                             {col.suggested_type ?? "不明"}
                           </td>
                         </tr>

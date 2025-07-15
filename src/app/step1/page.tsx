@@ -66,68 +66,94 @@ function Step1Inner() {
     });
   }, [getToken]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selected = e.target.files?.[0] || null;
-    if (
-      selected &&
-      ![
-        "text/csv",
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      ].includes(selected.type)
-    ) {
-      setError("請上傳 CSV 或 Excel 檔案。");
-      setFile(null);
+const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const selected = e.target.files?.[0] || null;
+  console.log("📂 使用者選擇檔案：", selected?.name);
+
+  if (
+    selected &&
+    ![
+      "text/csv",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    ].includes(selected.type)
+  ) {
+    setError("請上傳 CSV 或 Excel 檔案。");
+    setFile(null);
+    return;
+  }
+
+  setError("");
+  setFile(selected);
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    console.log("📖 開始解析檔案...");
+    const data = new Uint8Array(e.target?.result as ArrayBuffer);
+    const workbook = XLSX.read(data, { type: "array" });
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    const json = XLSX.utils.sheet_to_json<Record<string, any>>(sheet);
+
+    const allKeys = Array.from(new Set(json.flatMap((row) => Object.keys(row))));
+    const normalizedData = json.map((row) => {
+      const completeRow: any = {};
+      allKeys.forEach((key) => {
+        completeRow[key] = key in row ? row[key] : "";
+      });
+      return completeRow;
+    });
+
+    console.log("✅ 解析完成，預覽資料如下（前 3 筆）：", normalizedData.slice(0, 3));
+    setParsedData(normalizedData);
+    console.log("🌍 API URL = ", `${process.env.NEXT_PUBLIC_API_URL}/analyze/columns-profile`);
+    fetchColumnProfile(normalizedData);
+  };
+
+  if (selected) {
+    reader.readAsArrayBuffer(selected);
+  }
+};
+
+const fetchColumnProfile = async (data: any[]) => {
+  try {
+    const token = localStorage.getItem("__session") || "";
+    if (!token) {
+      console.warn("⚠️ 找不到 token，欄位解析略過");
       return;
     }
 
-    setError("");
-    setFile(selected);
+    console.log("🚀 送出欄位型別分析 API...");
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const data = new Uint8Array(e.target?.result as ArrayBuffer);
-      const workbook = XLSX.read(data, { type: "array" });
-      const sheetName = workbook.SheetNames[0];
-      const sheet = workbook.Sheets[sheetName];
-      const json = XLSX.utils.sheet_to_json<Record<string, any>>(sheet);
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/analyze/columns-profile`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ data }),
+    });
 
-      const allKeys = Array.from(new Set(json.flatMap((row) => Object.keys(row))));
-      const normalizedData = json.map((row) => {
-        const completeRow: any = {};
-        allKeys.forEach((key) => {
-          completeRow[key] = key in row ? row[key] : "";
-        });
-        return completeRow;
-      });
+    console.log("🌐 API 回傳狀態：", res.status);
 
-      setParsedData(normalizedData);
-      fetchColumnProfile(normalizedData);
-    };
+    const json = await res.json();
+    console.log("📥 API 回傳資料：", json);
 
-    if (selected) {
-      reader.readAsArrayBuffer(selected);
-    }
-  };
-
-  const fetchColumnProfile = async (data: any[]) => {
-    try {
-      const token = localStorage.getItem("__session") || "";
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/columns-profile`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ data }),
-      });
-
-      const json = await res.json();
-      setColumnsPreview(json.columns || []);
+    if (json.columns && json.columns.length > 0) {
+      console.log("✅ 有收到欄位型別建議，共", json.columns.length, "欄");
+      setColumnsPreview([...json.columns]);
       setShowPreview(true);
-    } catch (err) {
-      console.error("❌ 欄位解析失敗", err);
+    } else {
+      console.warn("⚠️ 沒收到任何欄位型別建議");
+      setColumnsPreview([]);
+      setShowPreview(false);
     }
-  };
+  } catch (err) {
+    console.error("❌ 欄位解析 API 發生錯誤：", err);
+    setShowPreview(false);
+  }
+};
+
+  
 
   const handleUpload = () => {
     if (!file) {

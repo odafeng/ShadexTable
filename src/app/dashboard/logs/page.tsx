@@ -113,7 +113,7 @@ export default function AnalysisHistory() {
                 transition={{ delay: i * 0.02 }}
               >
                 <td className="px-4 py-2 border-b whitespace-nowrap">
-                  {formatLocalTime(log.timestamp)}
+                {log.timestamp ? formatLocalTime(log.timestamp) : "—"}
                 </td>
                 <td className="px-4 py-2 border-b text-center">
                   {log.group_count}

@@ -143,6 +143,12 @@ const handleGenerateAIResult = async () => {
     const token = await getToken();
     const url = `${process.env.NEXT_PUBLIC_API_URL}/ai-summary`;
 
+    console.log("📡 正在呼叫 /ai-summary：", {
+      url,
+      tokenPreview: token?.slice(0, 10), // 安全起見只顯示前幾碼
+      payload: { data: coreData },
+    });
+
     const res = await fetch(url, {
       method: "POST",
       headers: {
@@ -150,6 +156,13 @@ const handleGenerateAIResult = async () => {
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ data: coreData }),
+    });
+
+    const json = await res.json();
+
+    console.log("📥 回應 /ai-summary：", {
+      status: res.status,
+      body: json,
     });
 
     if (!res.ok) {
@@ -160,17 +173,17 @@ const handleGenerateAIResult = async () => {
         setSummaryText("⚠️ 點數不足，請購買點數後再試");
       } else {
         toast("❌ 系統錯誤", {
-          description: "AI 產生摘要失敗，請稍後再試",
+          description: json?.detail || "AI 產生摘要失敗，請稍後再試",
         });
-        setSummaryText("❌ 系統錯誤，請稍後再試");
-        }
-       }
+        setSummaryText(`❌ 系統錯誤：${json?.detail || "請稍後再試"}`);
+      }
+      return;
+    }
 
-        const json = await res.json();
     setSummaryText(json.summary || "❌ 無法產生摘要");
     toast("✅ AI 摘要產生完成！");
     refetch();
-  } catch (err) {
+  } catch (err: any) {
     console.error("❌ AI Error:", err);
     toast("❌ 發生錯誤，請檢查網路或稍後再試");
     setSummaryText("❌ 發生錯誤，請稍後再試");

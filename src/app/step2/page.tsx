@@ -74,15 +74,26 @@ export default function Step2VariableSelect() {
     } else {
       const groups = parsedData
         .map((row) => row[groupVar])
-        .filter((v) => v !== undefined && v !== null);
+        .filter((v) => v !== undefined && v !== null && v !== "");
       const uniqueGroups = Array.from(new Set(groups));
-      if (uniqueGroups.length === 2) {
+
+      console.log("🪪 [Group 判斷 LOG]", {
+        groupVar,
+        rawValues: parsedData.map((row) => row[groupVar]),
+        filteredGroups: groups,
+        uniqueGroups,
+        uniqueLength: uniqueGroups.length,
+      });
+
+      if (uniqueGroups.length === 0 || uniqueGroups.length === 1) {
+        setPointCost(1); // 其實也可以視為無效分組，扣 1 點
+      } else if (uniqueGroups.length === 2) {
         setPointCost(2);
       } else {
         setPointCost(3);
       }
     }
-  }, [groupVar, parsedData]);
+      }, [groupVar, parsedData]);
 
   useEffect(() => {
     const fetchPoints = async () => {

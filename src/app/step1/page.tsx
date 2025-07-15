@@ -52,6 +52,7 @@ function Step1Inner() {
     fillNA,
     setFillNA,
     setResultTable,
+    setColumnTypes,
   } = useAnalysis();
 
   const [file, setFile] = useState<File | null>(null);
@@ -141,6 +142,7 @@ const fetchColumnProfile = async (data: any[]) => {
     if (json.columns && json.columns.length > 0) {
       console.log("✅ 有收到欄位型別建議，共", json.columns.length, "欄");
       setColumnsPreview([...json.columns]);
+      setColumnTypes([...json.columns]);
       setShowPreview(true);
     } else {
       console.warn("⚠️ 沒收到任何欄位型別建議");

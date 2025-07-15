@@ -19,6 +19,8 @@ export type AnalysisState = {
   setFillNA: (v: boolean) => void;
   setResultTable: (v: any[]) => void;
   setGroupCounts: (v: Record<string, number>) => void;
+  columnTypes: { column: string; suggested_type: string }[];
+  setColumnTypes: (types: { column: string; suggested_type: string }[]) => void;
 };
 
 export const AnalysisContext = createContext<AnalysisState | undefined>(undefined);
@@ -39,6 +41,7 @@ export function AnalysisProvider({ children }: { children: ReactNode }) {
   const [contVars, setContVars] = useState<string[]>([]);
   const [fillNA, setFillNA] = useState(false);
   const [resultTable, setResultTable] = useState<any[]>([]);
+  const [columnTypes, setColumnTypes] = useState<{ column: string; suggested_type: string }[]>([]);
   const [groupCounts, setGroupCounts] = useState<Record<string, number>>({});
   const value: AnalysisState = {
     file,
@@ -49,13 +52,15 @@ export function AnalysisProvider({ children }: { children: ReactNode }) {
     fillNA,
     resultTable,
     groupCounts,
+    columnTypes,
+    setColumnTypes,
     setFile,
     setParsedData,
     setGroupVar,
     setCatVars,
     setContVars,
     setFillNA,
-    setResultTable,
+    setResultTable, 
     setGroupCounts,
   };
 

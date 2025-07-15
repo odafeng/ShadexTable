@@ -38,6 +38,8 @@ import { motion } from "framer-motion";
 import { Settings2, Sparkles } from "lucide-react";
 import DashboardLayout from "@/components/ui/layout/DashboardLayout";
 import { useAuth } from "@clerk/nextjs";
+import { typeColorClass } from "@/lib/constants"; 
+
 
 export default function Step2VariableSelect() {
   const router = useRouter();
@@ -51,6 +53,7 @@ export default function Step2VariableSelect() {
     fillNA,
     setFillNA,
     setResultTable,
+    columnTypes: columnsPreview,
   } = useAnalysis();
 
   const [groupVar, setGroupVar] = useState<string>("");
@@ -63,8 +66,23 @@ export default function Step2VariableSelect() {
   const [userPoints, setUserPoints] = useState<number | null>(null);
 
   const allColumns = parsedData.length > 0 ? Object.keys(parsedData[0]) : [];
+  const getTypeOf = (col: string) =>
+  columnsPreview.find((c) => c.column === col)?.suggested_type ?? "不明"; // ✅【新增】
+
+  
+
   const selectableCatVars = allColumns.filter((c) => !contVars.includes(c));
   const selectableContVars = allColumns.filter((c) => !catVars.includes(c));
+  const catOptions = selectableCatVars.map((col) => ({
+  label: col,
+  value: col,
+  type: getTypeOf(col),
+  }));
+  const contOptions = selectableContVars.map((col) => ({
+  label: col,
+  value: col,
+  type: getTypeOf(col),
+  }));
   const isValid = catVars.length > 0 || contVars.length > 0;
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -226,7 +244,7 @@ export default function Step2VariableSelect() {
                 </TooltipProvider>
               </div>
               <MultiSelect
-                options={selectableCatVars}
+                options={catOptions}
                 selected={catVars}
                 onChange={setCatVars}
                 placeholder="選擇變項..."
@@ -248,7 +266,7 @@ export default function Step2VariableSelect() {
                 </TooltipProvider>
               </div>
               <MultiSelect
-                options={selectableContVars}
+                options={contOptions}
                 selected={contVars}
                 onChange={setContVars}
                 placeholder="選擇變項..."

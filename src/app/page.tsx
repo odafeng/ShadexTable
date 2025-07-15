@@ -19,7 +19,7 @@ export default function LandingPage() {
       <header className="bg-[#0F172A] text-white py-4 shadow-md">
         <div className="mx-auto max-w-screen-xl px-8 md:px-12 xl:px-24 flex items-center justify-between">
           <div className="text-2xl font-semibold tracking-wide flex items-center gap-2">
-            <Image src="/logo/shady_logo_light.svg" alt="ShadyTable Logo" width={32} height={32} />
+            <Image src="/logo/shady_logo_dark.svg" alt="ShadyTable Logo" width={32} height={32} />
             ShadyTable
           </div>
 

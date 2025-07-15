@@ -18,7 +18,7 @@ export default function HeaderBanner() {
         >
           <div className="h-[64px] flex items-center">
             <Image
-              src="/logo/shady_logo_light.svg"
+              src="/logo/shady_logo_dark.svg"
               alt="Shady Logo"
               width={64}
               height={64}

@@ -31,7 +31,7 @@ export default function ModuleDropdown() {
       {/* 按鈕本體 + icon */}
       <div className="flex items-center h-[32px] gap-1 cursor-pointer">
         <span
-          className="text-[15px] leading-[32px] tracking-[2px] text-[#0F2844] hover:text-[#008587]"
+          className="text-[18px] leading-[32px] tracking-[2px] text-[#0F2844] hover:text-[#008587]"
           style={{ fontFamily: '"Noto Sans TC", "思源黑體", sans-serif' }}
         >
           其他模組選擇

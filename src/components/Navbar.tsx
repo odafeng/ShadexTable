@@ -15,25 +15,22 @@ export default function Navbar() {
       <div className="container-custom py-3 flex justify-between items-center">
         {/* 左側 Logo 區 */}
         <Link href="/" className="flex items-center gap-2 text-[#0F2844]">
-          <Image src="/logo/shady_logo_light.svg" alt="ShadyTable" width={50} height={50} />
-          <span className="text-[34px] tracking-wide" style={{ fontFamily: "Futura, sans-serif", fontWeight: "900" }}>
-            ShadyTable
-          </span>
+          <Image src="/landing/logo@2x.png" alt="ShadyTable" width={270} height={50} />
         </Link>
 
         {/* 中間導覽列 */}
         <nav className="hidden md:flex items-center gap-8">
   {/* 前四項使用 map */}
   {[
-    { label: "功能特色", href: "#features" },
-    { label: "定價方案", href: "#pricing" },
-    { label: "常見問題", href: "#faq" },
-    { label: "關於我們", href: "#about" },
+    { label: "功能特色", href: "/marketing/features" },
+    { label: "定價方案", href: "/marketing/pricing" },
+    { label: "常見問題", href: "/marketing/faq" },
+    { label: "關於我們", href: "/marketing/about-us" },
   ].map((item, idx) => (
     <Link
       key={idx}
       href={item.href}
-      className="text-[15px] leading-[32px] tracking-[2px] text-[#0F2844] hover:text-[#008587]"
+      className="text-[18px] leading-[32px] tracking-[2px] text-[#0F2844] hover:text-[#008587]"
       style={{ fontFamily: '"Noto Sans TC", "思源黑體", sans-serif', fontWeight: 400 }}
     >
       {item.label}

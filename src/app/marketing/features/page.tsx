@@ -5,6 +5,8 @@ import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { motion } from "framer-motion";
+import Link from "next/link";
+
 
 
 export default function FeaturesPage() {
@@ -40,22 +42,35 @@ export default function FeaturesPage() {
             <p style={{ fontSize: "25px", letterSpacing: "3px", lineHeight: "42px", color: "#000000", fontFamily: '"Noto Sans TC", "\u601D\u6E90\u9ED1\u9AD4", sans-serif' }}>
               ShadyTable 專為臨床研究者打造，自動選擇統計檢定、自動產表、自動產出學術摘要段落。
             </p>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onMouseEnter={() => setRightHover(true)}
-              onMouseLeave={() => setRightHover(false)}
-              className="rounded-full border text-white bg-[#0F2844] hover:bg-transparent hover:text-[#0F2844] border-[#0F2844] transition-all flex items-center justify-center gap-3"
-              style={{ width: "252px", height: "65px", fontSize: "23px", letterSpacing: "2.5px", lineHeight: "37px", fontFamily: '"Noto Sans TC", "\u601D\u6E90\u9ED1\u9AD4", sans-serif' }}
-            >
-              <Image
-                src={rightHover ? "/landing/arrow_13147905@2x.png" : "/landing/arrow_2_white@2x.png"}
-                alt="arrow"
-                width={24}
-                height={24}
-              />
-              立即開始分析
-            </motion.button>
+            <Link href="/step1">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onMouseEnter={() => setRightHover(true)}
+                onMouseLeave={() => setRightHover(false)}
+                className="rounded-full border text-white bg-[#0F2844] hover:bg-transparent hover:text-[#0F2844] border-[#0F2844] transition-all flex items-center justify-center gap-3"
+                style={{
+                  width: "252px",
+                  height: "65px",
+                  fontSize: "23px",
+                  letterSpacing: "2.5px",
+                  lineHeight: "37px",
+                  fontFamily: '"Noto Sans TC", "思源黑體", sans-serif',
+                }}
+              >
+                <Image
+                  src={
+                    rightHover
+                      ? "/landing/arrow_13147905@2x.png"
+                      : "/landing/arrow_2_white@2x.png"
+                  }
+                  alt="arrow"
+                  width={24}
+                  height={24}
+                />
+                立即開始分析
+              </motion.button>
+            </Link>
           </motion.div>
 
           <motion.div
@@ -185,55 +200,55 @@ export default function FeaturesPage() {
           >
             {/* 第二列左卡（米色） */}
             <div style={{ marginLeft: "64px", marginRight: "64px" }}>
-                <Image
-                  src="/features/feature_icon_2@2x.png"
-                  alt="icon"
-                  width={62}
-                  height={66}
-                  style={{ objectFit: "contain", marginBottom: "30px" }}
-                />
-                <h2
-                  style={{
-                    fontSize: "30px",
-                    letterSpacing: "3px",
-                    lineHeight: "32px",
-                    color: "#114A8B",
-                    fontFamily: '"Noto Sans TC", "思源黑體", sans-serif',
-                    marginBottom: "30px",
-                  }}
-                >
-                  GPT-4o 自動產出結果段落
-                </h2>
-                <p
-                  style={{
-                    fontSize: "20px",
-                    letterSpacing: "2px",
-                    lineHeight: "32px",
-                    color: "#000000",
-                    fontFamily: '"Noto Sans TC", "思源黑體", sans-serif',
-                  }}
-                >
-                  整合 OpenAI GPT-4o 模型，根據統計結果自動撰寫學術風格摘要，
-                  免去手動編寫的麻煩，輕鬆貼進論文或報告中。
-                </p>
-              </div>
+              <Image
+                src="/features/feature_icon_2@2x.png"
+                alt="icon"
+                width={62}
+                height={66}
+                style={{ objectFit: "contain", marginBottom: "30px" }}
+              />
+              <h2
+                style={{
+                  fontSize: "30px",
+                  letterSpacing: "3px",
+                  lineHeight: "32px",
+                  color: "#114A8B",
+                  fontFamily: '"Noto Sans TC", "思源黑體", sans-serif',
+                  marginBottom: "30px",
+                }}
+              >
+                GPT-4o 自動產出結果段落
+              </h2>
+              <p
+                style={{
+                  fontSize: "20px",
+                  letterSpacing: "2px",
+                  lineHeight: "32px",
+                  color: "#000000",
+                  fontFamily: '"Noto Sans TC", "思源黑體", sans-serif',
+                }}
+              >
+                整合 OpenAI GPT-4o 模型，根據統計結果自動撰寫學術風格摘要，
+                免去手動編寫的麻煩，輕鬆貼進論文或報告中。
+              </p>
+            </div>
 
-              {/* ✅ 圖片保留原本樣式不動 */}
-              <div style={{ marginTop: "40px" }}>
-                <Image
-                  src="/features/feature_img_2@2x.png"
-                  alt="feature2"
-                  width={746.67}
-                  height={420}
-                  style={{
-                    objectFit: "contain",
-                    width: "100%",
-                    height: "auto",
-                    display: "block",
-                  }}
-                />
-              </div>
-            </motion.div>
+            {/* ✅ 圖片保留原本樣式不動 */}
+            <div style={{ marginTop: "40px" }}>
+              <Image
+                src="/features/feature_img_2@2x.png"
+                alt="feature2"
+                width={746.67}
+                height={420}
+                style={{
+                  objectFit: "contain",
+                  width: "100%",
+                  height: "auto",
+                  display: "block",
+                }}
+              />
+            </div>
+          </motion.div>
 
           <motion.div
             style={{ width: "552px", height: "799px", backgroundColor: "#E4F0E3", borderRadius: "24px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}
@@ -381,22 +396,24 @@ export default function FeaturesPage() {
         >
           立即試用 ShadyTable，開始你的智慧統計之旅。
         </p>
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onMouseEnter={() => setLeftHover(true)}
-          onMouseLeave={() => setLeftHover(false)}
-          className="rounded-full border text-[#0F2844] bg-transparent hover:bg-[#0F2844] hover:text-white border-[#0F2844] transition-all flex items-center justify-center gap-3"
-          style={{ width: "200px", height: "65px", fontSize: "20px", letterSpacing: "2.5px", lineHeight: "37px", fontFamily: '"Noto Sans TC", "\u601D\u6E90\u9ED1\u9AD4", sans-serif', marginTop: "85px" }}
-        >
-          <Image
-            src={leftHover ? "/landing/arrow_2_white@2x.png" : "/landing/arrow_13147905@2x.png"}
-            alt="arrow"
-            width={24}
-            height={24}
-          />
-          開始分析
-        </motion.button>
+        <Link href="/step1">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onMouseEnter={() => setLeftHover(true)}
+            onMouseLeave={() => setLeftHover(false)}
+            className="rounded-full border text-[#0F2844] bg-transparent hover:bg-[#0F2844] hover:text-white border-[#0F2844] transition-all flex items-center justify-center gap-3"
+            style={{ width: "200px", height: "65px", fontSize: "20px", letterSpacing: "2.5px", lineHeight: "37px", fontFamily: '"Noto Sans TC", "\u601D\u6E90\u9ED1\u9AD4", sans-serif', marginTop: "85px" }}
+          >
+            <Image
+              src={leftHover ? "/landing/arrow_2_white@2x.png" : "/landing/arrow_13147905@2x.png"}
+              alt="arrow"
+              width={24}
+              height={24}
+            />
+            開始分析
+          </motion.button>
+        </Link>
       </motion.section>
 
       <Footer />

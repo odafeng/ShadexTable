@@ -23,9 +23,9 @@ export default function Navbar() {
   {/* 前四項使用 map */}
   {[
     { label: "功能特色", href: "/marketing/features" },
-    { label: "定價方案", href: "/marketing/pricing" },
+    { label: "定價方案", href: "/marketing/pricing_v2" },
     { label: "常見問題", href: "/marketing/faq" },
-    { label: "關於我們", href: "/marketing/about-us" },
+    { label: "關於我們", href: "/marketing/about_v2" },
   ].map((item, idx) => (
     <Link
       key={idx}

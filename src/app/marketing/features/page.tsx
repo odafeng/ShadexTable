@@ -311,7 +311,7 @@ export default function FeaturesPage() {
 
         {/* 第三列卡片（淺藍） */}
         <motion.div
-          style={{ width: "1366px", height: "530px", backgroundColor: "#E3E7F0", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px 22px 20px 60px", borderRadius: "24px", marginTop: "20px" }}
+          style={{ width: "1366px", height: "530px", backgroundColor: "#E3E7F0", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px 22px 20px 60px", borderRadius: "24px", marginTop: "30px" }}
           initial={{ opacity: 0, y: 50 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}

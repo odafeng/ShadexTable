@@ -19,12 +19,16 @@ export default function PricingPage() {
             <Navbar />
 
             {/* ✅ HERO 區塊 */}
-            <section
+            <motion.section
                 className="w-full"
                 style={{
                     height: "500px",
                     background: "linear-gradient(180deg, #E3E7F0 0%, #FFFFFF 100%)",
                 }}
+                initial={{ opacity: 0, y: 60 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6 }}
             >
                 <div className="container-custom flex flex-col lg:flex-row items-center justify-between h-full px-6">
                     {/* 文字區塊 */}
@@ -57,7 +61,13 @@ export default function PricingPage() {
                     </div>
 
                     {/* 圖片區塊 */}
-                    <div className="flex-1 flex justify-center items-center">
+                    <motion.div
+                        className="flex-1 flex justify-center items-center"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.8, delay: 0.3 }}
+                    >
                         <Image
                             src="/pricing/price_banner_img.svg"
                             alt="Pricing Banner"
@@ -65,13 +75,19 @@ export default function PricingPage() {
                             height={300}
                             priority
                         />
-                    </div>
+                    </motion.div>
                 </div>
-            </section>
+            </motion.section>
 
             {/* ✅ 三張定價卡片區塊 */}
             <section className="w-full px-4 py-14 bg-white">
-                <div className="container-custom flex flex-col lg:flex-row justify-center items-stretch gap-6">
+                <motion.div
+                    className="container-custom flex flex-col lg:flex-row justify-center items-stretch gap-6"
+                    initial={{ opacity: 0, y: 60 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6 }}
+                    viewport={{ once: true, amount: 0.3 }}
+                >
                     {[
                         {
                             icon: "/pricing/price_icon_1.svg",
@@ -105,9 +121,13 @@ export default function PricingPage() {
                             features: ["分析不再扣點", "適合教學與研究者", "AI 摘要每日重置"],
                         },
                     ].map((card, idx) => (
-                        <div
+                        <motion.div
                             key={idx}
                             className={`w-[442px] h-[380px] rounded-2xl shadow-md p-6 ${card.bg} flex flex-col items-center text-center`}
+                            initial={{ opacity: 0, y: 30 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5, delay: idx * 0.2 }}
+                            viewport={{ once: true }}
                         >
                             <div className="flex items-center justify-center gap-2 mb-3">
                                 <Image src={card.icon} alt="icon" width={30} height={30} />
@@ -144,14 +164,20 @@ export default function PricingPage() {
                                     </li>
                                 ))}
                             </ul>
-                        </div>
+                        </motion.div>
                     ))}
-                </div>
+                </motion.div>
             </section>
 
             {/* ✅ 大卡片區 - 專心研究方案 */}
             <section className="w-full py-20 bg-white">
-                <div className="container-custom flex flex-col items-center">
+                <motion.div
+                    className="container-custom flex flex-col items-center"
+                    initial={{ opacity: 0, y: 60 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6 }}
+                    viewport={{ once: true, amount: 0.3 }}
+                >
                     <h2
                         className="text-[45px] tracking-[5px] leading-[52px] text-[#0F2844] font-normal mb-10 text-center"
                         style={{ fontFamily: '"Noto Sans TC", "思源黑體", sans-serif' }}
@@ -160,9 +186,13 @@ export default function PricingPage() {
                         <span className="mx-[10px] text-[15px] align-middle">❖</span>
                     </h2>
 
-                    <div
+                    <motion.div
                         className="w-[1366px] h-[705px] rounded-[12px] bg-cover bg-center px-12 py-16 flex flex-col justify-center items-center relative"
                         style={{ backgroundImage: 'url("/pricing/price_unlimited_bg.jpg")' }}
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.6, delay: 0.2 }}
+                        viewport={{ once: true }}
                     >
                         <div className="absolute -top-3 right-5 bg-white text-[#0F2844] text-[25px] px-4 py-1 rounded-full border border-[#19A7D1]">
                             👑 專心研究方案
@@ -194,13 +224,23 @@ export default function PricingPage() {
                         </p>
 
                         <div className="w-full">
-                            <ul className="flex flex-col items-center gap-4 mx-auto" style={{ maxWidth: "500px" }}>
+                            <motion.ul
+                                className="flex flex-col items-center gap-4 mx-auto"
+                                style={{ maxWidth: "500px" }}
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.5, delay: 0.4 }}
+                                viewport={{ once: true }}
+                            >
                                 {[
                                     "分析次數無上限",
                                     "每日最多 5 次 AI 結果摘要",
                                     "免扣點，自由操作",
                                 ].map((text, i) => (
-                                    <li key={i} className="flex gap-3 items-start w-full max-w-[400px]">
+                                    <li
+                                        key={i}
+                                        className="flex gap-3 items-start w-full max-w-[400px]"
+                                    >
                                         <Image
                                             src="/pricing/tick_green.svg"
                                             alt="check"
@@ -213,9 +253,15 @@ export default function PricingPage() {
                                         </span>
                                     </li>
                                 ))}
-                            </ul>
+                            </motion.ul>
 
-                            <div className="w-full flex justify-center mt-10">
+                            <motion.div
+                                className="w-full flex justify-center mt-10"
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                whileInView={{ opacity: 1, scale: 1 }}
+                                transition={{ duration: 0.4, delay: 0.6 }}
+                                viewport={{ once: true }}
+                            >
                                 <button
                                     onMouseEnter={() => setRightHover(true)}
                                     onMouseLeave={() => setRightHover(false)}
@@ -236,15 +282,25 @@ export default function PricingPage() {
                                     />
                                     立即訂閱
                                 </button>
-                            </div>
+                            </motion.div>
                         </div>
-                    </div>
-                </div>
+                    </motion.div>
+                </motion.div>
             </section>
 
-            {/* ✅ 三點方案加值區塊 */}
+
+            {/*✅ 三點方案加值區塊*/}
             <section className="w-full px-4 py-2 bg-white">
-                <div className="container-custom flex flex-col lg:flex-row justify-center items-stretch gap-6">
+                <motion.div
+                    className="container-custom flex flex-col lg:flex-row justify-center items-stretch gap-6"
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.3 }}
+                    variants={{
+                        visible: { transition: { staggerChildren: 0.2 } },
+                        hidden: {},
+                    }}
+                >
                     {[
                         {
                             title: "單點",
@@ -275,8 +331,9 @@ export default function PricingPage() {
                         },
                     ].map((card, idx) => {
                         const [hover, setHover] = useState(false);
+
                         return (
-                            <div
+                            <motion.div
                                 key={idx}
                                 className={`
             relative w-[442px] h-[380px] rounded-2xl shadow-md p-6 
@@ -284,6 +341,10 @@ export default function PricingPage() {
             ${card.border ? "border-[1.5px] border-[#114A8B]" : ""} 
             flex flex-col items-center text-center
           `}
+                                variants={{
+                                    hidden: { opacity: 0, y: 40 },
+                                    visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
+                                }}
                             >
                                 {card.highlight && (
                                     <div className="absolute -top-3 right-5 bg-white text-[#114A8B] text-[20px] px-3 py-0.5 rounded-full border border-[#114A8B] shadow-sm">
@@ -342,11 +403,14 @@ export default function PricingPage() {
                                         立即購買
                                     </motion.button>
                                 </Link>
-                            </div>
+                            </motion.div>
                         );
                     })}
-                </div>
+                </motion.div>
             </section>
+
+
+            {/* ✅ 點數使用說明區塊*/}
             <section
                 className="w-full bg-cover bg-no-repeat bg-center"
                 style={{
@@ -355,29 +419,69 @@ export default function PricingPage() {
                 }}
             >
                 <div className="container-custom flex flex-col items-center justify-center h-full px-4">
-                    <div className="w-full max-w-[480px] mx-auto text-left flex flex-col items-center">
+                    <motion.div
+                        className="w-full max-w-[480px] mx-auto text-left flex flex-col items-center"
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: true, amount: 0.4 }}
+                        variants={{
+                            hidden: {},
+                            visible: {
+                                transition: { staggerChildren: 0.2 },
+                            },
+                        }}
+                    >
                         {/* 標題 */}
-                        <h2
+                        <motion.h2
                             className="text-[45px] leading-[60px] tracking-[5px] font-normal text-[#0F2844] mb-10 text-center"
                             style={{ fontFamily: '"Noto Sans TC", "思源黑體", sans-serif' }}
+                            variants={{
+                                hidden: { opacity: 0, y: 30 },
+                                visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
+                            }}
                         >
                             <span className="text-[12px] align-middle mr-2">❖</span>
                             點數使用說明
                             <span className="text-[12px] align-middle ml-2">❖</span>
-                        </h2>
+                        </motion.h2>
 
                         {/* 說明文字區塊微右移 */}
-                        <div className="w-full text-[24px] leading-[40px] space-y-3 text-[#0F2844] pl-16">
-                            <p>・無分組分析：<span className="text-[#114A8B]">1 點</span></p>
-                            <p>・雙組比較分析：<span className="text-[#114A8B]">2 點</span></p>
-                            <p>・多組比較（含匯出）：<span className="text-[#114A8B]">3 點</span></p>
-                            <p>・AI 結果摘要：<span className="text-[#114A8B]">+1 點</span></p>
-                        </div>
+                        <motion.div
+                            className="w-full text-[24px] leading-[40px] space-y-3 text-[#0F2844] pl-16"
+                            variants={{
+                                hidden: {},
+                                visible: {
+                                    transition: { staggerChildren: 0.1 },
+                                },
+                            }}
+                        >
+                            {[
+                                { text: "・無分組分析：", point: "1 點" },
+                                { text: "・雙組比較分析：", point: "2 點" },
+                                { text: "・多組比較（含匯出）：", point: "3 點" },
+                                { text: "・AI 結果摘要：", point: "+1 點" },
+                            ].map((item, i) => (
+                                <motion.p
+                                    key={i}
+                                    variants={{
+                                        hidden: { opacity: 0, y: 20 },
+                                        visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+                                    }}
+                                >
+                                    {item.text}
+                                    <span className="text-[#114A8B]">{item.point}</span>
+                                </motion.p>
+                            ))}
+                        </motion.div>
 
                         {/* CTA 按鈕 */}
-                        <button
+                        <motion.button
                             className="group mt-10 flex items-center justify-center gap-2 px-6 py-2 rounded-full border border-[#0F2844] text-[#0F2844] text-[20px] tracking-[2px] hover:bg-[#0F2844] hover:text-white transition-all"
                             style={{ fontFamily: '"Noto Sans TC", "思源黑體", sans-serif' }}
+                            variants={{
+                                hidden: { opacity: 0, y: 20 },
+                                visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+                            }}
                         >
                             <img
                                 src="/landing/arrow_13147905@2x.png"
@@ -394,11 +498,11 @@ export default function PricingPage() {
                                 className="hidden group-hover:inline"
                             />
                             前往控制台加值點數
-                        </button>
-
-                    </div>
+                        </motion.button>
+                    </motion.div>
                 </div>
             </section>
+
 
 
             <Footer />

@@ -374,7 +374,7 @@ export default function PricingPage() {
                                 </div>
 
                                 {/* CTA */}
-                                <Link href="/step1" className="mt-auto">
+                                <Link href="/" className="mt-auto">
                                     <motion.button
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}

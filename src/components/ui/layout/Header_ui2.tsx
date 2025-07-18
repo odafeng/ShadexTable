@@ -42,8 +42,8 @@ export default function Header() {
                   : "/header/logout_icon@2x.png"
               }
               alt="logout"
-              width={hoverLogout ? 16 : 24}
-              height={hoverLogout ? 16 : 24}
+              width={24}
+              height={24}
             />
             <span
               style={{

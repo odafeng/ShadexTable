@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { motion } from "framer-motion";
+import Link from "next/link";
 
 export default function Hero() {
   const [leftHover, setLeftHover] = useState(false);
@@ -93,38 +94,41 @@ export default function Hero() {
               </motion.button>
 
               {/* 右側按鈕 */}
-              <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                onMouseEnter={() => setRightHover(true)}
-                onMouseLeave={() => setRightHover(false)}
-                className="rounded-full border text-white bg-[#0F2844] hover:bg-transparent hover:text-[#0F2844] border-[#0F2844] transition-all flex items-center justify-center gap-3"
-                style={{
-                  width: "300px",
-                  height: "65px",
-                  fontSize: "25px",
-                  letterSpacing: "2.5px",
-                  lineHeight: "37px",
-                  fontFamily: '"Noto Sans TC", "思源黑體", sans-serif',
-                }}
-              >
-                <motion.div
-                  animate={{ rotate: rightHover ? 15 : 0 }}
-                  transition={{ type: "spring", stiffness: 300 }}
+              <Link href="/step1_v2" passHref>
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onMouseEnter={() => setRightHover(true)}
+                  onMouseLeave={() => setRightHover(false)}
+                  className="rounded-full border text-white bg-[#0F2844] hover:bg-transparent hover:text-[#0F2844] border-[#0F2844] transition-all flex items-center justify-center gap-3"
+                  style={{
+                    width: "300px",
+                    height: "65px",
+                    fontSize: "25px",
+                    letterSpacing: "2.5px",
+                    lineHeight: "37px",
+                    fontFamily: '"Noto Sans TC", "思源黑體", sans-serif',
+                  }}
                 >
-                  <Image
-                    src={
-                      rightHover
-                        ? "/landing/arrow_13147905@2x.png"
-                        : "/landing/arrow_2_white@2x.png"
-                    }
-                    alt="arrow"
-                    width={24}
-                    height={24}
-                  />
-                </motion.div>
-                立即開始分析
-              </motion.button>
+
+                  <motion.div
+                    animate={{ rotate: rightHover ? 15 : 0 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                  >
+                    <Image
+                      src={
+                        rightHover
+                          ? "/landing/arrow_13147905@2x.png"
+                          : "/landing/arrow_2_white@2x.png"
+                      }
+                      alt="arrow"
+                      width={24}
+                      height={24}
+                    />
+                  </motion.div>
+                  立即開始分析
+                </motion.button>
+              </Link>
             </motion.div>
           </div>
 

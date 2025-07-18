@@ -5,7 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import Link from "next/link";
+import Header from "@/components/ui/layout/Header_ui2";
+import Footer from "@/components/Footer";
+import LightButton from "@/components/LightButton";
+import { ReceiptText } from "lucide-react"
 
 export default function ContactPage() {
   const [name, setName] = useState("");
@@ -15,9 +18,8 @@ export default function ContactPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     try {
-      const res = await fetch("https://shadytable-backend.onrender.com/api/contact", {
+      const res = await fetch("https://shadytable-backend.onrender.com/contact/api/contact", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -41,73 +43,81 @@ export default function ContactPage() {
   };
 
   return (
-    <motion.div
-      className="max-w-2xl mx-auto px-4 py-24"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-    >
-      <h1 className="text-3xl font-bold text-center mb-8">聯絡我們</h1>
+    <>
+      <Header />
+      <motion.section
+        className="bg-gradient-to-b from-[#E3E7F0] to-white py-20"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="container-custom max-w-3xl pb-20">
+          <div className="bg-white rounded-2xl shadow-md border border-[#E0E0E0] p-10">
+            <h1 className="text-[34px] text-[#0F2844] font-semibold text-center mb-6 tracking-wide">
+              聯絡我們
+            </h1>
+            <p className="text-center text-[#637381] text-[18px] mb-10">
+              有任何疑問、建議或合作邀約，歡迎留言給我們，我們會盡快回覆您！
+            </p>
 
-      <p className="text-gray-600 dark:text-gray-400 text-center mb-12">
-        有任何疑問、建議或合作邀約，歡迎留言給我們，我們會盡快回覆您！
-      </p>
+            {submitted ? (
+              <div className="text-center text-[#008587] font-semibold text-xl">
+                🎉 已成功送出！我們會盡快與您聯繫。
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-6 relative pb-15">
+                <div>
+                  <label className="block mb-1 text-[#0F2844] font-medium">您的姓名</label>
+                  <Input
+                    type="text"
+                    placeholder="王小明"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                  />
+                </div>
 
-      {submitted ? (
-        <div className="text-center text-green-600 font-semibold">
-          🎉 已成功送出！我們會盡快與您聯繫。
+                <div>
+                  <label className="block mb-1 text-[#0F2844] font-medium">Email 信箱</label>
+                  <Input
+                    type="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block mb-1 text-[#0F2844] font-medium">留言內容</label>
+                  <Textarea
+                    placeholder="請輸入您的訊息..."
+                    rows={5}
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="absolute bottom-0 right-0">
+                  <Button
+                    type="submit"
+                    className="rounded-full px-6 text-[20px] hover:bg-[#0F2844] hover:text-white bg-transparent text-[#0F2844] border border-[#0F2844] inline-flex items-center gap-2"
+                  >
+                    <ReceiptText className="w-5 h-5" />
+                    送出表單
+                  </Button>
+                </div>
+              </form>
+            )}
+          </div>
+
+          <div className="mt-12 flex justify-center">
+            <LightButton text="回首頁" href="/" />
+          </div>
         </div>
-      ) : (
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-6 bg-white dark:bg-[#1E293B] p-8 rounded-2xl shadow-lg border dark:border-gray-700"
-        >
-          <div>
-            <label className="block mb-1 font-medium">您的姓名</label>
-            <Input
-              type="text"
-              placeholder="王小明"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block mb-1 font-medium">Email 信箱</label>
-            <Input
-              type="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block mb-1 font-medium">留言內容</label>
-            <Textarea
-              placeholder="請輸入您的訊息..."
-              rows={5}
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="pt-2 text-right">
-            <Button type="submit" className="px-6">
-              送出表單
-            </Button>
-          </div>
-        </form>
-      )}
-
-      <div className="text-center mt-10">
-        <Link href="/">
-          <Button variant="ghost">← 返回首頁</Button>
-        </Link>
-      </div>
-    </motion.div>
+      </motion.section>
+      <Footer />
+    </>
   );
 }

@@ -42,7 +42,7 @@ export default function FeaturesPage() {
             <p style={{ fontSize: "25px", letterSpacing: "3px", lineHeight: "42px", color: "#000000", fontFamily: '"Noto Sans TC", "\u601D\u6E90\u9ED1\u9AD4", sans-serif' }}>
               ShadyTable 專為臨床研究者打造，自動選擇統計檢定、自動產表、自動產出學術摘要段落。
             </p>
-            <Link href="/step1">
+            <Link href="/step1_v2">
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -396,7 +396,7 @@ export default function FeaturesPage() {
         >
           立即試用 ShadyTable，開始你的智慧統計之旅。
         </p>
-        <Link href="/step1">
+        <Link href="/step1_v2">
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}

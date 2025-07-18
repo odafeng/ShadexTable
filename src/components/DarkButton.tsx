@@ -22,8 +22,8 @@ export default function DarkButton({ text, href }: DarkButtonProps) {
         onMouseLeave={() => setHover(false)}
         className="rounded-full border text-[#0F2844] bg-transparent hover:bg-[#0F2844] hover:text-white border-[#0F2844] transition-all flex items-center justify-center gap-3"
         style={{
-          width: "200px",
-          height: "65px",
+          width: "150px",
+          height: "50px",
           fontSize: "20px",
           letterSpacing: "2.5px",
           lineHeight: "37px",

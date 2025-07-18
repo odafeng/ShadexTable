@@ -4,6 +4,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { ArrowLeft } from "lucide-react";
+import LightButton from "@/components/LightButton";
 
 export default function FaqPage() {
   return (
@@ -17,13 +18,7 @@ export default function FaqPage() {
           className="flex items-center justify-between"
         >
           <h1 className="text-4xl font-bold tracking-tight text-[#0F172A] dark:text-white">常見問答</h1>
-          <Link
-            href="/"
-            className="flex items-center gap-1 text-sm text-gray-500 hover:text-primary underline"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            回首頁
-          </Link>
+          <LightButton text="回首頁" href="/" />
         </motion.div>
 
         {/* FAQ 卡片 */}

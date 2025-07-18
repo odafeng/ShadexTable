@@ -6,23 +6,20 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandGroup, CommandItem } from "@/components/ui/command";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { typeColorClass } from "@/lib/constants"; // 顏色對應表
 
-// ✅ [修改 #1]：定義 options 為含 label、value、type 的物件陣列
 type MultiSelectOption = {
   label: string;
   value: string;
-  type?: string; // e.g. "類別變項", "連續變項", "日期變項"
+  type?: string; // "類別變項", "連續變項", etc.
 };
 
 type MultiSelectProps = {
-  options: MultiSelectOption[]; // ✅ 修改這裡
+  options: MultiSelectOption[];
   selected: string[];
   onChange: (values: string[]) => void;
   placeholder?: string;
 };
-
-// ✅ [修改 #2]：引入顏色對應表
-import { typeColorClass } from "@/lib/constants";
 
 export function MultiSelect({ options, selected, onChange, placeholder }: MultiSelectProps) {
   const handleSelect = (value: string) => {
@@ -39,28 +36,32 @@ export function MultiSelect({ options, selected, onChange, placeholder }: MultiS
         <Button
           variant="outline"
           role="combobox"
-          className={cn("w-full justify-between", !selected.length && "text-muted-foreground")}
+          className={cn("w-[442px] h-[50px] justify-between px-4 border border-[#C4C8D0] rounded-md", "w-full justify-between text-[#0F2844] text-[20px] tracking-[2px] leading-[30px] font-normal font-[Noto_Sans_TC]", !selected.length && "text-[#0F2844]/50")}
         >
-          {selected.length ? selected.join(", ") : placeholder || "請選擇..."}
+          {selected.length
+            ? `${selected.length} 個變項已選`
+            : placeholder || "請選擇..."}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0">
+      <PopoverContent className="w-[442px] p-0">
         <ScrollArea className="max-h-60 overflow-y-auto">
           <Command>
             <CommandGroup>
               {options.map((option) => (
-                <CommandItem key={option.value} onSelect={() => handleSelect(option.value)}>
+                <CommandItem
+                  key={option.value}
+                  onSelect={() => handleSelect(option.value)}
+                  className="cursor-pointer hover:bg-[#C4C8D0]"
+                >
                   <div
                     className={cn(
-                      "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border",
-                      selected.includes(option.value) ? "bg-primary text-primary-foreground" : ""
+                      "mr-2 flex h-4 w-4 items-center justify-center rounded-md border border-[#0F2844]",
+                      selected.includes(option.value) ? "bg-[#0F2844] text-white" : "bg-white"
                     )}
                   >
                     {selected.includes(option.value) && <Check className="h-4 w-4" />}
                   </div>
-
-                  {/* ✅ [修改 #3]：變項名稱根據型別加上顏色 class */}
                   <span className={typeColorClass[option.type ?? "不明"]}>
                     {option.label}
                   </span>

@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
 import { Container } from "@/components/ui/container";
+import LightButton from "@/components/LightButton";
 
 export default function AboutPage() {
   return (
@@ -18,12 +19,7 @@ export default function AboutPage() {
           {/* Header */}
           <div className="flex justify-between items-center">
             <h1 className="text-4xl font-extrabold tracking-tight text-primary">關於我們</h1>
-            <Link
-              href="/"
-              className="text-sm text-muted-foreground underline hover:text-primary"
-            >
-              回首頁
-            </Link>
+            <LightButton text="回首頁" href="/" />
           </div>
 
           {/* Section 1: Opening Quote */}

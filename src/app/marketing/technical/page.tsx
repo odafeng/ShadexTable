@@ -6,6 +6,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import LightButton from "@/components/LightButton";
+
 
 export default function TechnicalPage() {
   return (
@@ -22,11 +24,7 @@ export default function TechnicalPage() {
             統計方法技術文件
           </motion.h1>
 
-          <Link href="/">
-            <Button variant="ghost" className="text-[15px] tracking-[1.5px] text-[#0F2844]">
-              <ArrowLeft className="w-4 h-4 mr-2" /> 回首頁
-            </Button>
-          </Link>
+          <LightButton text="回首頁" href="/" />
         </div>
 
         <p className="text-[17px] text-[#586D81] tracking-[1px] leading-[30px] text-left">
@@ -100,15 +98,15 @@ export default function TechnicalPage() {
 
               <section>
                 <h2 className="text-xl font-semibold text-[#0F2844] mb-2">引用建議</h2>
-                <blockquote className="border-l-4 border-[#0F2844] pl-4 text-gray-600">
-                  ShadyTable 之統計核心引擎乃基於 Python 3.13.5 建構，所有統計數據計算皆於該版本環境中執行。
+                <p>
+                  ShadyTable 之統計核心引擎乃基於<strong>Python 3.13.5</strong> 建構，所有統計數據計算皆於該版本環境中執行。
                   撰寫學術論文時，建議於「統計方法」一節揭露此資訊，以提升分析過程之透明度與重現性。
-                </blockquote>
+                </p>
               </section>
 
               <section>
                 <h2 className="text-xl font-semibold text-[#0F2844] mb-2">參考文獻</h2>
-                <blockquote className="border-l-4 border-[#0F2844] pl-4 italic text-xs text-gray-600 space-y-2">
+                <div className="italic text-xs text-gray-600 space-y-2">
                   {/* 你可以把已整理好的 Vancouver 格式文獻貼在這裡 */}
                   <p>1. Sainani KL. Dealing with non-normal data. PM R. 2012;4(12):1001–1005. doi:10.1016/j.pmrj.2012.10.013</p>
                   <p>2. Ludbrook J. Issues in biomedical statistics: comparing means under normal distribution theory. Aust N Z J Surg. 1995;65(4):267–272. doi:10.1111/j.1445-2197.1995.tb00626.x</p>
@@ -130,7 +128,7 @@ export default function TechnicalPage() {
                   <p>18. Ostertagová E, Ostertag O, Kováč J. Methodology and application of the Kruskal-Wallis test. Appl Mech Mater. 2014;611:115–120. doi:10.4028/www.scientific.net/AMM.611.115</p>
                   <p>19. Emerson RW. Parametric tests, their nonparametric alternatives, and degrees of freedom. J Vis Impair Blind. 2016;110(5):377–380. doi:10.1177/0145482X1611000511</p>
                   <p>20. Kitchen CMR. Nonparametric vs parametric tests of location in biomedical research. Am J Ophthalmol. 2009;147(4):571–572.</p>
-                </blockquote>
+                </div>
               </section>
             </div>
           </TabsContent>
@@ -195,7 +193,7 @@ export default function TechnicalPage() {
                   </p>
                 </ul>
               </div>
-            </div>
+            
 
             <div>
               <h2 className="text-xl font-semibold text-[#0F2844] mb-2">Data Processing and Privacy</h2>
@@ -206,14 +204,14 @@ export default function TechnicalPage() {
 
             <div>
               <h2 className="text-xl font-semibold text-[#0F2844] mb-2">Suggested Citation</h2>
-              <blockquote className="border-l-4 border-[#0F2844] pl-4 italic text-sm text-gray-600">
-                All statistical analyses were performed using ShadyTable (AI Medicus, Taiwan), an online Python-based statistical tool. The core engine is based on Python 3.13.5. We recommend explicitly mentioning this in the "Statistical Analysis" section to improve transparency and reproducibility.
-              </blockquote>
+              <p>
+                The statistical engine of ShadyTable is built on <strong>Python 3.13.5</strong>, and all statistical computations are performed within this environment. When preparing academic manuscripts, it is recommended to disclose this information in the 'Statistical Methods' section to enhance the transparency and reproducibility of the analysis.
+              </p>
             </div>
 
             <div>
               <h2 className="text-xl font-semibold text-[#0F2844] mb-2">References</h2>
-              <blockquote className="border-l-4 border-[#0F2844] pl-4 italic text-xs text-gray-600 space-y-2">
+              <div className="italic text-xs text-gray-600 space-y-4">
                 {/* 你可以把已整理好的 Vancouver 格式文獻貼在這裡 */}
                 <p>1. Sainani KL. Dealing with non-normal data. PM R. 2012;4(12):1001–1005. doi:10.1016/j.pmrj.2012.10.013</p>
                 <p>2. Ludbrook J. Issues in biomedical statistics: comparing means under normal distribution theory. Aust N Z J Surg. 1995;65(4):267–272. doi:10.1111/j.1445-2197.1995.tb00626.x</p>
@@ -235,8 +233,9 @@ export default function TechnicalPage() {
                 <p>18. Ostertagová E, Ostertag O, Kováč J. Methodology and application of the Kruskal-Wallis test. Appl Mech Mater. 2014;611:115–120. doi:10.4028/www.scientific.net/AMM.611.115</p>
                 <p>19. Emerson RW. Parametric tests, their nonparametric alternatives, and degrees of freedom. J Vis Impair Blind. 2016;110(5):377–380. doi:10.1177/0145482X1611000511</p>
                 <p>20. Kitchen CMR. Nonparametric vs parametric tests of location in biomedical research. Am J Ophthalmol. 2009;147(4):571–572.</p>
-              </blockquote>
+              </div>
             </div>
+          </div>
           </TabsContent>
         </Tabs>
       </div>

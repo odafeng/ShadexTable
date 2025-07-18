@@ -22,9 +22,9 @@ export default function LightButton({ text, href }: LightButtonProps) {
         onMouseLeave={() => setHover(false)}
         className="rounded-full border text-white bg-[#0F2844] hover:bg-transparent hover:text-[#0F2844] border-[#0F2844] transition-all flex items-center justify-center gap-3"
         style={{
-          width: "252px",
-          height: "65px",
-          fontSize: "23px",
+          width: "150px",
+          height: "50px",
+          fontSize: "20px",
           letterSpacing: "2.5px",
           lineHeight: "37px",
           fontFamily: '"Noto Sans TC", "思源黑體", sans-serif',

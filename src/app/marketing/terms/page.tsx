@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import LightButton from "@/components/LightButton";
 
 export default function TermsPage() {
   return (
@@ -71,11 +72,7 @@ export default function TermsPage() {
         </div>
 
         <div className="pt-8">
-          <Link href="/">
-            <Button variant="outline" className="rounded-full px-6 text-base tracking-[2px]">
-              回首頁
-            </Button>
-          </Link>
+          <LightButton text="回首頁" href="/" />
         </div>
       </div>
     </main>

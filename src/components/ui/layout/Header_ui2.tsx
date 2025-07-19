@@ -44,7 +44,7 @@ export default function Header() {
             onMouseEnter={() => setHoverLogout(true)}
             onMouseLeave={() => setHoverLogout(false)}
             onClick={() => signOut()}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 cursor-pointer"
           >
             <Image
               src={

@@ -19,13 +19,19 @@ export default function Header() {
     >
       <div className="container-custom flex justify-between items-center h-full">
         {/* ✅ LOGO */}
-        <Image
-          src="/landing/logo@2x.png"
-          alt="ShadyTable Logo"
-          width={270.39}
-          height={50}
-          priority
-        />
+
+
+        <Link href="/" passHref>
+          <Image
+            src="/landing/logo@2x.png"
+            alt="ShadyTable Logo"
+            width={270.39}
+            height={50}
+            priority
+            className="cursor-pointer"
+          />
+        </Link>
+
 
         {/* ✅ 右上角功能區 */}
         <div className="flex items-center gap-6">

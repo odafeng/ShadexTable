@@ -1,12 +1,9 @@
 import "./globals.css";
 import { Geist, Geist_Mono } from "next/font/google";
 import type { Metadata } from "next";
-import { AnalysisProvider } from "@/context/AnalysisContext";
-import { Toaster } from "sonner";
 import { ClerkProvider } from "@clerk/nextjs";
 import { zhTW } from '@clerk/localizations'
-import Head from 'next/head';
-
+import ClientProviders from './clientProvider';
 
 const geistSans = Geist({
   subsets: ["latin"],
@@ -56,8 +53,7 @@ export default function RootLayout({
     >
       <html lang="zhTW">
         <body className={`${geistSans.variable} ${geistMono.variable}`}>
-          <Toaster position="top-center" richColors />
-          <AnalysisProvider>{children}</AnalysisProvider>
+          <ClientProviders>{children}</ClientProviders>
         </body>
       </html>
     </ClerkProvider>

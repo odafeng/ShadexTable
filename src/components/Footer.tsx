@@ -7,8 +7,7 @@ import { motion } from "framer-motion";
 export default function Footer() {
   const socialLinks = [
     { alt: "IG", src: "/landing/ig_icon@2x.png", href: "https://www.instagram.com/shady_table" },
-    { alt: "FB", src: "/landing/fb_icon@2x.png", href: "#" },
-    { alt: "LinkedIn", src: "/landing/linkedin_icon@2x.png", href: "#" },
+    { alt: "FB", src: "/landing/fb_icon@2x.png", href: "https://www.facebook.com/profile.php?id=61578576480356" },
     { alt: "LINE", src: "/landing/line_icon@2x.png", href: "#" },
     { alt: "Email", src: "/landing/email_icon@2x.png", href: "mailto:support@shadytable.com" },
   ];
@@ -62,20 +61,22 @@ export default function Footer() {
 
         {/* ✅ 連結區塊（換行顯示） */}
         <div
-          className="flex flex-wrap justify-center items-center gap-3 text-[#586D81] text-[15px] tracking-[1.5px] text-center"
+          className="text-[#586D81] text-[15px] tracking-[1.5px] text-center"
           style={{
             fontFamily: '"Noto Sans TC", "思源黑體", sans-serif',
             fontWeight: 400,
+            whiteSpace: "nowrap",
           }}
         >
           <Link href="/marketing/terms">使用條款</Link>
-          <span className="hidden sm:inline">|</span>
+          <span className="mx-1">|</span>
           <Link href="/marketing/privacy">隱私權政策</Link>
-          <span className="hidden sm:inline">|</span>
+          <span className="mx-1">|</span>
           <Link href="/marketing/technical">統計說明文件</Link>
-          <span className="hidden sm:inline">|</span>
+          <span className="mx-1">|</span>
           <Link href="/marketing/contact">聯絡我們</Link>
         </div>
+
 
         {/* ✅ 版權文字（置中） */}
         <p

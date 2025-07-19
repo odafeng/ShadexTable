@@ -11,19 +11,19 @@ export default function Hero() {
 
   return (
     <motion.section
-      className="relative w-full bg-cover bg-center bg-no-repeat pt-20 pb-10"
+      className="relative w-full bg-cover bg-center bg-no-repeat pt-5 md:pt-20 pb-10"
       style={{ backgroundImage: "url('/landing/banner_bg.png')" }}
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 1, ease: "easeOut" }}
     >
       <div className="container-custom">
-        <div className="flex flex-col-reverse md:grid md:grid-cols-2 gap-12 items-center">
+        <div className="flex flex-col md:grid md:grid-cols-2 gap-12 items-center">
           {/* 左側文字區 */}
           <div className="h-auto md:h-[360px] flex flex-col justify-between">
-            <div className="space-y-8">
+            <div className="space-y-8 text-center md:text-left">
               <motion.h1
-                className="text-[#0F2844] font-semibold leading-[62px] text-[36px] md:text-[45px]"
+                className="text-[#0F2844] text-[36px] md:text-[45px] leading-[48px] md:leading-[62px] text-center md:text-left font-medium md:font-semibold"
                 style={{
                   letterSpacing: "5px",
                   fontFamily: '"Noto Sans TC", "思源黑體", sans-serif',
@@ -32,11 +32,17 @@ export default function Hero() {
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ duration: 0.8, type: "spring" }}
               >
-                臨床研究分析，一鍵完成
+                <span className="hidden md:inline">臨床研究分析，一鍵完成</span>
+                <span className="inline md:hidden">
+                  臨床研究分析
+                  <br />
+                  <span className="block mt-2">一鍵完成</span>
+                </span>
               </motion.h1>
 
+
               <motion.p
-                className="text-[#0F2844] font-normal leading-[42px] text-[22px] md:text-[25px]"
+                className="-mt-2 md:mt-4 text-[#0F2844] font-normal leading-[42px] text-[22px] md:text-[25px]"
                 style={{
                   letterSpacing: "3px",
                   fontFamily: '"Noto Sans TC", "思源黑體", sans-serif',
@@ -45,7 +51,7 @@ export default function Hero() {
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.8, delay: 0.3 }}
               >
-                全台灣第一款專為臨床研究人員打造的<br />
+                全台灣第一款<span className="inline md:hidden"><br /></span>專為臨床研究人員打造的<br />
                 雲端統計工具
               </motion.p>
             </div>
@@ -63,15 +69,17 @@ export default function Hero() {
                 whileTap={{ scale: 0.97 }}
                 onMouseEnter={() => setLeftHover(true)}
                 onMouseLeave={() => setLeftHover(false)}
-                className="rounded-full border text-[#0F2844] bg-transparent hover:bg-[#0F2844] hover:text-white border-[#0F2844] transition-all flex items-center justify-center gap-3"
-                style={{
-                  width: "300px",
-                  height: "65px",
-                  fontSize: "25px",
-                  letterSpacing: "2.5px",
-                  lineHeight: "37px",
-                  fontFamily: '"Noto Sans TC", "思源黑體", sans-serif',
-                }}
+                className="
+    rounded-full border text-[#0F2844] bg-transparent 
+    hover:bg-[#0F2844] hover:text-white border-[#0F2844] 
+    transition-all flex items-center justify-center gap-3
+    w-[265px] h-[50px] text-[21px] 
+    md:w-[300px] md:h-[65px] md:text-[25px]
+    font-normal md:font-medium
+    leading-[34px] md:leading-[37px]
+    tracking-[1.5px] md:tracking-[2.5px]
+    font-['Noto Sans TC','思源黑體',sans-serif]
+  "
               >
                 <motion.div
                   animate={{ rotate: leftHover ? 15 : 0 }}
@@ -91,6 +99,7 @@ export default function Hero() {
                 觀看示範影片
               </motion.button>
 
+
               {/* 右側按鈕 */}
               <Link href="/step1_v2" passHref>
                 <motion.button
@@ -98,15 +107,17 @@ export default function Hero() {
                   whileTap={{ scale: 0.97 }}
                   onMouseEnter={() => setRightHover(true)}
                   onMouseLeave={() => setRightHover(false)}
-                  className="rounded-full border text-white bg-[#0F2844] hover:bg-transparent hover:text-[#0F2844] border-[#0F2844] transition-all flex items-center justify-center gap-3"
-                  style={{
-                    width: "300px",
-                    height: "65px",
-                    fontSize: "25px",
-                    letterSpacing: "2.5px",
-                    lineHeight: "37px",
-                    fontFamily: '"Noto Sans TC", "思源黑體", sans-serif',
-                  }}
+                  className="
+      rounded-full border text-white bg-[#0F2844] 
+      hover:bg-transparent hover:text-[#0F2844] border-[#0F2844] 
+      transition-all flex items-center justify-center gap-3
+      w-[265px] h-[50px] text-[21px]
+      md:w-[300px] md:h-[65px] md:text-[25px]
+      font-normal md:font-medium
+      leading-[34px] md:leading-[37px]
+      tracking-[1.5px] md:tracking-[2.5px]
+      font-['Noto Sans TC','思源黑體',sans-serif]
+    "
                 >
                   <motion.div
                     animate={{ rotate: rightHover ? 15 : 0 }}
@@ -126,6 +137,7 @@ export default function Hero() {
                   立即開始分析
                 </motion.button>
               </Link>
+
             </motion.div>
           </div>
 
@@ -145,7 +157,7 @@ export default function Hero() {
                 className="w-full h-full object-cover"
               >
                 <source
-                  src="https://res.cloudinary.com/dpmewq6aj/video/upload/v1752906055/NewUI_1080p_j08ueg.mp4"
+                  src="https://res.cloudinary.com/dpmewq6aj/video/upload/v1752939090/NewUI_4KHD_hkxnst.mp4"
                   type="video/mp4"
                 />
                 您的瀏覽器不支援影片播放。

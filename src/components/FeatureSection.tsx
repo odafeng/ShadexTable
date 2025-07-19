@@ -16,7 +16,7 @@ const features = [
     icon: "/landing/home_icon_2@2x.png",
     iconSize: { width: 79.99, height: 66 },
     gradient: "bg-gradient-to-b from-white to-[#E3E7F0]",
-    description: "自動產生 AI 結果摘要段落投稿、簡報超方便",
+    description: "自動產生 AI 結果摘要段落，投稿、簡報超方便",
   },
   {
     title: "輕鬆產表",
@@ -29,7 +29,7 @@ const features = [
 
 export default function FeatureSection() {
   return (
-    <section className="w-full bg-white py-16">
+    <section className="w-full bg-white py-6 md:py-16">
       <div className="container-custom grid grid-cols-1 md:grid-cols-3 gap-8 place-items-center">
         {features.map((f, index) => {
           const paddingMap = [78, 68, 83];
@@ -64,9 +64,9 @@ export default function FeatureSection() {
 
               {/* 標題 */}
               <h3
-                className="text-[#0F2844] mb-3"
+                className="text-[#0F2844] mb-3 md:text-[30px]"
                 style={{
-                  fontSize: "25px",
+                  fontSize: "26px",
                   letterSpacing: "3px",
                   lineHeight: "42px",
                   fontFamily: '"Noto Sans TC", "思源黑體", sans-serif',
@@ -78,15 +78,12 @@ export default function FeatureSection() {
 
               {/* 描述文字 */}
               <p
-                className="text-[#0F2844] text-left w-full"
+                className="text-[#0F2844] text-center mx-auto text-[20px] leading-[32px] md:text-center md:text-[20px] md:leading-[32px]"
                 style={{
-                  fontSize: "16px",
                   letterSpacing: "2px",
-                  lineHeight: "32px",
+                  maxWidth: "300px", // ✅ 手機版限制寬度避免亂斷行
                   fontFamily: '"Noto Sans TC", "思源黑體", sans-serif',
                   fontWeight: 400,
-                  paddingLeft: `${padding}px`,
-                  paddingRight: `${padding}px`,
                 }}
               >
                 {f.description}

@@ -62,9 +62,8 @@ export default function Navbar() {
               height={20}
             />
             <span
-              className={`text-[15px] leading-[32px] tracking-[2px] transition-colors duration-200 ${
-                hovered ? "text-[#008587]" : "text-black"
-              }`}
+              className={`text-[15px] leading-[32px] tracking-[2px] transition-colors duration-200 ${hovered ? "text-[#008587]" : "text-black"
+                }`}
               style={{ fontFamily: '"Noto Sans TC", "\u601D\u6E90\u9ED1\u9AD4", sans-serif', fontWeight: 400 }}
             >
               登入
@@ -122,18 +121,29 @@ export default function Navbar() {
               {item.label}
             </Link>
           ))}
+          <div className="-mt-2">
+            <ModuleDropdown />
+          </div>
+          <div>
           <Link
             href="/sign-in"
-            className="block text-[#0F2844] text-[16px] tracking-[1.5px] hover:text-[#008587]"
+            className="mt-6 text-[#0F2844] text-[16px] tracking-[1.5px]"
           >
             登入
           </Link>
+          </div>
+          <div className="-mt-4">
           <Link
             href="/sign-up"
-            className="inline-block px-4 py-2 text-white bg-[#008587] rounded-full text-center"
+            className="text-[16px] text-[#008587]"
+            style={{
+              fontFamily: '"Noto Sans TC", "思源黑體", sans-serif',
+              letterSpacing: "2px",
+            }}
           >
             立即註冊
           </Link>
+          </div>
         </div>
       )}
     </header>

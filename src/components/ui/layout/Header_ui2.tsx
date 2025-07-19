@@ -3,10 +3,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { useClerk } from "@clerk/nextjs";
+
 
 export default function Header() {
   const [hoverLogout, setHoverLogout] = useState(false);
   const [hoverDashboard, setHoverDashboard] = useState(false);
+  const { signOut } = useClerk();
 
   return (
     <header
@@ -35,10 +38,12 @@ export default function Header() {
 
         {/* ✅ 右上角功能區 */}
         <div className="flex items-center gap-6">
+
           {/* 登出區塊 */}
           <button
             onMouseEnter={() => setHoverLogout(true)}
             onMouseLeave={() => setHoverLogout(false)}
+            onClick={() => signOut()}
             className="flex items-center gap-2"
           >
             <Image

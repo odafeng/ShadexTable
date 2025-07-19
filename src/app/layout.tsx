@@ -1,11 +1,8 @@
 import "./globals.css";
 import { Geist, Geist_Mono } from "next/font/google";
 import type { Metadata } from "next";
-import { AnalysisProvider } from "@/context/AnalysisContext";
-import { Toaster } from "sonner";
 import { ClerkProvider } from "@clerk/nextjs";
-import Head from 'next/head';
-
+import { zhTW } from '@clerk/localizations'
 
 const geistSans = Geist({
   subsets: ["latin"],
@@ -26,7 +23,7 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: "/favicon.ico",
-  }
+  },
 };
 
 export default function RootLayout({
@@ -35,13 +32,27 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ClerkProvider>
-      <html lang="zh-Hant">
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        >
-          <Toaster position="top-center" richColors />
-          <AnalysisProvider>{children}</AnalysisProvider>
+    <ClerkProvider
+      localization={zhTW} // ✅ 正確設定語言
+      appearance={{
+        layout: {
+          socialButtonsPlacement: "bottom",
+          socialButtonsVariant: "blockButton",
+          termsPageUrl: "http://shadytable.com/marketing/terms",
+        },
+        elements: {
+          card: "shadow-xl rounded-2xl border border-muted",
+          formButtonPrimary: "bg-[#0F2844] hover:bg-[#183c6a] text-white",
+        },
+        variables: {
+          colorPrimary: "#0F2844",
+          fontFamily: '"Noto Sans TC", sans-serif',
+        },
+      }}
+    >
+      <html lang="zhTW">
+        <body className={`${geistSans.variable} ${geistMono.variable}`}>
+          {children}
         </body>
       </html>
     </ClerkProvider>

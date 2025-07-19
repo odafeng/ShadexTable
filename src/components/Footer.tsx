@@ -16,14 +16,18 @@ export default function Footer() {
   return (
     <footer className="w-full bg-white py-6 border-t text-sm">
       <div className="container-custom flex flex-col md:flex-row justify-between items-center gap-6">
-        {/* 左側 Logo + 社群 icon */}
-        <div className="flex items-center gap-6">
-          {/* Logo */}
+        {/* ✅ 手機版：置中 LOGO 與社群 */}
+        <div className="flex flex-col items-center gap-4 md:flex-row md:items-center md:gap-6">
+          {/* 品牌文字：手機版用 */}
+          <h2 className="text-[#0F2844] font-bold text-xl md:hidden">ShadyTable</h2>
+
+          {/* LOGO：桌機版用 */}
           <Image
             src="/landing/footer_logo@2x.png"
             alt="ShadyTable Logo"
             width={153}
             height={31}
+            className="hidden md:block"
           />
 
           {/* Social Icons */}
@@ -56,9 +60,26 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* 中間版權文字 */}
+        {/* ✅ 連結區塊（換行顯示） */}
+        <div
+          className="flex flex-wrap justify-center items-center gap-3 text-[#586D81] text-[15px] tracking-[1.5px] text-center"
+          style={{
+            fontFamily: '"Noto Sans TC", "思源黑體", sans-serif',
+            fontWeight: 400,
+          }}
+        >
+          <Link href="/marketing/terms">使用條款</Link>
+          <span className="hidden sm:inline">|</span>
+          <Link href="/marketing/privacy">隱私權政策</Link>
+          <span className="hidden sm:inline">|</span>
+          <Link href="/marketing/technical">統計說明文件</Link>
+          <span className="hidden sm:inline">|</span>
+          <Link href="/marketing/contact">聯絡我們</Link>
+        </div>
+
+        {/* ✅ 版權文字（置中） */}
         <p
-          className="text-[#A3A8B2]"
+          className="text-[#A3A8B2] text-center"
           style={{
             fontSize: "15px",
             fontWeight: 700,
@@ -67,23 +88,6 @@ export default function Footer() {
         >
           © 2025 AI Medicus Inc.
         </p>
-
-        {/* 右側連結 */}
-        <div
-          className="flex items-center gap-2 text-[#586D81] text-[15px] tracking-[1.5px]"
-          style={{
-            fontFamily: '"Noto Sans TC", "思源黑體", sans-serif',
-            fontWeight: 400,
-          }}
-        >
-          <Link href="/marketing/terms">使用條款</Link>
-          <span>|</span>
-          <Link href="/marketing/privacy">隱私權政策</Link>
-          <span>|</span>
-          <Link href="/marketing/technical">統計說明文件</Link>
-          <span>|</span>
-          <Link href="/marketing/contact">聯絡我們</Link>
-        </div>
       </div>
     </footer>
   );

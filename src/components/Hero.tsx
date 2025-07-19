@@ -18,14 +18,13 @@ export default function Hero() {
       transition={{ duration: 1, ease: "easeOut" }}
     >
       <div className="container-custom">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+        <div className="flex flex-col-reverse md:grid md:grid-cols-2 gap-12 items-center">
           {/* 左側文字區 */}
-          <div className="h-[360px] flex flex-col justify-between">
+          <div className="h-auto md:h-[360px] flex flex-col justify-between">
             <div className="space-y-8">
               <motion.h1
-                className="text-[#0F2844] font-semibold leading-[62px]"
+                className="text-[#0F2844] font-semibold leading-[62px] text-[36px] md:text-[45px]"
                 style={{
-                  fontSize: "45px",
                   letterSpacing: "5px",
                   fontFamily: '"Noto Sans TC", "思源黑體", sans-serif',
                 }}
@@ -37,9 +36,8 @@ export default function Hero() {
               </motion.h1>
 
               <motion.p
-                className="text-[#0F2844] font-normal leading-[42px]"
+                className="text-[#0F2844] font-normal leading-[42px] text-[22px] md:text-[25px]"
                 style={{
-                  fontSize: "25px",
                   letterSpacing: "3px",
                   fontFamily: '"Noto Sans TC", "思源黑體", sans-serif',
                 }}
@@ -54,7 +52,7 @@ export default function Hero() {
 
             {/* CTA 按鈕區 */}
             <motion.div
-              className="flex flex-col sm:flex-row gap-4"
+              className="flex flex-col sm:flex-row gap-4 mt-6"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6, duration: 0.6 }}
@@ -110,7 +108,6 @@ export default function Hero() {
                     fontFamily: '"Noto Sans TC", "思源黑體", sans-serif',
                   }}
                 >
-
                   <motion.div
                     animate={{ rotate: rightHover ? 15 : 0 }}
                     transition={{ type: "spring", stiffness: 300 }}
@@ -132,17 +129,15 @@ export default function Hero() {
             </motion.div>
           </div>
 
-          {/* 右側影片區（加上縮放與淡入） */}
+          {/* 右側影片區：保留手機版，縮小寬度 */}
           <motion.div
-            className="relative w-full max-w-xl mx-auto"
+            className="relative w-full max-w-[360px] md:max-w-xl mx-auto"
             initial={{ opacity: 0, scale: 0.92 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1.2, ease: "easeOut", delay: 0.5 }}
           >
-            <div className="overflow-hidden rounded-xl shadow-lg border border-[#ccc]">
+            <div className="aspect-video w-full overflow-hidden rounded-xl shadow-lg border border-[#ccc]">
               <video
-                width={640}
-                height={360}
                 autoPlay
                 loop
                 muted

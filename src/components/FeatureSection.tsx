@@ -30,7 +30,7 @@ const features = [
 export default function FeatureSection() {
   return (
     <section className="w-full bg-white py-16">
-      <div className="container-custom flex flex-col md:flex-row justify-between gap-8">
+      <div className="container-custom grid grid-cols-1 md:grid-cols-3 gap-8 place-items-center">
         {features.map((f, index) => {
           const paddingMap = [78, 68, 83];
           const padding = paddingMap[index];
@@ -39,7 +39,7 @@ export default function FeatureSection() {
             <motion.div
               key={f.title}
               className={`
-                w-[442px] h-[328px] rounded-xl border border-gray-200 ${f.gradient}
+                w-full max-w-[442px] h-[328px] rounded-xl border border-gray-200 ${f.gradient}
                 shadow-sm flex flex-col justify-center items-center text-center px-6
               `}
               whileHover={{
@@ -48,7 +48,7 @@ export default function FeatureSection() {
               }}
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
             >
-              {/* Icon + 動畫 */}
+              {/* Icon 動畫 */}
               <motion.div
                 whileHover={{ scale: 1.1, y: -4 }}
                 transition={{ type: "spring", stiffness: 300 }}

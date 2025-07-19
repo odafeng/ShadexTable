@@ -150,7 +150,7 @@ export default function Hero() {
                 className="w-full h-full object-cover"
               >
                 <source
-                  src="https://res.cloudinary.com/dpmewq6aj/video/upload/v1752251893/landing_demo_imou3s.mp4"
+                  src="https://res.cloudinary.com/dpmewq6aj/video/upload/v1752905190/%E6%96%B0%E7%89%88UI_1080P_yuof3a.mp4"
                   type="video/mp4"
                 />
                 您的瀏覽器不支援影片播放。

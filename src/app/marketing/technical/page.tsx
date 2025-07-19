@@ -71,7 +71,7 @@ export default function TechnicalPage() {
                     為克服上述限制，研究者已提出多種替代方法，如 G 檢定、多變項邏輯回歸等。使用卡方檢定時應保持謹慎，必要時輔以其他方法。
                   </p>
                   <p className="text-[#D97706] italic text-[15px] leading-relaxed">
-                    <strong>ShadyTable 系統邏輯：</strong>對於 2 × 2 列聯表，若總樣本數小於 20 或任一格的期望值小於 5，<span className="font-semibold">系統將自動改用 Fisher’s exact test</span>。若為更大列聯表且樣本數較小，則會顯示警語，提醒使用者對結果謹慎詮釋。
+                    <strong>ShadyTable 系統邏輯：</strong>對於 2 × 2 列聯表，若任一格的期望值小於 5，<span className="font-semibold">系統將自動改用 Fisher’s exact test</span>。若為更大列聯表且樣本數較小，則會顯示警語，提醒使用者對結果謹慎詮釋。
                   </p>
 
                   <li>類別變項 vs 連續變項 [15–20]：<span className="text-[#008587] font-semibold">t-test、Mann–Whitney U、ANOVA、Kruskal–Wallis</span></li>
@@ -175,7 +175,7 @@ export default function TechnicalPage() {
                     To address these issues, researchers have proposed alternative methods such as the G-test and multinomial logistic regression. Chi-square should be applied and interpreted with caution and, where appropriate, supplemented by additional techniques.
                   </p>
                   <p className="text-[#D97706] italic text-[15px] leading-relaxed">
-                    <strong>ShadyTable System Logic:</strong> For 2 × 2 tables, if the total sample size is less than 20 or any expected cell count is less than 5, <span className="font-semibold">Fisher’s exact test will be applied automatically.</span> For larger tables with small sample sizes, the system will display a warning. Advanced methods like the G-test and permutation tests are not yet available on this platform.
+                    <strong>ShadyTable System Logic:</strong> For 2 × 2 tables, if any expected cell count is less than 5, <span className="font-semibold">Fisher’s exact test will be applied automatically.</span> For larger tables with small sample sizes, the system will display a warning. Advanced methods like the G-test and permutation tests are not yet available on this platform.
                   </p>
 
                   <li>Category vs Continuous [15–20]: <span className="text-[#008587] font-semibold">t-test, Mann–Whitney U, ANOVA, Kruskal–Wallis</span></li>

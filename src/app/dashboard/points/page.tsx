@@ -105,7 +105,7 @@ function PointsInner() {
             <li>🧠 加上 AI 結果摘要：+1 點</li>
           </ul>
           <p className="text-xs text-muted-foreground">
-            註：首次註冊會自動獲得 1 點試用點數。
+            註：首次註冊會自動獲得 2 點試用點數。
           </p>
         </CardContent>
       </Card>

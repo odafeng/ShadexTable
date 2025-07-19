@@ -39,7 +39,7 @@ export default function FaqPage() {
             <AccordionItem value="q2">
               <AccordionTrigger>2. 要如何在文章中描述所採用的統計方法？</AccordionTrigger>
               <AccordionContent>
-                建議在方法段中寫明："All statistical analyses were performed using ShadyTable (AI Medicus, Taiwan), an online Python-based statistical tool." 並補充 Python 與套件版本資訊。
+                ShadyTable 的統計核心以 Python 3.13.5 運作，建議撰寫論文時在方法段中寫明："All statistical analyses were conducted using Python version 3.13.5"
               </AccordionContent>
             </AccordionItem>
 
@@ -53,14 +53,14 @@ export default function FaqPage() {
             <AccordionItem value="q4">
               <AccordionTrigger>4. 哪些類型的統計檢定適用？</AccordionTrigger>
               <AccordionContent>
-                包含常見的 t-test、卡方檢定、ANOVA、Mann-Whitney U test、Wilcoxon signed-rank test、Logistic Regression 等，會依據資料型態自動選擇合適的檢定。
+                包含常見的 t-test、卡方檢定、ANOVA、Mann-Whitney U test、Kruskal-Wallis 等，會依據資料型態自動選擇合適的檢定。
               </AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="q5">
               <AccordionTrigger>5. 點數用完怎麼辦？</AccordionTrigger>
               <AccordionContent>
-                使用者可於控制台查看剩餘點數，若不足可依需求加購。首次登入將自動獲得 1 點免費體驗點數。詳情請見 <Link href="/pricing" className="underline">定價方案</Link>。
+                使用者可於控制台查看剩餘點數，若不足可依需求加購。首次登入將自動獲得免費體驗點數。詳情請見 <Link href="/pricing" className="underline">定價方案</Link>。
               </AccordionContent>
             </AccordionItem>
 

@@ -7,8 +7,6 @@ import Footer from "@/components/Footer";
 import { motion } from "framer-motion";
 import Link from "next/link";
 
-
-
 export default function FeaturesPage() {
   const [rightHover, setRightHover] = useState(false);
   const [leftHover, setLeftHover] = useState(false);
@@ -19,28 +17,39 @@ export default function FeaturesPage() {
 
       {/* ✅ HERO 區塊 */}
       <section
-        className="w-full"
+        className="w-full overflow-x-hidden"
         style={{
           background: "linear-gradient(180deg, #E3E7F0 0%, #FFFFFF 100%)",
           paddingTop: "80px",
           paddingBottom: "50px",
         }}
       >
-        <div className="container-custom flex flex-col lg:flex-row items-center justify-between gap-10">
+        <div className="container-custom mx-auto w-full max-w-[1920px] px-5 lg:px-[277px] flex flex-col lg:flex-row items-center justify-between gap-10 -mb-10">
           <motion.div
             className="flex-1 space-y-6 text-left"
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <h1 style={{ fontSize: "45px", letterSpacing: "5px", lineHeight: "62px", color: "#000000", fontFamily: '"Noto Sans TC", "\u601D\u6E90\u9ED1\u9AD4", sans-serif' }}>
-              不會程式？沒學過統計？
+            <h1
+              className="-mt-6 text-[38.3px] lg:text-[45px] leading-[58px] lg:leading-[62px] tracking-[3.4px] lg:tracking-[5px] text-black text-center lg:text-left"
+              style={{ fontFamily: '"Noto Sans TC", "思源黑體", sans-serif' }}
+            >
+              不會程式？<br className="block lg:hidden" />
+              沒學過統計？
             </h1>
-            <p style={{ fontSize: "30px", letterSpacing: "4px", lineHeight: "56px", color: "#114A8B", fontFamily: '"Noto Sans TC", "\u601D\u6E90\u9ED1\u9AD4", sans-serif' }}>
-              3 秒自動產表，寫 paper 也能超前部署。
+            <p
+              className="-mt-2 text-[26px] lg:text-[30px] tracking-[2.8px] lg:tracking-[4px] leading-[42px] lg:leading-[56px] text-[#114A8B] text-center lg:text-left"
+              style={{ fontFamily: '"Noto Sans TC", "思源黑體", sans-serif' }}
+            >
+              3 秒自動產表，<br className="block lg:hidden" />寫 paper 也能超前部署。
             </p>
-            <p style={{ fontSize: "25px", letterSpacing: "3px", lineHeight: "42px", color: "#000000", fontFamily: '"Noto Sans TC", "\u601D\u6E90\u9ED1\u9AD4", sans-serif' }}>
-              ShadyTable 專為臨床研究者打造，自動選擇統計檢定、自動產表、自動產出學術摘要段落。
+
+            <p
+              className="text-[20px] lg:text-[25px] tracking-[2.2px] lg:tracking-[3px] leading-[34px] lg:leading-[42px] text-black text-center lg:text-left"
+              style={{ fontFamily: '"Noto Sans TC", "思源黑體", sans-serif' }}
+            >
+              ShadyTable 專為臨床研究者打造、自動選擇統計檢定、自動產表、自動產出學術摘要段落。
             </p>
             <Link href="/step1_v2">
               <motion.button
@@ -48,15 +57,8 @@ export default function FeaturesPage() {
                 whileTap={{ scale: 0.95 }}
                 onMouseEnter={() => setRightHover(true)}
                 onMouseLeave={() => setRightHover(false)}
-                className="rounded-full border text-white bg-[#0F2844] hover:bg-transparent hover:text-[#0F2844] border-[#0F2844] transition-all flex items-center justify-center gap-3"
-                style={{
-                  width: "252px",
-                  height: "65px",
-                  fontSize: "23px",
-                  letterSpacing: "2.5px",
-                  lineHeight: "37px",
-                  fontFamily: '"Noto Sans TC", "思源黑體", sans-serif',
-                }}
+                className="mx-auto lg:mx-0 rounded-full border text-white bg-[#0F2844] hover:bg-transparent hover:text-[#0F2844] border-[#0F2844] transition-all flex items-center justify-center gap-3 text-[20px] lg:text-[23px] tracking-[2px] lg:tracking-[2.5px] leading-[32px] lg:leading-[37px] w-[215px] h-[50px] lg:w-[252px] lg:h-[65px]"
+                style={{ fontFamily: '"Noto Sans TC", "思源黑體", sans-serif' }}
               >
                 <Image
                   src={
@@ -68,11 +70,10 @@ export default function FeaturesPage() {
                   width={24}
                   height={24}
                 />
-                立即開始分析
+                <span>立即開始分析</span>
               </motion.button>
             </Link>
           </motion.div>
-
           <motion.div
             className="flex-1 flex justify-center"
             initial={{ opacity: 0, x: 50 }}
@@ -84,14 +85,15 @@ export default function FeaturesPage() {
               alt="feature"
               width={450}
               height={336.72}
+              className="w-full max-w-[400px] h-auto"
               style={{ objectFit: "contain" }}
             />
           </motion.div>
         </div>
-      </section>
+      </section >
 
       {/* ✅ 卡片區塊 Section */}
-      <section className="w-full flex flex-col items-center bg-white py-20">
+      < section className="w-full flex flex-col items-center bg-white py-20" >
         <motion.div
           className="flex items-center"
           style={{ backgroundColor: "#E3E7F0", width: "1366px", height: "460px", borderRadius: "24px", overflow: "hidden", marginBottom: "32px" }}
@@ -360,12 +362,13 @@ export default function FeaturesPage() {
             style={{ objectFit: "contain" }}
           />
         </motion.div>
-      </section>
+      </section >
 
       {/* ✅ Bottom CTA 區塊 */}
-      <motion.section
+      < motion.section
         className="w-full flex flex-col items-center justify-center text-center"
-        style={{ backgroundImage: 'url("/features/inner_page_bg@2x.png")', backgroundSize: "cover", backgroundPosition: "center", paddingTop: "80px", paddingBottom: "402px" }}
+        style={{ backgroundImage: 'url("/features/inner_page_bg@2x.png")', backgroundSize: "cover", backgroundPosition: "center", paddingTop: "80px", paddingBottom: "402px" }
+        }
         initial={{ opacity: 0, y: 40 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
@@ -414,7 +417,7 @@ export default function FeaturesPage() {
             開始分析
           </motion.button>
         </Link>
-      </motion.section>
+      </motion.section >
 
       <Footer />
     </>

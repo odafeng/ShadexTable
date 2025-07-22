@@ -1,53 +1,50 @@
-
 "use client";
 
 import { motion } from "framer-motion";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import LightButton from "@/components/LightButton";
-
 
 export default function TechnicalPage() {
   return (
-    <main className="min-h-screen bg-white text-[#0F2844] py-16">
-      <div className="container-custom max-w-5xl space-y-12">
-        <div className="flex justify-between items-center">
+    <main className="min-h-screen bg-white text-[#0F2844] py-16 px-4 sm:px-6">
+      <div className="container-custom max-w-5xl space-y-12 sm:space-y-10">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <motion.h1
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="text-[38px] font-bold tracking-[3px] leading-[56px]"
+            className="text-[28px] sm:text-[38px] font-bold tracking-[2px] sm:tracking-[3px] leading-[42px] sm:leading-[56px]"
             style={{ fontFamily: '"Noto Sans TC", "思源黑體", sans-serif' }}
           >
             統計方法技術文件
           </motion.h1>
-
-          <LightButton text="回首頁" href="/" />
         </div>
 
-        <p className="text-[17px] text-[#586D81] tracking-[1px] leading-[30px] text-left">
+        <p className="text-[15px] sm:text-[17px] text-[#586D81] tracking-[0.5px] sm:tracking-[1px] leading-[28px] sm:leading-[30px] text-left">
           本頁面提供 ShadyTable 所採用之統計邏輯、中英文對照說明與引用建議。
         </p>
 
         <Tabs defaultValue="zh" className="w-full">
-          <TabsList className="w-full flex justify-center rounded-xl bg-[#F2F4F7] border shadow-sm">
-            <TabsTrigger value="zh" className="w-1/2 py-3 text-base font-medium">中文說明</TabsTrigger>
-            <TabsTrigger value="en" className="w-1/2 py-3 text-base font-medium">English Version</TabsTrigger>
+          <TabsList className="flex justify-center items-center bg-[#F3F6FA] rounded-full p-[3px] w-full max-w-[340px] mx-auto shadow-sm overflow-hidden">
+            <TabsTrigger value="zh" className="flex-1 text-[14px] sm:text-[15px] font-medium text-[#0F2844] data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-full py-1.5 sm:py-2 text-center transition-all whitespace-nowrap">
+              中文說明
+            </TabsTrigger>
+            <TabsTrigger value="en" className="flex-1 text-[14px] sm:text-[15px] font-medium text-[#0F2844] data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-full py-1.5 sm:py-2 text-center transition-all whitespace-nowrap">
+              English Version
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="zh">
-            <div className="mt-8 bg-white rounded-xl border p-8 shadow-sm text-[17px] leading-[32px] tracking-[1.5px] text-[#586D81] space-y-8"
+            <div className="mt-8 bg-white rounded-xl border p-5 sm:p-8 shadow-sm text-[15px] sm:text-[17px] leading-[28px] sm:leading-[32px] tracking-[1px] sm:tracking-[1.5px] text-[#586D81] space-y-8"
               style={{ fontFamily: '"Noto Sans TC", "思源黑體", sans-serif' }}
             >
               <section>
-                <h2 className="text-xl font-semibold text-[#0F2844] mb-2">統計邏輯設計原則</h2>
+                <h2 className="text-[18px] sm:text-xl font-semibold text-[#0F2844] mb-2">統計邏輯設計原則</h2>
                 <p>ShadyTable 以 Python 為核心，根據統計教科書與期刊慣例，設計標準化且可重複的統計檢定流程。</p>
               </section>
 
               <section>
-                <h2 className="text-xl font-semibold text-[#0F2844] mb-2">支援的統計方法</h2>
+                <h2 className="text-[18px] sm:text-xl font-semibold text-[#0F2844] mb-2">支援的統計方法</h2>
                 <ul className="list-disc pl-5 space-y-2">
                   <li>常態性檢定 [1–8]：<span className="text-[#008587] font-semibold">Shapiro-Wilk test</span> </li>
                   <p>
@@ -92,12 +89,12 @@ export default function TechnicalPage() {
               </section>
 
               <section>
-                <h2 className="text-xl font-semibold text-[#0F2844] mb-2">資料處理與隱私</h2>
+                <h2 className="text-[18px] sm:text-xl font-semibold text-[#0F2844] mb-2">資料處理與隱私</h2>
                 <p>所有資料僅於瀏覽器本地端處理，平台<strong>不儲存、不上傳</strong>任何使用者上傳檔案。</p>
               </section>
 
               <section>
-                <h2 className="text-xl font-semibold text-[#0F2844] mb-2">引用建議</h2>
+                <h2 className="text-[18px] sm:text-xl font-semibold text-[#0F2844] mb-2">引用建議</h2>
                 <p>
                   ShadyTable 之統計核心引擎乃基於<strong>Python 3.13.5</strong> 建構，所有統計數據計算皆於該版本環境中執行。
                   撰寫學術論文時，建議於「統計方法」一節揭露此資訊，以提升分析過程之透明度與重現性。
@@ -105,50 +102,49 @@ export default function TechnicalPage() {
               </section>
 
               <section>
-                <h2 className="text-xl font-semibold text-[#0F2844] mb-2">參考文獻</h2>
-                <div className="italic text-xs text-gray-600 space-y-2">
-                  {/* 你可以把已整理好的 Vancouver 格式文獻貼在這裡 */}
-                  <p>1. Sainani KL. Dealing with non-normal data. PM R. 2012;4(12):1001–1005. doi:10.1016/j.pmrj.2012.10.013</p>
-                  <p>2. Ludbrook J. Issues in biomedical statistics: comparing means under normal distribution theory. Aust N Z J Surg. 1995;65(4):267–272. doi:10.1111/j.1445-2197.1995.tb00626.x</p>
-                  <p>3. Lamb CR. Statistical briefing: which test? Vet Radiol Ultrasound. 2009;50(4):447. doi:10.1111/j.1740-8261.2009.01565.x</p>
-                  <p>4. Bellolio MF, et al. Alternatives for testing data normality. Ann Emerg Med. 2008;52(2):121–127.</p>
-                  <p>5. Ruxton GD, Colegrave N. Testing for normality: a comparison of tests. Anim Behav. 2015;102:1–7.</p>
-                  <p>6. Razali NM, Yap BW. Power comparisons of Shapiro-Wilk, Kolmogorov-Smirnov, Lilliefors and Anderson-Darling tests. J Stat Model Anal. 2011;2(1):21–33.</p>
-                  <p>7. Ruxton GD, Wilkinson DM, Neuhäuser M. Advice on testing the null hypothesis that a sample is drawn from a normal distribution. Anim Behav. 2015;107:249–252. doi:10.1016/j.anbehav.2015.07.006</p>
-                  <p>8. Hancock AA, Bush EN, Stanisic D, Kyncl JJ, Lin CT. Data normalization before statistical analysis: keeping the horse before the cart. Trends Pharmacol Sci. 1988;9(1):29–32. doi:10.1016/0165-6147(88)90239-8</p>
-                  <p>9. Kangave D. More enlightenment on the essence of applying Fisher's exact test when testing for statistical significance using small sample data presented in a 2 × 2 table. West Afr J Med. 1992;11(3):179–184.</p>
-                  <p>10. Pedersen T. Fishing for exactness. arXiv preprint cmp-lg/9608010. 1996.</p>
-                  <p>11. Lydersen S, Fagerland MW, Laake P. Recommended tests for association in 2 × 2 tables. Stat Med. 2009;28(7):1159–1175. doi:10.1002/sim.3531</p>
-                  <p>12. Warner P. Testing association with Fisher's exact test. J Fam Plann Reprod Health Care. 2013;39(4):281–284.</p>
-                  <p>13. Lyman S, Kirkley S, Ashikaga T, Anderson DD, Guanche CA, Sandmeier R. Letters to the editor. Am J Sports Med. 2000;28(6):918–921. doi:10.1177/03635465000280062701</p>
-                  <p>14. Hazra A, Gogtay N. Biostatistics series module 4: comparing groups – categorical variables. Indian J Dermatol. 2016;61(4):385–392. doi:10.4103/0019-5154.185700</p>
-                  <p>15. Dexter F, Chestnut DH. Analysis of statistical tests to compare visual analog scale measurements among groups. Anesthesiology. 1995;82(4):896–902. doi:10.1097/00000542-199504000-00012</p>
-                  <p>16. McKnight PE, Najab J. Mann-Whitney U Test. In: Weiner IB, Craighead WE, editors. The Corsini Encyclopedia of Psychology. Hoboken: Wiley; 2010. doi:10.1002/9780470479216.corpsy0524</p>
-                  <p>17. Rivas-Ruíz R, Moreno-Palacios J, Talavera JO. [Clinical research XVI. Differences between medians with the Mann-Whitney U test]. Rev Med Inst Mex Seguro Soc. 2013;51(4):414–419.</p>
-                  <p>18. Ostertagová E, Ostertag O, Kováč J. Methodology and application of the Kruskal-Wallis test. Appl Mech Mater. 2014;611:115–120. doi:10.4028/www.scientific.net/AMM.611.115</p>
-                  <p>19. Emerson RW. Parametric tests, their nonparametric alternatives, and degrees of freedom. J Vis Impair Blind. 2016;110(5):377–380. doi:10.1177/0145482X1611000511</p>
-                  <p>20. Kitchen CMR. Nonparametric vs parametric tests of location in biomedical research. Am J Ophthalmol. 2009;147(4):571–572.</p>
-                </div>
+                <h2 className="text-[18px] sm:text-xl font-semibold text-[#0F2844] mb-2">參考文獻</h2>
+                <details className="italic text-xs text-gray-600">
+                  <summary className="cursor-pointer text-[#0F2844] font-medium">
+                    點此展開參考文獻清單
+                  </summary>
+                  <div className="mt-4 space-y-1.5 sm:space-y-2">
+                    <p>1. Sainani KL. Dealing with non-normal data. PM R. 2012;4(12):1001–1005. doi:10.1016/j.pmrj.2012.10.013</p>
+                    <p>2. Ludbrook J. Issues in biomedical statistics: comparing means under normal distribution theory. Aust N Z J Surg. 1995;65(4):267–272. doi:10.1111/j.1445-2197.1995.tb00626.x</p>
+                    <p>3. Lamb CR. Statistical briefing: which test? Vet Radiol Ultrasound. 2009;50(4):447. doi:10.1111/j.1740-8261.2009.01565.x</p>
+                    <p>4. Bellolio MF, et al. Alternatives for testing data normality. Ann Emerg Med. 2008;52(2):121–127.</p>
+                    <p>5. Ruxton GD, Colegrave N. Testing for normality: a comparison of tests. Anim Behav. 2015;102:1–7.</p>
+                    <p>6. Razali NM, Yap BW. Power comparisons of Shapiro-Wilk, Kolmogorov-Smirnov, Lilliefors and Anderson-Darling tests. J Stat Model Anal. 2011;2(1):21–33.</p>
+                    <p>7. Ruxton GD, Wilkinson DM, Neuhäuser M. Advice on testing the null hypothesis that a sample is drawn from a normal distribution. Anim Behav. 2015;107:249–252. doi:10.1016/j.anbehav.2015.07.006</p>
+                    <p>8. Hancock AA, Bush EN, Stanisic D, Kyncl JJ, Lin CT. Data normalization before statistical analysis: keeping the horse before the cart. Trends Pharmacol Sci. 1988;9(1):29–32. doi:10.1016/0165-6147(88)90239-8</p>
+                    <p>9. Kangave D. More enlightenment on the essence of applying Fisher's exact test when testing for statistical significance using small sample data presented in a 2 × 2 table. West Afr J Med. 1992;11(3):179–184.</p>
+                    <p>10. Pedersen T. Fishing for exactness. arXiv preprint cmp-lg/9608010. 1996.</p>
+                    <p>11. Lydersen S, Fagerland MW, Laake P. Recommended tests for association in 2 × 2 tables. Stat Med. 2009;28(7):1159–1175. doi:10.1002/sim.3531</p>
+                    <p>12. Warner P. Testing association with Fisher's exact test. J Fam Plann Reprod Health Care. 2013;39(4):281–284.</p>
+                    <p>13. Lyman S, Kirkley S, Ashikaga T, Anderson DD, Guanche CA, Sandmeier R. Letters to the editor. Am J Sports Med. 2000;28(6):918–921. doi:10.1177/03635465000280062701</p>
+                    <p>14. Hazra A, Gogtay N. Biostatistics series module 4: comparing groups – categorical variables. Indian J Dermatol. 2016;61(4):385–392. doi:10.4103/0019-5154.185700</p>
+                    <p>15. Dexter F, Chestnut DH. Analysis of statistical tests to compare visual analog scale measurements among groups. Anesthesiology. 1995;82(4):896–902. doi:10.1097/00000542-199504000-00012</p>
+                    <p>16. McKnight PE, Najab J. Mann-Whitney U Test. In: Weiner IB, Craighead WE, editors. The Corsini Encyclopedia of Psychology. Hoboken: Wiley; 2010. doi:10.1002/9780470479216.corpsy0524</p>
+                    <p>17. Rivas-Ruíz R, Moreno-Palacios J, Talavera JO. [Clinical research XVI. Differences between medians with the Mann-Whitney U test]. Rev Med Inst Mex Seguro Soc. 2013;51(4):414–419.</p>
+                    <p>18. Ostertagová E, Ostertag O, Kováč J. Methodology and application of the Kruskal-Wallis test. Appl Mech Mater. 2014;611:115–120. doi:10.4028/www.scientific.net/AMM.611.115</p>
+                    <p>19. Emerson RW. Parametric tests, their nonparametric alternatives, and degrees of freedom. J Vis Impair Blind. 2016;110(5):377–380. doi:10.1177/0145482X1611000511</p>
+                    <p>20. Kitchen CMR. Nonparametric vs parametric tests of location in biomedical research. Am J Ophthalmol. 2009;147(4):571–572.</p>
+                  </div>
+                </details>
               </section>
             </div>
           </TabsContent>
 
 
-          {/* 英文內容 */}
 
+          {/* ===== 英文區塊 ===== */}
           <TabsContent value="en">
-            <div className="mt-8 bg-white rounded-xl border p-8 shadow-sm text-[17px] leading-[32px] tracking-[1.5px] text-[#586D81] space-y-8"
-              style={{ fontFamily: '"Noto Sans TC", "\u601D\u6E90\u9ED1\u9AD4", sans-serif' }}
+            <div className="mt-8 bg-white rounded-xl border p-5 sm:p-8 shadow-sm text-[15px] sm:text-[17px] leading-[28px] sm:leading-[32px] tracking-[1px] sm:tracking-[1.5px] text-[#586D81] space-y-8"
+              style={{ fontFamily: '"Noto Sans TC", "思源黑體", sans-serif' }}
             >
+              <h2 className="text-[18px] sm:text-xl font-semibold text-[#0F2844] mb-2">Statistical Logic and Assumptions</h2>
+              <p>ShadyTable is powered by Python and follows best practices from statistical textbooks and peer-reviewed publications, aiming to provide a standardized and reproducible workflow.</p>
               <div>
-                <h2 className="text-xl font-semibold text-[#0F2844] mb-2">Statistical Logic and Assumptions</h2>
-                <p>
-                  ShadyTable is powered by Python and follows best practices from statistical textbooks and peer-reviewed publications, aiming to provide a standardized and reproducible workflow.
-                </p>
-              </div>
-
-              <div>
-                <h2 className="text-xl font-semibold text-[#0F2844] mb-2">Supported Statistical Methods</h2>
+                <h2 className="text-[18px] sm:text-xl font-semibold text-[#0F2844] mb-2">Supported Statistical Methods</h2>
                 <ul className="list-disc pl-5 space-y-2">
                   <li>Normality Test [1–8]: <span className="text-[#008587] font-semibold">Shapiro-Wilk test </span></li>
                   <p>
@@ -193,52 +189,57 @@ export default function TechnicalPage() {
                   </p>
                 </ul>
               </div>
-            
 
-            <div>
-              <h2 className="text-xl font-semibold text-[#0F2844] mb-2">Data Processing and Privacy</h2>
-              <p>
-                All uploaded files are processed locally in your browser. ShadyTable does <strong>not store or upload</strong> any data. Please ensure that all personally identifiable information is removed prior to use.
-              </p>
-            </div>
 
-            <div>
-              <h2 className="text-xl font-semibold text-[#0F2844] mb-2">Suggested Citation</h2>
-              <p>
-                The statistical engine of ShadyTable is built on <strong>Python 3.13.5</strong>, and all statistical computations are performed within this environment. When preparing academic manuscripts, it is recommended to disclose this information in the 'Statistical Methods' section to enhance the transparency and reproducibility of the analysis.
-              </p>
-            </div>
+              <div>
+                <h2 className="text-[18px] sm:text-xl font-semibold text-[#0F2844] mb-2">Data Processing and Privacy</h2>
+                <p>
+                  All uploaded files are processed locally in your browser. ShadyTable does <strong>not store or upload</strong> any data. Please ensure that all personally identifiable information is removed prior to use.
+                </p>
+              </div>
 
-            <div>
-              <h2 className="text-xl font-semibold text-[#0F2844] mb-2">References</h2>
-              <div className="italic text-xs text-gray-600 space-y-4">
-                {/* 你可以把已整理好的 Vancouver 格式文獻貼在這裡 */}
-                <p>1. Sainani KL. Dealing with non-normal data. PM R. 2012;4(12):1001–1005. doi:10.1016/j.pmrj.2012.10.013</p>
-                <p>2. Ludbrook J. Issues in biomedical statistics: comparing means under normal distribution theory. Aust N Z J Surg. 1995;65(4):267–272. doi:10.1111/j.1445-2197.1995.tb00626.x</p>
-                <p>3. Lamb CR. Statistical briefing: which test? Vet Radiol Ultrasound. 2009;50(4):447. doi:10.1111/j.1740-8261.2009.01565.x</p>
-                <p>4. Bellolio MF, et al. Alternatives for testing data normality. Ann Emerg Med. 2008;52(2):121–127.</p>
-                <p>5. Ruxton GD, Colegrave N. Testing for normality: a comparison of tests. Anim Behav. 2015;102:1–7.</p>
-                <p>6. Razali NM, Yap BW. Power comparisons of Shapiro-Wilk, Kolmogorov-Smirnov, Lilliefors and Anderson-Darling tests. J Stat Model Anal. 2011;2(1):21–33.</p>
-                <p>7. Ruxton GD, Wilkinson DM, Neuhäuser M. Advice on testing the null hypothesis that a sample is drawn from a normal distribution. Anim Behav. 2015;107:249–252. doi:10.1016/j.anbehav.2015.07.006</p>
-                <p>8. Hancock AA, Bush EN, Stanisic D, Kyncl JJ, Lin CT. Data normalization before statistical analysis: keeping the horse before the cart. Trends Pharmacol Sci. 1988;9(1):29–32. doi:10.1016/0165-6147(88)90239-8</p>
-                <p>9. Kangave D. More enlightenment on the essence of applying Fisher's exact test when testing for statistical significance using small sample data presented in a 2 × 2 table. West Afr J Med. 1992;11(3):179–184.</p>
-                <p>10. Pedersen T. Fishing for exactness. arXiv preprint cmp-lg/9608010. 1996.</p>
-                <p>11. Lydersen S, Fagerland MW, Laake P. Recommended tests for association in 2 × 2 tables. Stat Med. 2009;28(7):1159–1175. doi:10.1002/sim.3531</p>
-                <p>12. Warner P. Testing association with Fisher's exact test. J Fam Plann Reprod Health Care. 2013;39(4):281–284.</p>
-                <p>13. Lyman S, Kirkley S, Ashikaga T, Anderson DD, Guanche CA, Sandmeier R. Letters to the editor. Am J Sports Med. 2000;28(6):918–921. doi:10.1177/03635465000280062701</p>
-                <p>14. Hazra A, Gogtay N. Biostatistics series module 4: comparing groups – categorical variables. Indian J Dermatol. 2016;61(4):385–392. doi:10.4103/0019-5154.185700</p>
-                <p>15. Dexter F, Chestnut DH. Analysis of statistical tests to compare visual analog scale measurements among groups. Anesthesiology. 1995;82(4):896–902. doi:10.1097/00000542-199504000-00012</p>
-                <p>16. McKnight PE, Najab J. Mann-Whitney U Test. In: Weiner IB, Craighead WE, editors. The Corsini Encyclopedia of Psychology. Hoboken: Wiley; 2010. doi:10.1002/9780470479216.corpsy0524</p>
-                <p>17. Rivas-Ruíz R, Moreno-Palacios J, Talavera JO. [Clinical research XVI. Differences between medians with the Mann-Whitney U test]. Rev Med Inst Mex Seguro Soc. 2013;51(4):414–419.</p>
-                <p>18. Ostertagová E, Ostertag O, Kováč J. Methodology and application of the Kruskal-Wallis test. Appl Mech Mater. 2014;611:115–120. doi:10.4028/www.scientific.net/AMM.611.115</p>
-                <p>19. Emerson RW. Parametric tests, their nonparametric alternatives, and degrees of freedom. J Vis Impair Blind. 2016;110(5):377–380. doi:10.1177/0145482X1611000511</p>
-                <p>20. Kitchen CMR. Nonparametric vs parametric tests of location in biomedical research. Am J Ophthalmol. 2009;147(4):571–572.</p>
+              <div>
+                <h2 className="text-[18px] sm:text-xl font-semibold text-[#0F2844] mb-2">Suggested Citation</h2>
+                <p>
+                  The statistical engine of ShadyTable is built on <strong>Python 3.13.5</strong>, and all statistical computations are performed within this environment. When preparing academic manuscripts, it is recommended to disclose this information in the 'Statistical Methods' section to enhance the transparency and reproducibility of the analysis.
+                </p>
+              </div>
+
+              <div>
+                <h2 className="text-[18px] sm:text-xl font-semibold text-[#0F2844] mb-2">參考文獻</h2>
+                <details className="italic text-xs text-gray-600">
+                  <summary className="cursor-pointer text-[#0F2844] font-medium">
+                    Click HERE to expand the reference list
+                  </summary>
+                  <p>1. Sainani KL. Dealing with non-normal data. PM R. 2012;4(12):1001–1005. doi:10.1016/j.pmrj.2012.10.013</p>
+                  <p>2. Ludbrook J. Issues in biomedical statistics: comparing means under normal distribution theory. Aust N Z J Surg. 1995;65(4):267–272. doi:10.1111/j.1445-2197.1995.tb00626.x</p>
+                  <p>3. Lamb CR. Statistical briefing: which test? Vet Radiol Ultrasound. 2009;50(4):447. doi:10.1111/j.1740-8261.2009.01565.x</p>
+                  <p>4. Bellolio MF, et al. Alternatives for testing data normality. Ann Emerg Med. 2008;52(2):121–127.</p>
+                  <p>5. Ruxton GD, Colegrave N. Testing for normality: a comparison of tests. Anim Behav. 2015;102:1–7.</p>
+                  <p>6. Razali NM, Yap BW. Power comparisons of Shapiro-Wilk, Kolmogorov-Smirnov, Lilliefors and Anderson-Darling tests. J Stat Model Anal. 2011;2(1):21–33.</p>
+                  <p>7. Ruxton GD, Wilkinson DM, Neuhäuser M. Advice on testing the null hypothesis that a sample is drawn from a normal distribution. Anim Behav. 2015;107:249–252. doi:10.1016/j.anbehav.2015.07.006</p>
+                  <p>8. Hancock AA, Bush EN, Stanisic D, Kyncl JJ, Lin CT. Data normalization before statistical analysis: keeping the horse before the cart. Trends Pharmacol Sci. 1988;9(1):29–32. doi:10.1016/0165-6147(88)90239-8</p>
+                  <p>9. Kangave D. More enlightenment on the essence of applying Fisher's exact test when testing for statistical significance using small sample data presented in a 2 × 2 table. West Afr J Med. 1992;11(3):179–184.</p>
+                  <p>10. Pedersen T. Fishing for exactness. arXiv preprint cmp-lg/9608010. 1996.</p>
+                  <p>11. Lydersen S, Fagerland MW, Laake P. Recommended tests for association in 2 × 2 tables. Stat Med. 2009;28(7):1159–1175. doi:10.1002/sim.3531</p>
+                  <p>12. Warner P. Testing association with Fisher's exact test. J Fam Plann Reprod Health Care. 2013;39(4):281–284.</p>
+                  <p>13. Lyman S, Kirkley S, Ashikaga T, Anderson DD, Guanche CA, Sandmeier R. Letters to the editor. Am J Sports Med. 2000;28(6):918–921. doi:10.1177/03635465000280062701</p>
+                  <p>14. Hazra A, Gogtay N. Biostatistics series module 4: comparing groups – categorical variables. Indian J Dermatol. 2016;61(4):385–392. doi:10.4103/0019-5154.185700</p>
+                  <p>15. Dexter F, Chestnut DH. Analysis of statistical tests to compare visual analog scale measurements among groups. Anesthesiology. 1995;82(4):896–902. doi:10.1097/00000542-199504000-00012</p>
+                  <p>16. McKnight PE, Najab J. Mann-Whitney U Test. In: Weiner IB, Craighead WE, editors. The Corsini Encyclopedia of Psychology. Hoboken: Wiley; 2010. doi:10.1002/9780470479216.corpsy0524</p>
+                  <p>17. Rivas-Ruíz R, Moreno-Palacios J, Talavera JO. [Clinical research XVI. Differences between medians with the Mann-Whitney U test]. Rev Med Inst Mex Seguro Soc. 2013;51(4):414–419.</p>
+                  <p>18. Ostertagová E, Ostertag O, Kováč J. Methodology and application of the Kruskal-Wallis test. Appl Mech Mater. 2014;611:115–120. doi:10.4028/www.scientific.net/AMM.611.115</p>
+                  <p>19. Emerson RW. Parametric tests, their nonparametric alternatives, and degrees of freedom. J Vis Impair Blind. 2016;110(5):377–380. doi:10.1177/0145482X1611000511</p>
+                  <p>20. Kitchen CMR. Nonparametric vs parametric tests of location in biomedical research. Am J Ophthalmol. 2009;147(4):571–572.</p>
+                </details>
               </div>
             </div>
-          </div>
           </TabsContent>
+          <div className="flex justify-center pt-8">
+            <LightButton text="回首頁" href="/" />
+          </div>
         </Tabs>
       </div>
-    </main >
+    </main>
   );
 }

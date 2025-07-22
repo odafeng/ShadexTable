@@ -13,7 +13,7 @@ export default function Navbar() {
 
   const menuItems = [
     { label: "功能特色", href: "/marketing/features" },
-    { label: "定價方案", href: "/marketing/pricing_v2" },
+    { label: "定價方案", href: "/marketing/free_mode" },
     { label: "常見問題", href: "/marketing/faq" },
     { label: "關於我們", href: "/marketing/about_v2" },
   ];

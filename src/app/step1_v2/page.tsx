@@ -16,7 +16,7 @@ const allowedExtensions = [".csv", ".xls", ".xlsx"];
 
 export default function Step1Page() {
   const router = useRouter();
-  const { getToken } = useAuth();
+  const { getToken, isSignedIn } = useAuth();
   const {
     parsedData,
     setFile: setCtxFile,
@@ -43,6 +43,14 @@ export default function Step1Page() {
       if (token) localStorage.setItem("__session", token);
     });
   }, [getToken]);
+
+  useEffect(() => {
+    if (isSignedIn === false) {
+      router.push("/sign-in"); // ← 若未登入就跳去登入頁
+    }
+  }, [isSignedIn]);
+
+  if (!isSignedIn) return null;
 
   const validateFile = (file: File) => {
     const ext = file.name.substring(file.name.lastIndexOf(".")).toLowerCase();

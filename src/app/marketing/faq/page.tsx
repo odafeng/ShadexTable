@@ -56,7 +56,7 @@ export default function FaqPage() {
             <AccordionItem value="q5">
               <AccordionTrigger>5. 點數用完怎麼辦？</AccordionTrigger>
               <AccordionContent>
-                使用者可於控制台查看剩餘點數，若不足可依需求加購。首次登入將自動獲得免費體驗點數。詳情請見 <Link href="/pricing" className="underline">定價方案</Link>。
+                使用者可於控制台查看剩餘點數，若不足可依需求加購。首次登入將自動獲得免費體驗點數。詳情請見 <Link href="/pricing_v2" className="underline">定價方案</Link>。
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="q6">

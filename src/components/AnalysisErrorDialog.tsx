@@ -27,12 +27,12 @@ export default function AnalysisErrorDialog({ open, onClose, message }: Props) {
       <AlertDialog.Portal>
         <AlertDialog.Overlay className="fixed inset-0 bg-black/40 z-40" />
         <AlertDialog.Content
-          className="fixed z-50 max-w-[789px] w-[90vw] h-[299px] bg-[#EEF2F9] p-10 rounded-2xl shadow-lg flex flex-col justify-start"
+          className="fixed z-50 w-[90vw] sm:max-w-[789px] sm:h-[299px] bg-[#EEF2F9] p-6 sm:p-10 rounded-2xl shadow-lg flex flex-col justify-start"
           style={{ top: "50%", left: "50%", transform: "translate(-50%, -50%)" }}
         >
           {/* ✅ 標題 + ICON */}
           <AlertDialog.Title asChild>
-            <div className="flex items-center gap-3 text-[#0F2844] text-[24px] font-bold tracking-[2px] leading-[36px]">
+            <div className="flex items-center gap-3 text-[#0F2844] text-[20px] sm:text-[24px] font-bold tracking-[2px] leading-[30px] sm:leading-[36px]">
               <Image
                 src="/alert/exclamation_icon@2x.png"
                 alt="exclamation"
@@ -44,18 +44,18 @@ export default function AnalysisErrorDialog({ open, onClose, message }: Props) {
           </AlertDialog.Title>
 
           {/* ✅ 內文 */}
-          <p className="text-[#0F2844] text-[18px] leading-[32px] tracking-[1.2px] mt-4">
+          <p className="text-[#0F2844] text-[16px] sm:text-[18px] leading-[28px] sm:leading-[32px] tracking-[1px] sm:tracking-[1.2px] mt-4">
             {message}
           </p>
 
           {/* ✅ 按鈕區 */}
-          <div className="flex justify-end gap-4 mt-10">
+          <div className="flex flex-col sm:flex-row sm:justify-end items-center gap-3 sm:gap-4 mt-8 sm:mt-10">
             <Button
               onMouseEnter={() => setIsCopyHover(true)}
               onMouseLeave={() => setIsCopyHover(false)}
               onClick={handleCopy}
               variant="outline"
-              className="w-[205px] h-[50px] text-[#0F2844] border-[#0F2844] hover:bg-[#0F2844] hover:text-white text-[20px] tracking-[2px] leading-[32px] px-6 py-2 rounded-full flex items-center gap-2"
+              className="w-full sm:w-[205px] h-[50px] text-[#0F2844] border-[#0F2844] hover:bg-[#0F2844] hover:text-white text-[18px] sm:text-[20px] tracking-[1.5px] sm:tracking-[2px] leading-[28px] sm:leading-[32px] px-6 py-2 rounded-full flex items-center justify-center gap-2"
             >
               <Image
                 src={
@@ -76,7 +76,7 @@ export default function AnalysisErrorDialog({ open, onClose, message }: Props) {
               onMouseEnter={() => setIsCloseHover(true)}
               onMouseLeave={() => setIsCloseHover(false)}
               onClick={onClose}
-              className="w-[111px] h-[50px] bg-[#0F2844] text-white hover:bg-white hover:text-[#0F2844] text-[20px] tracking-[2px] leading-[32px] px-6 py-2 rounded-full flex items-center gap-2 border border-[#0F2844]"
+              className="w-full sm:w-[111px] h-[50px] bg-[#0F2844] text-white hover:bg-white hover:text-[#0F2844] text-[18px] sm:text-[20px] tracking-[1.5px] sm:tracking-[2px] leading-[28px] sm:leading-[32px] px-6 py-2 rounded-full flex items-center justify-center gap-2 border border-[#0F2844]"
             >
               <Image
                 src={

@@ -142,34 +142,33 @@ export default function Step1Page() {
   return (
     <div className="bg-white">
       <Header />
-      <div className="container-custom pb-45">
+      <div className="container-custom pt-[70px] lg:pt-[110px] pb-2 lg:pb-45">
         <StepNavigator />
 
         {/* 標題 */}
         <h2
           style={{
-            fontSize: "30px",
             letterSpacing: "3px",
             lineHeight: "42px",
             fontFamily: '"Noto Sans TC", "思源黑體", sans-serif',
             color: "#0F2844",
           }}
-          className="mt-4 mb-4"
+          className="text-[26px] lg:text-[30px] mt-0 lg:mt-4 mb-4"
         >
           Step1：上傳資料檔案
         </h2>
 
         {/* 提醒文字 */}
-        <div className="flex items-start gap-2 mb-8">
+        <div className="flex items-start gap-2 mb-8 text-[18px] lg:text-[20px]">
           <Image
             src="/step1/alert_icon@2x.png"
             alt="alert"
             width={21.6}
             height={24}
+            className="w-[18px] h-[20px] mt-[8px] lg:w-[21.6px] lg:h-[24px] lg:mt-[5px]"
           />
           <p
             style={{
-              fontSize: "20px",
               letterSpacing: "2px",
               lineHeight: "32px",
               fontFamily: '"Noto Sans TC", "思源黑體", sans-serif',
@@ -194,14 +193,13 @@ export default function Step1Page() {
           onDragLeave={handleDragLeave}
         >
           {/* 檔案選擇框 + Tooltip */}
-          <div className="w-[549px] h-[50px] flex items-center justify-between px-4 border border-[#C4C8D0] bg-white rounded-md relative group">
-            <div className="relative group cursor-pointer">
+          <div className="max-w-[549px] max-h-[50px] flex items-center justify-between px-4 border border-[#C4C8D0] bg-white rounded-md relative group">
+            <div className="-mt-1 cursor-pointer">
               <label
                 htmlFor="file-upload"
-                className="text-[#0F2844]"
+                className="text-[#0F2844] text-[16px] lg:text-[20px]"
                 style={{
                   fontFamily: '"Noto Sans TC", "思源黑體", sans-serif',
-                  fontSize: "20px",
                   letterSpacing: "2px",
                   lineHeight: "30px",
                 }}
@@ -259,8 +257,9 @@ export default function Step1Page() {
             alt="checkbox"
             width={21.33}
             height={20}
+            className="-mt-10 -mr-2 lg:-mt-6 lg-mr-0"
           />
-            <p className="text-xs text-[#0F2844]">
+            <p className="text-xs text-[#0F2844] -mt-4 mb-2">
               已上傳檔案，以下為預覽資料（最多顯示前五列）：
             </p>
             </div>
@@ -328,7 +327,7 @@ export default function Step1Page() {
 
 
 
-        <div className="flex justify-center mt-10 mb-24">
+        <div className="flex justify-center mt-6 lg:mt-10 mb-8 lg:mb-24">
           <button
             disabled={!file || loading}
             onClick={handleAnalyze}

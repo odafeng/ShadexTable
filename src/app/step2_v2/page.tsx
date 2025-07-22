@@ -18,7 +18,8 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
-import{Siren, ShieldAlert} from "lucide-react";
+import { Siren, ShieldAlert } from "lucide-react";
+import InlineNotice from "@/components/InlineNotice"
 
 export default function Step2Page() {
     const [isHover, setIsHover] = useState(false);
@@ -73,7 +74,7 @@ export default function Step2Page() {
         if (type !== "類別變項") {
             triggerWarning("⚠️ 建議選擇類別型欄位作為分組變項，目前選取的欄位系統判定非類別型。", val);
         }
-       };
+    };
 
     const handleCatChange = (vals: string[]) => {
         vals.forEach((v) => {
@@ -187,11 +188,11 @@ export default function Step2Page() {
     return (
         <div className="bg-white">
             <Header />
-            <div className="container-custom pb-45">
+            <div className="container-custom pt-[70px] lg:pt-[110px] pb-2 lg:pb-45">
                 <StepNavigator />
-                <h2 className="mt-4 mb-4 text-[30px] leading-[42px] tracking-[3px] text-[#0F2844] font-normal">Step2：選擇變項</h2>
+                <h2 className="text-[26px] lg:text-[30px] mt-0 lg:mt-4 mb-4 leading-[42px] tracking-[3px] text-[#0F2844] font-normal">Step2：選擇變項</h2>
                 <div className="space-y-8">
-                    <div className="flex flex-col lg:flex-row gap-6 mt-8">
+                    <div className="flex flex-col lg:flex-row gap-6 mt-4 lg:mt-8">
                         <div className="flex-1">
                             <label className="block mb-2 text-[20px] tracking-[2px] leading-[32px] font-bold text-[#555555]">分組變項…</label>
                             <GroupSelect
@@ -201,21 +202,31 @@ export default function Step2Page() {
                                 placeholder="選擇變項"
                             />
                             {parsedData.length > 0 && (
-                                <><div className="flex items-start gap-2 mt-3">
-                                    <Siren className="text-[#F79009]" />
-                                    <p className="text-sm text-[#0F2844] leading-[22px]">
-                                        本次分析將扣除 <span className="font-semibold text-[#F79009]">{pointCost}</span> 點，
-                                        剩餘 <span className="font-semibold text-[#F79009]">{userPoints ?? "?"}</span> 點
-                                    </p>
-                                </div>
-                                <div className="flex items-start gap-2 mt-3">
-                                        <ShieldAlert className="text-red-700" />
-                                        <p className="text-sm text-[#0F2844] font-semibold leading-[22px]">
-                                            注意：目前系統不支援<span className="font-semibold text-red-700"> 配對 (paired)</span>分析
-                                        </p>
-                                    </div></>
+                                <>
+
+                                    {/* 積分提示 */}
+                                    <InlineNotice
+                                        type="warn"
+                                        icon={<Siren className="w-4 h-4 text-[#E4A700] mt-[2px]" />}
+                                        className="text-[14px] leading-[24px] sm:text-[15px] sm:leading-[26px]"
+                                    >
+                                        本次分析將扣除 <span className="font-semibold text-[#E4A700]">{pointCost}</span> 點，
+                                        剩餘 <span className="font-semibold text-[#E4A700]">{userPoints ?? "?"}</span> 點
+                                    </InlineNotice>
+
+                                    <InlineNotice
+                                        type="error"
+                                        icon={<ShieldAlert className="w-4 h-4 text-[#DC2626] mt-[2px]" />}
+                                        className="text-[14px] leading-[24px] sm:text-[15px] sm:leading-[26px]"
+                                    >
+                                        <span className="text-[#DC2626] font-semibold">注意：</span>
+                                        目前系統不支援 <span className="font-semibold text-[#DC2626]">配對 (paired)</span> 分析
+                                    </InlineNotice>
+
+
+
+                                </>
                             )}
-                        
                         </div>
                         <div className="flex-1">
                             <label className="block mb-2 text-[20px] tracking-[2px] leading-[32px] font-bold text-[#555555]">
@@ -272,7 +283,7 @@ export default function Step2Page() {
                             填補缺值
                         </label>
                     </div>
-                    <div className="flex justify-center pt-4 pb-24">
+                    <div className="flex justify-center pt-4 pb-10 lg:pb-24">
                         <button
                             className="w-[260px] h-[50px] rounded-full border border-[#0F2844] text-[#0F2844] flex items-center justify-center gap-2 text-[20px] tracking-[2px] leading-[35px] transition-all hover:bg-[#0F2844] hover:text-white"
                             onClick={handleAnalyze}
@@ -315,7 +326,7 @@ export default function Step2Page() {
                 onConfirm={() => {
                     setShowConfirmDialog(false);
                     runAnalysis();
-                } } message={confirmMessage}            />
+                }} message={confirmMessage} />
         </div>
     );
 }

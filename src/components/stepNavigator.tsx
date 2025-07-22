@@ -35,47 +35,48 @@ export default function StepNavigator() {
   const pathname = usePathname();
 
   return (
-    <div className="flex items-start justify-center py-6">
-      {steps.map((step, index) => {
-        const isActive = pathname.startsWith(step.href);
+    <div className="w-full px-2 sm:px-6 lg:px-0">
+      <div className="flex items-start justify-center py-6">
+        {steps.map((step, index) => {
+          const isActive = pathname.startsWith(step.href);
 
-        return (
-          <div key={step.name} className="flex items-center">
-            {/* Step */}
-            <Link href={step.href} className="flex flex-col items-center space-y-4">
-              <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center border ${
-                  isActive
-                    ? "bg-white border-[#114A8B] shadow-md"
-                    : "bg-gray-100 border-gray-300"
-                }`}
-              >
-                <Image
-                  src={isActive ? step.iconActive : step.icon}
-                  alt={step.name}
-                  width={step.iconWidth}
-                  height={step.iconHeight}
-                />
-              </div>
+          return (
+            <div key={step.name} className="flex items-center">
+              {/* Step */}
+              <Link href={step.href} className="flex flex-col items-center space-y-1 lg:space-y-4">
+                <div
+                  className={`w-10 h-10 rounded-full flex items-center justify-center border ${isActive
+                      ? "bg-white border-[#114A8B] shadow-md"
+                      : "bg-gray-100 border-gray-300"
+                    }`}
+                >
+                  <Image
+                    src={isActive ? step.iconActive : step.icon}
+                    alt={step.name}
+                    width={step.iconWidth}
+                    height={step.iconHeight}
+                  />
+                </div>
 
-              <span
-                className={`text-[20px] leading-[32px] tracking-[2px] ${
-                  isActive ? "text-[#114A8B]" : "text-gray-400"
-                }`}
-              >
-                {step.name}
-              </span>
-            </Link>
+                <span
+                  className={`whitespace-nowrap text-[18px] tracking-[0.5px] lg:text-[20px] leading-[32px] lg:tracking-[2px] ${isActive ? "text-[#114A8B]" : "text-gray-400"
+                    }`}
+                >
+                  {step.name}
+                </span>
+              </Link>
 
-            {/* Connector */}
-            {index < steps.length - 1 && (
-              <div className="flex items-center" style={{ transform: "translateY(-25px)" }}>
-                <div className="w-12 h-px bg-gray-300 mx-4" />
-              </div>
-            )}
-          </div>
-        );
-      })}
+              {/* Connector */}
+              {index < steps.length - 1 && (
+                <div className="flex items-center -mt-6 lg:-mt-8">
+                  <div className="w-6 h-px lg:w-12 lg:h-px bg-gray-300 mx-2 lg:mx-4" />
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
+
   );
 }

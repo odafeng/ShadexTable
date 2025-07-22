@@ -166,18 +166,18 @@ export default function Step3Summary() {
     return (
         <div className="bg-white">
             <Header />
-            <div className="container-custom pb-15">
+            <div className="container-custom pt-[70px] lg:pt-[110px] pb-10 lg:pb-45">
                 <StepNavigator />
 
                 {/* ✅ 上方標題 */}
                 <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 md:px-8 mb-6">
-                    <h1 className="mt-4 mb-1 text-[30px] leading-[42px] tracking-[3px] text-[#0F2844] font-normal">
+                    <h1 className="text-[26px] lg:text-[30px] mt-0 lg:mt-4 mb-4 leading-[42px] tracking-[3px] text-[#0F2844] font-normal">
                         Step 3：統計摘要
                     </h1>
                 </div>
 
                 {/* ✅ Tab 與內容區塊 */}
-                <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 md:px-8">
+                <div className="w-full max-w-6xl mx-auto px-0 sm:px-6 md:px-8">
                     <Step3Tabs
                         columns={columns}
                         filteredRows={filteredRows}

@@ -71,6 +71,21 @@ html, body {
   }
 }
 
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0%);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out forwards;
+}
+
 
 :root {
   --radius: 0.625rem;
@@ -79,10 +94,10 @@ html, body {
   --background: #FAFAFA;
   --foreground: #2E6F72;
 
-  --primary: #2E6F72;
+  --primary: #0F2844;
   --primary-foreground: #ffffff;
 
-  --secondary: #5F6C7B;
+  --secondary: #008587;
   --secondary-foreground: #ffffff;
 
   --accent: #B8F2E6;

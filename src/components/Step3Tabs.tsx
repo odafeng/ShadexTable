@@ -60,7 +60,7 @@ export default function Step3Tabs({
   return (
     <div>
       {/* Tabs 切換區 */}
-      <div className="w-full h-[60px] flex border-b border-[#D9D9D9] mb-6">
+      <div className="w-full max-h-[60px] flex border-b border-[#D9D9D9] mb-6 overflow-x-auto no-scrollbar whitespace-nowrap">
         {tabs.map((tab) => {
           const isActive = currentTab === tab.key;
           return (
@@ -73,11 +73,12 @@ export default function Step3Tabs({
               <Image
                 src={isActive ? tab.activeIcon : tab.inactiveIcon}
                 alt={`${tab.label} icon`}
-                width={24}
-                height={24}
+                width={0}
+                height={0}
+                className="w-[20px] h-[20px] lg:w-[24px] lg:h-[24px]"
               />
               <span
-                className={`text-[25px] leading-[37px] tracking-[2.5px] font-normal ${isActive ? "text-[#0F2844]" : "text-[#C4C8D0]"
+                className={`text-[18px] sm:text-[22px] leading-[28px] sm:leading-[36px] tracking-[1.5px] sm:tracking-[2.5px] ${isActive ? "text-[#0F2844]" : "text-[#C4C8D0]"
                   }`}
                 style={{ fontFamily: '"Noto Sans TC", "思源黑體", sans-serif' }}
               >
@@ -169,56 +170,68 @@ export default function Step3Tabs({
 
           {/* 匯出與 AI 按鈕 */}
           <TooltipProvider>
-            <div className="flex flex-wrap justify-center sm:justify-end gap-3 mt-6">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span>
-                    <Button
-                      variant="outline"
-                      onClick={exportToExcel}
-                      className="w-[185px] h-[50px] rounded-2xl flex items-center gap-2 text-[#0F2844] font-normal text-[20px] tracking-[2px] leading-[32px] bg-transparent"
-                      disabled={!canExport()}
-                    >
-                      <Image
-                        src="/step3/export_icon@2x.png"
-                        alt="匯出圖示"
-                        width={21.49}
-                        height={24}
-                      />
-                      導出 Excel
-                    </Button>
-                  </span>
-                </TooltipTrigger>
-                {!canExport() && <TooltipContent>需有分組（兩組或以上）才可匯出</TooltipContent>}
-              </Tooltip>
+            <div className="flex flex-col items-center sm:flex-row sm:justify-end gap-3 mt-6">
+              {/* Excel + Word 一排 */}
+              <div className="flex gap-3">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span>
+                      <Button
+                        variant="outline"
+                        onClick={exportToExcel}
+                        className="w-[160px] h-[50px] rounded-2xl flex items-center justify-center gap-2 text-[#0F2844] font-normal text-[18px] tracking-[2px] leading-[32px] bg-transparent"
+                        disabled={!canExport()}
+                      >
+                        <Image src="/step3/export_icon@2x.png" alt="匯出圖示" width={21.49} height={24} />
+                        導出 Excel
+                      </Button>
+                    </span>
+                  </TooltipTrigger>
+                  {!canExport() && (
+                    <TooltipContent className="hidden sm:block">
+                      需有分組（兩組或以上）才可匯出
+                    </TooltipContent>
+                  )}
+                </Tooltip>
 
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span>
-                    <Button variant="outline" onClick={exportToWord} className="w-[185px] h-[50px] rounded-2xl flex items-center gap-2 text-[#0F2844] font-normal text-[20px] tracking-[2px] leading-[32px] bg-transparent" disabled={!canExport()}>
-                      <Image
-                        src="/step3/export_icon@2x.png"
-                        alt="匯出圖示"
-                        width={21.49}
-                        height={24}
-                      />
-                      導出 Word
-                    </Button>
-                  </span>
-                </TooltipTrigger>
-                {!canExport() && <TooltipContent>需有分組（兩組或以上）才可匯出</TooltipContent>}
-              </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span>
+                      <Button
+                        variant="outline"
+                        onClick={exportToWord}
+                        className="w-[160px] h-[50px] rounded-2xl flex items-center justify-center gap-2 text-[#0F2844] font-normal text-[18px] tracking-[2px] leading-[32px] bg-transparent"
+                        disabled={!canExport()}
+                      >
+                        <Image src="/step3/export_icon@2x.png" alt="匯出圖示" width={21.49} height={24} />
+                        導出 Word
+                      </Button>
+                    </span>
+                  </TooltipTrigger>
+                  {!canExport() && (
+                    <TooltipContent className="hidden sm:block">
+                      需有分組（兩組或以上）才可匯出
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              </div>
 
-              <Button
-                onClick={handleGenerateAIResult}
-                disabled={loading}
-                className="gap-2 w-full sm:w-auto bg-[#0F2844] rounded-2xl text-white hover:bg-transparent hover:text-[#0F2844] hover:border-[#0F2844]"
-              >
-                <Sparkles className="w-4 h-4" />
-                {loading ? "產生中..." : "AI 產生結果摘要（扣1點）"}
-              </Button>
+              {/* AI 按鈕一整排 */}
+              <div className="w-full sm:w-auto flex justify-center sm:justify-start">
+                <Button
+                  onClick={handleGenerateAIResult}
+                  disabled={loading}
+                  className="mt-2 sm:mt-0 w-full sm:w-auto gap-2 bg-[#0F2844] rounded-2xl text-white hover:bg-transparent hover:text-[#0F2844] hover:border-[#0F2844]"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  {loading ? "產生中..." : "AI 產生結果摘要（扣1點）"}
+                </Button>
+              </div>
             </div>
           </TooltipProvider>
+
+
+
         </>
       ) : (
         // AI摘要區塊

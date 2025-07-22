@@ -224,7 +224,7 @@ export default function Step3Tabs({
                   className="mt-2 sm:mt-0 w-full sm:w-auto gap-2 bg-[#0F2844] rounded-2xl text-white hover:bg-transparent hover:text-[#0F2844] hover:border-[#0F2844]"
                 >
                   <Sparkles className="w-4 h-4" />
-                  {loading ? "產生中..." : "AI 產生結果摘要（扣1點）"}
+                  {loading ? "產生中..." : "AI 產生結果摘要"}
                 </Button>
               </div>
             </div>

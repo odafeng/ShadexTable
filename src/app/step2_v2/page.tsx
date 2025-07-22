@@ -210,8 +210,7 @@ export default function Step2Page() {
                                         icon={<Siren className="w-4 h-4 text-[#E4A700] mt-[2px]" />}
                                         className="text-[14px] leading-[24px] sm:text-[15px] sm:leading-[26px]"
                                     >
-                                        本次分析將扣除 <span className="font-semibold text-[#E4A700]">{pointCost}</span> 點，
-                                        剩餘 <span className="font-semibold text-[#E4A700]">{userPoints ?? "?"}</span> 點
+                                        免費模式開放中
                                     </InlineNotice>
 
                                     <InlineNotice
@@ -298,7 +297,7 @@ export default function Step2Page() {
                                 height={20}
                                 className="transition duration-200"
                             />
-                            {loading ? "分析中..." : `開始分析（扣 ${pointCost} 點）`}
+                            {loading ? "分析中..." : `開始分析`}
                         </button>
                     </div>
                 </div>

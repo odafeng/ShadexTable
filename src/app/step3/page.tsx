@@ -330,7 +330,7 @@ const handleGenerateAIResult = async () => {
       disabled={loading}
       className="gap-2 w-full sm:w-auto"
     >
-      <Sparkles className="w-4 h-4" /> {loading ? "產生中..." : "AI 產生摘要（扣1點）"}
+      <Sparkles className="w-4 h-4" /> {loading ? "產生中..." : "AI 產生摘要"}
     </Button>
   </div>
 </TooltipProvider>

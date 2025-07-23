@@ -72,7 +72,7 @@ function PointsInner() {
               </p>
             ) : (
               <p className="text-sm text-gray-600">
-                🚫 非 Pro 用戶｜<a href="/marketing/pricing" className="text-blue-600 hover:underline">立即升級</a>
+                🚫 非 Pro 用戶｜<a href="/marketing/free_mode" className="text-blue-600 hover:underline">立即升級</a>
               </p>
             )}
           </div>

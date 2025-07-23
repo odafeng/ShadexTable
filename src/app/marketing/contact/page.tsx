@@ -46,7 +46,7 @@ export default function ContactPage() {
     <>
       <Header />
       <motion.section
-        className="bg-gradient-to-b from-[#E3E7F0] to-white py-4 px-4 sm:py-6 sm:px-20 sm:px-65"
+        className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#E3E7F0] to-white px-4 sm:px-6 pt-[80px] sm:pt-[100px]"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}

@@ -8,6 +8,13 @@ html {
   font-size: 24px; /* 預設是 16px，24px 等於 150% */
 }
 
+/* 隱藏 ShadCN AccordionTrigger 的預設箭頭 */
+[data-state="open"] > .accordion-trigger::after,
+[data-state="closed"] > .accordion-trigger::after {
+  content: none;
+}
+
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

@@ -17,8 +17,8 @@ export default function Header() {
         {/* ✅ LOGO */}
         <Link href="/" passHref>
           <img
-            src="/landing/logo@2x.png"
-            alt="ShadyTable Logo"
+            src="/landing/Shadex_Table.png"
+            alt="ShadexTable Logo"
             className="cursor-pointer w-[180px] sm:w-[270px] h-auto"
           />
         </Link>

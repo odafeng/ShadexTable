@@ -18,12 +18,12 @@ export default function Footer() {
         {/* ✅ 手機版：置中 LOGO 與社群 */}
         <div className="flex flex-col items-center gap-4 md:flex-row md:items-center md:gap-6">
           {/* 品牌文字：手機版用 */}
-          <h2 className="text-[#0F2844] font-bold text-xl md:hidden">ShadyTable</h2>
+          <h2 className="text-[#0F2844] font-bold text-xl md:hidden">ShadexTable</h2>
 
           {/* LOGO：桌機版用 */}
           <Image
-            src="/landing/footer_logo@2x.png"
-            alt="ShadyTable Logo"
+            src="/landing/Shadex_Footer_Logo.svg"
+            alt="ShadexTable Logo"
             width={153}
             height={31}
             className="hidden md:block"

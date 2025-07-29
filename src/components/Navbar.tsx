@@ -24,11 +24,11 @@ export default function Navbar() {
         {/* 左側 Logo 區 */}
         <Link href="/" className="flex items-center gap-2 text-[#0F2844]">
           <Image
-            src="/landing/logo@2x.png"
-            alt="ShadyTable"
+            src="/landing/Shadex_Table_Landing_Logo.svg"
+            alt="ShadexTable"
             width={270}
             height={50}
-            className="w-[180px] md:w-[270px] h-auto"
+            className="w-[180px] h-[33px] md:w-[270px] md:h-[50px]"
           />
         </Link>
 

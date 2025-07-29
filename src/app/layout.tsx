@@ -2,8 +2,9 @@ import "./globals.css";
 import { Geist, Geist_Mono } from "next/font/google";
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
-import { zhTW } from '@clerk/localizations'
+import { zhTW } from '@clerk/localizations';
 import ClientProviders from './clientProvider';
+import { AnalysisProvider } from "@/context/AnalysisContext";  // 引入 AnalysisProvider
 
 const geistSans = Geist({
   subsets: ["latin"],
@@ -53,7 +54,12 @@ export default function RootLayout({
     >
       <html lang="zhTW">
         <body className={`${geistSans.variable} ${geistMono.variable}`}>
-          <ClientProviders>{children}</ClientProviders>
+          {/* AnalysisProvider 包裹 Step1Page 和 Step2Page，並確保共享狀態 */}
+          <AnalysisProvider>
+            <ClientProviders>
+              {children}
+            </ClientProviders>
+          </AnalysisProvider>
         </body>
       </html>
     </ClerkProvider>

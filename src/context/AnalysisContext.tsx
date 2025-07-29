@@ -21,17 +21,13 @@ export type AnalysisState = {
   setGroupCounts: (v: Record<string, number>) => void;
   columnTypes: { column: string; suggested_type: string }[];
   setColumnTypes: (types: { column: string; suggested_type: string }[]) => void;
+  aiDiagnosis: any; 
+  setAiDiagnosis: (aiDiagnosis: any) => void;
+  ColumnProfile: any[]; 
+  setColumnProfile: (profile: any[]) => void; 
 };
 
 export const AnalysisContext = createContext<AnalysisState | undefined>(undefined);
-
-export function useAnalysis() {
-  const context = useContext(AnalysisContext);
-  if (!context) {
-    throw new Error("useAnalysis must be used within an AnalysisProvider");
-  }
-  return context;
-}
 
 export function AnalysisProvider({ children }: { children: ReactNode }) {
   const [file, setFile] = useState<File | null>(null);
@@ -43,6 +39,8 @@ export function AnalysisProvider({ children }: { children: ReactNode }) {
   const [resultTable, setResultTable] = useState<any[]>([]);
   const [columnTypes, setColumnTypes] = useState<{ column: string; suggested_type: string }[]>([]);
   const [groupCounts, setGroupCounts] = useState<Record<string, number>>({});
+  const [aiDiagnosis, setAiDiagnosis] = useState<any>(null);
+  const [ColumnProfile, setColumnProfile] = useState<any[]>([]);
   const value: AnalysisState = {
     file,
     parsedData,
@@ -53,6 +51,7 @@ export function AnalysisProvider({ children }: { children: ReactNode }) {
     resultTable,
     groupCounts,
     columnTypes,
+    aiDiagnosis,
     setColumnTypes,
     setFile,
     setParsedData,
@@ -60,9 +59,45 @@ export function AnalysisProvider({ children }: { children: ReactNode }) {
     setCatVars,
     setContVars,
     setFillNA,
-    setResultTable, 
+    setResultTable,
     setGroupCounts,
+    setAiDiagnosis,
+    ColumnProfile,
+    setColumnProfile
   };
 
-  return <AnalysisContext.Provider value={value}>{children}</AnalysisContext.Provider>;
+  return <AnalysisContext.Provider value={{file,
+    parsedData,
+    groupVar,
+    catVars,
+    contVars,
+    fillNA,
+    resultTable,
+    groupCounts,
+    columnTypes,
+    aiDiagnosis,
+    setColumnTypes,
+    setFile,
+    setParsedData,
+    setGroupVar,
+    setCatVars,
+    setContVars,
+    setFillNA,
+    setResultTable,
+    setGroupCounts,
+    setAiDiagnosis,
+    ColumnProfile,
+    setColumnProfile,
+  }}>{children}</AnalysisContext.Provider>;
 }
+
+export const useAnalysis = () => {
+  const context = useContext(AnalysisContext);
+  if (!context) {
+    throw new Error("useAnalysis must be used within an AnalysisProvider");
+  }
+  
+  return context;
+};
+
+

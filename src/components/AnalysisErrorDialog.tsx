@@ -22,15 +22,23 @@ export default function AnalysisErrorDialog({ open, onClose, message }: Props) {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  // 用來控制開關狀態
+  const [isDialogOpen, setIsDialogOpen] = useState(open);
+
+  const handleClose = () => {
+    setIsDialogOpen(false);  // 關閉對話框
+    onClose(); // 呼叫傳遞的 onClose
+  };
+
   return (
-    <AlertDialog.Root open={open} onOpenChange={onClose}>
+    <AlertDialog.Root open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <AlertDialog.Portal>
         <AlertDialog.Overlay className="fixed inset-0 bg-black/40 z-40" />
         <AlertDialog.Content
           className="fixed z-50 w-[90vw] sm:max-w-[789px] sm:h-[299px] bg-[#EEF2F9] p-6 sm:p-10 rounded-2xl shadow-lg flex flex-col justify-start"
           style={{ top: "50%", left: "50%", transform: "translate(-50%, -50%)" }}
         >
-          {/* ✅ 標題 + ICON */}
+          {/* 標題 + ICON */}
           <AlertDialog.Title asChild>
             <div className="flex items-center gap-3 text-[#0F2844] text-[20px] sm:text-[24px] font-bold tracking-[2px] leading-[30px] sm:leading-[36px]">
               <Image
@@ -43,12 +51,12 @@ export default function AnalysisErrorDialog({ open, onClose, message }: Props) {
             </div>
           </AlertDialog.Title>
 
-          {/* ✅ 內文 */}
+          {/* 內文 */}
           <p className="text-[#0F2844] text-[16px] sm:text-[18px] leading-[28px] sm:leading-[32px] tracking-[1px] sm:tracking-[1.2px] mt-4">
             {message}
           </p>
 
-          {/* ✅ 按鈕區 */}
+          {/* 按鈕區 */}
           <div className="flex flex-col sm:flex-row sm:justify-end items-center gap-3 sm:gap-4 mt-8 sm:mt-10">
             <Button
               onMouseEnter={() => setIsCopyHover(true)}
@@ -75,7 +83,7 @@ export default function AnalysisErrorDialog({ open, onClose, message }: Props) {
             <Button
               onMouseEnter={() => setIsCloseHover(true)}
               onMouseLeave={() => setIsCloseHover(false)}
-              onClick={onClose}
+              onClick={handleClose}  // 關閉對話框
               className="w-full sm:w-[111px] h-[50px] bg-[#0F2844] text-white hover:bg-white hover:text-[#0F2844] text-[18px] sm:text-[20px] tracking-[1.5px] sm:tracking-[2px] leading-[28px] sm:leading-[32px] px-6 py-2 rounded-full flex items-center justify-center gap-2 border border-[#0F2844]"
             >
               <Image

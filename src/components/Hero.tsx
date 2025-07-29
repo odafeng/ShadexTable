@@ -78,7 +78,7 @@ export default function Hero() {
     font-normal md:font-medium
     leading-[34px] md:leading-[37px]
     tracking-[1.5px] md:tracking-[2.5px]
-    font-['Noto Sans TC','思源黑體',sans-serif]
+    font-['Noto Sans TC','思源黑體',sans-serif] cursor-pointer
   "
               >
                 <motion.div
@@ -116,7 +116,7 @@ export default function Hero() {
       font-normal md:font-medium
       leading-[34px] md:leading-[37px]
       tracking-[1.5px] md:tracking-[2.5px]
-      font-['Noto Sans TC','思源黑體',sans-serif]
+      font-['Noto Sans TC','思源黑體',sans-serif] cursor-pointer
     "
                 >
                   <motion.div

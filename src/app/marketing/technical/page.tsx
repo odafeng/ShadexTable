@@ -26,10 +26,10 @@ export default function TechnicalPage() {
 
         <Tabs defaultValue="zh" className="w-full">
           <TabsList className="flex justify-center items-center bg-[#F3F6FA] rounded-full p-[3px] w-full max-w-[340px] mx-auto shadow-sm overflow-hidden">
-            <TabsTrigger value="zh" className="flex-1 text-[14px] sm:text-[15px] font-medium text-[#0F2844] data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-full py-1.5 sm:py-2 text-center transition-all whitespace-nowrap">
+            <TabsTrigger value="zh" className="cursor-pointer flex-1 text-[16px] sm:text-[18px] font-medium text-[#0F2844] data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-full py-1.5 sm:py-2 text-center transition-all whitespace-nowrap">
               中文說明
             </TabsTrigger>
-            <TabsTrigger value="en" className="flex-1 text-[14px] sm:text-[15px] font-medium text-[#0F2844] data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-full py-1.5 sm:py-2 text-center transition-all whitespace-nowrap">
+            <TabsTrigger value="en" className="cursor-pointer flex-1 text-[16px] sm:text-[18px] font-medium text-[#0F2844] data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-full py-1.5 sm:py-2 text-center transition-all whitespace-nowrap">
               English Version
             </TabsTrigger>
           </TabsList>

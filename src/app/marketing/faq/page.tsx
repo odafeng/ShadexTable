@@ -30,43 +30,43 @@ export default function FaqPage() {
         >
           <Accordion type="single" collapsible className="w-full">
             <AccordionItem value="q1">
-              <AccordionTrigger>1. 統計結果可信嗎？</AccordionTrigger>
+              <AccordionTrigger className="cursor-pointer">1. 統計結果可信嗎？</AccordionTrigger>
               <AccordionContent>
                 可信。ShadyTable 的統計核心以 Python 3.13.5 運作，所有檢定邏輯均依循標準統計學教科書與慣例設計，並已於多項醫學研究中實際應用。
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="q2">
-              <AccordionTrigger>2. 要如何在文章中描述所採用的統計方法？</AccordionTrigger>
+              <AccordionTrigger className="cursor-pointer">2. 要如何在文章中描述所採用的統計方法？</AccordionTrigger>
               <AccordionContent>
                 ShadyTable 的統計核心以 Python 3.13.5 運作，建議撰寫論文時在方法段中寫明："All statistical analyses were conducted using Python version 3.13.5"
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="q3">
-              <AccordionTrigger>3. 上傳資料時是否會有個資外洩風險？</AccordionTrigger>
+              <AccordionTrigger className="cursor-pointer">3. 上傳資料時是否會有個資外洩風險？</AccordionTrigger>
               <AccordionContent>
                 ShadyTable 僅在使用者本機記憶體中處理資料，不會將資料存至後端伺服器。我們建議使用者上傳前去除姓名、ID 等直接識別資訊。
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="q4">
-              <AccordionTrigger>4. 哪些類型的統計檢定適用？</AccordionTrigger>
+              <AccordionTrigger className="cursor-pointer">4. 哪些類型的統計檢定適用？</AccordionTrigger>
               <AccordionContent>
                 包含常見的 t-test、卡方檢定、ANOVA、Mann-Whitney U test、Kruskal-Wallis 等，會依據資料型態自動選擇合適的檢定。
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="q5">
-              <AccordionTrigger>5. 點數用完怎麼辦？</AccordionTrigger>
+              <AccordionTrigger className="cursor-pointer">5. 點數用完怎麼辦？</AccordionTrigger>
               <AccordionContent>
                 使用者可於控制台查看剩餘點數，若不足可依需求加購。首次登入將自動獲得免費體驗點數。詳情請見 <Link href="/pricing_v2" className="underline">定價方案</Link>。
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="q6">
-              <AccordionTrigger>6. 是否能匯出統計結果表格？</AccordionTrigger>
+              <AccordionTrigger className="cursor-pointer">6. 是否能匯出統計結果表格？</AccordionTrigger>
               <AccordionContent>
                 可。多組比較模式下可下載表格，AI 自動摘要亦可複製。點數不同功能將有所區分，詳見定價方案頁面。
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="q7">
-              <AccordionTrigger>7. 遺漏值是怎麼處理的？</AccordionTrigger>
+              <AccordionTrigger className="cursor-pointer">7. 遺漏值是怎麼處理的？</AccordionTrigger>
               <AccordionContent>
                 若開啟「填補遺漏值」選項，ShadyTable 會自動處理缺失資料：類別變項以眾數填補，連續變項則以平均數填補。若未啟用此選項，將依各檢定方式自動排除缺失值。
               </AccordionContent>

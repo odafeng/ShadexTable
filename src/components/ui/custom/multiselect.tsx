@@ -36,7 +36,7 @@ export function MultiSelect({ options, selected, onChange, placeholder }: MultiS
         <Button
           variant="outline"
           role="combobox"
-          className={cn("w-[442px] h-[50px] justify-between px-4 border border-[#C4C8D0] rounded-md", "w-full justify-between text-[#0F2844] text-[20px] tracking-[2px] leading-[30px] font-normal font-[Noto_Sans_TC]", !selected.length && "text-[#0F2844]/50")}
+          className={cn("w-[442px] h-[50px] justify-between px-4 border border-[#C4C8D0] rounded-md cursor-pointer", "w-full justify-between text-[#0F2844] text-[20px] tracking-[2px] leading-[30px] font-normal font-[Noto_Sans_TC]", !selected.length && "text-[#0F2844]/50")}
         >
           {selected.length
             ? `${selected.length} 個變項已選`

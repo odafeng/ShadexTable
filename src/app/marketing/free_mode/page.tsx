@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import LightButton from "@/components/LightButton";
 
 export default function PricingPage() {
   return (
@@ -46,7 +47,7 @@ export default function PricingPage() {
           </div>
 
           <Link href="/step1_v2">
-            <Button className="w-full rounded-2xl bg-[#0F2844] text-white hover:bg-transparent hover:text-[#0F2844] border border-[#0F2844] text-[18px] tracking-[2px] h-[50px]">
+            <Button className="cursor-pointer w-full rounded-2xl bg-[#0F2844] text-white hover:bg-transparent hover:text-[#0F2844] border border-[#0F2844] text-[18px] tracking-[2px] h-[50px]">
               開始分析
             </Button>
           </Link>
@@ -56,11 +57,9 @@ export default function PricingPage() {
       {/* ✅ CTA 區 */}
       <section className="text-center py-10">
         <p className="text-sm text-[#5B6D81] mb-4">ShadyTable 正在內測中，歡迎提供使用建議。</p>
-        <Link href="/">
-          <Button variant="ghost" className="text-[#0F2844] text-[16px] hover:text-[#008587] tracking-[1.5px]">
-            回首頁看看 👀
-          </Button>
-        </Link>
+          <div className="mt-6 sm:mt-12 flex justify-center">
+            <LightButton text="回首頁" href="/" />
+          </div>
       </section>
     </div>
   );

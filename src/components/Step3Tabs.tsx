@@ -6,6 +6,10 @@ import { Button } from "@/components/ui/button";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Sparkles } from "lucide-react";
+import ActionButton2 from "@/components/ActionButton2";
+import ActionButton from "@/components/ActionButton";
+import { CheckCircle2, ClipboardCopy } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface Props {
   columns: string[];
@@ -56,18 +60,25 @@ export default function Step3Tabs({
   renderCell,
 }: Props) {
   const [currentTab, setCurrentTab] = useState("table");
+  const [copied, setCopied] = useState(false);
+
+  const handleClick = () => {
+    handleCopySummary();
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
 
   return (
     <div>
       {/* Tabs 切換區 */}
-      <div className="w-full max-h-[60px] flex border-b border-[#D9D9D9] mb-6 overflow-x-auto no-scrollbar whitespace-nowrap">
+      <div className="w-full max-h-[60px] flex border-b border-[#D9D9D9] mb-6 overflow-x-auto no-scrollbar whitespace-nowrap cursor-pointer">
         {tabs.map((tab) => {
           const isActive = currentTab === tab.key;
           return (
             <button
               key={tab.key}
               onClick={() => setCurrentTab(tab.key)}
-              className={`flex-1 flex items-center justify-center gap-2 px-6 py-4 rounded-md transition-all ${isActive ? "bg-[#EEF2F9]" : "bg-transparent"
+              className={`flex-1 flex items-center justify-center gap-2 px-6 py-4 rounded-md transition-all cursor-pointer ${isActive ? "bg-[#EEF2F9]" : "bg-transparent"
                 }`}
             >
               <Image
@@ -148,7 +159,7 @@ export default function Step3Tabs({
               variant="ghost"
               disabled={currentPage === 0}
               onClick={() => setCurrentPage(currentPage - 1)}
-              className="bg-transparent hover:bg-transparent hover:text-[#008587]"
+              className="bg-transparent hover:bg-transparent hover:text-[#008587] cursor-pointer"
             >
               ◀ 上一頁
             </Button>
@@ -161,7 +172,7 @@ export default function Step3Tabs({
               variant="ghost"
               disabled={(currentPage + 1) * 10 >= filteredRows.length}
               onClick={() => setCurrentPage(currentPage + 1)}
-              className="bg-transparent hover:bg-transparent hover:text-[#008587]"
+              className="bg-transparent hover:bg-transparent hover:text-[#008587] cursor-pointer"
             >
               下一頁 ▶
             </Button>
@@ -171,20 +182,20 @@ export default function Step3Tabs({
           {/* 匯出與 AI 按鈕 */}
           <TooltipProvider>
             <div className="flex flex-col items-center sm:flex-row sm:justify-end gap-3 mt-6">
-              {/* Excel + Word 一排 */}
+              {/* 導出按鈕區塊 */}
               <div className="flex gap-3">
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <span>
-                      <Button
-                        variant="outline"
+                      <ActionButton2
+                        text="導出 Excel"
                         onClick={exportToExcel}
-                        className="w-[160px] h-[50px] rounded-2xl flex items-center justify-center gap-2 text-[#0F2844] font-normal text-[18px] tracking-[2px] leading-[32px] bg-transparent"
                         disabled={!canExport()}
-                      >
-                        <Image src="/step3/export_icon@2x.png" alt="匯出圖示" width={21.49} height={24} />
-                        導出 Excel
-                      </Button>
+                        className="rounded-2xl px-6 w-[160px]"
+                        iconSrc="/step3/export_icon@2x.png"
+                        iconGraySrc="/step3/export_icon@2x.png"
+                        iconHoverSrc="/step3/export_icon_white.png"
+                      />
                     </span>
                   </TooltipTrigger>
                   {!canExport() && (
@@ -197,15 +208,15 @@ export default function Step3Tabs({
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <span>
-                      <Button
-                        variant="outline"
+                      <ActionButton2
+                        text="導出 Word"
                         onClick={exportToWord}
-                        className="w-[160px] h-[50px] rounded-2xl flex items-center justify-center gap-2 text-[#0F2844] font-normal text-[18px] tracking-[2px] leading-[32px] bg-transparent"
                         disabled={!canExport()}
-                      >
-                        <Image src="/step3/export_icon@2x.png" alt="匯出圖示" width={21.49} height={24} />
-                        導出 Word
-                      </Button>
+                        className="rounded-2xl px-6 w-[160px]"
+                        iconSrc="/step3/export_icon@2x.png"
+                        iconGraySrc="/step3/export_icon@2x.png"
+                        iconHoverSrc="/step3/export_icon_white.png"
+                      />
                     </span>
                   </TooltipTrigger>
                   {!canExport() && (
@@ -216,19 +227,21 @@ export default function Step3Tabs({
                 </Tooltip>
               </div>
 
-              {/* AI 按鈕一整排 */}
+              {/* AI 產生按鈕 */}
               <div className="w-full sm:w-auto flex justify-center sm:justify-start">
-                <Button
+                <ActionButton
+                  text="AI 產生結果摘要"
                   onClick={handleGenerateAIResult}
                   disabled={loading}
-                  className="mt-2 sm:mt-0 w-full sm:w-auto gap-2 bg-[#0F2844] rounded-2xl text-white hover:bg-transparent hover:text-[#0F2844] hover:border-[#0F2844]"
-                >
-                  <Sparkles className="w-4 h-4" />
-                  {loading ? "產生中..." : "AI 產生結果摘要"}
-                </Button>
+                  loading={loading}
+                  loadingText="產生中..."
+                  icon={Sparkles}
+                  className="mt-2 sm:mt-0 w-full sm:w-auto px-6"
+                />
               </div>
             </div>
           </TooltipProvider>
+
 
 
 
@@ -238,14 +251,33 @@ export default function Step3Tabs({
         <div className="border rounded-lg p-4 bg-gray-50 text-sm text-gray-800 whitespace-pre-wrap relative">
           <strong className="block text-primary mb-2"> AI 產出摘要：</strong>
           <div>{summaryText || "尚未產生摘要，請點擊按鈕產出。"}</div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="absolute top-2 right-2 text-xs"
-            onClick={handleCopySummary}
+          <motion.button
+            whileTap={{ scale: 0.92 }}
+            onClick={handleClick}
+            disabled={!summaryText}
+            className={`absolute top-2 right-2 flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-150 border
+    ${copied
+                ? "bg-[#e6f4ea] text-green-700 border-green-300"
+                : "bg-white text-gray-700 border-gray-300 hover:bg-[#0F2844] hover:text-white hover:border-[#0F2844]"
+              }
+    ${!summaryText ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:shadow-sm active:shadow-inner"}
+  `}
           >
-            📋 複製
-          </Button>
+            {copied ? (
+              <>
+                <CheckCircle2 size={25} className="mt-[1px]" />
+                已複製
+              </>
+            ) : (
+              <>
+                <ClipboardCopy size={25} className="mt-[1px]" />
+                複製
+              </>
+            )}
+          </motion.button>
+
+
+
         </div>
       )}
     </div>

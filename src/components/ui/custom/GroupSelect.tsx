@@ -39,7 +39,7 @@ export default function GroupSelect({
           variant="outline"
           role="combobox"
           className={cn(
-            "w-full max-w-[442px] h-[50px] justify-between px-4 border border-[#C4C8D0] rounded-md",
+            "w-full max-w-[442px] h-[50px] justify-between px-4 border border-[#C4C8D0] rounded-md cursor-pointer",
             "text-[#0F2844] text-[20px] tracking-[2px] leading-[30px] font-normal font-[Noto_Sans_TC]",
             selected === "" && "text-[#0F2844]"
           )}

@@ -105,7 +105,7 @@ export default function ContactPage() {
                 <div className="absolute bottom-8 right-0 sm:bottom-0 sm:right-0 w-full sm:w-auto flex justify-center sm:justify-end">
                   <Button
                     type="submit"
-                    className="rounded-full px-6 py-2 text-[18px] sm:text-[20px] hover:bg-[#0F2844] hover:text-white bg-transparent text-[#0F2844] border border-[#0F2844] inline-flex items-center gap-2"
+                    className="cursor-pointer rounded-full px-6 py-2 text-[18px] sm:text-[20px] hover:bg-[#0F2844] hover:text-white bg-transparent text-[#0F2844] border border-[#0F2844] inline-flex items-center gap-2"
                   >
                     <ReceiptText className="w-5 h-5" />
                     送出表單

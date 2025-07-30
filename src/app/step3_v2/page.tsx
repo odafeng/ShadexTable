@@ -13,6 +13,8 @@ import StepNavigator from "@/components/stepNavigator";
 import Step3Tabs from "@/components/Step3Tabs";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
+import ActionButton2 from "@/components/ActionButton2";
+import Image from "next/image";
 
 export default function Step3Summary() {
     const { resultTable, groupVar, groupCounts } = useAnalysis();

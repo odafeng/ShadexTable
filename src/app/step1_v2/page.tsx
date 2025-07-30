@@ -11,6 +11,7 @@ import StepNavigator from "@/components/stepNavigator";
 import { useAnalysis } from "@/context/AnalysisContext";
 import { typeColorClass } from "@/lib/constants";
 import { TableProperties } from "lucide-react";
+import ActionButton from "@/components/ActionButton";
 
 const allowedExtensions = [".csv", ".xls", ".xlsx"];
 
@@ -189,9 +190,8 @@ export default function Step1Page() {
 
         {/* 上傳區 */}
         <div
-          className={`w-full max-w-[1366px] h-[154px] border rounded-xl flex flex-col items-center justify-center space-y-4 ${
-            dragOver ? "bg-[#dce3f1]" : "bg-[#EEF2F9]"
-          }`}
+          className={`w-full max-w-[1366px] h-[154px] border rounded-xl flex flex-col items-center justify-center space-y-4 ${dragOver ? "bg-[#dce3f1]" : "bg-[#EEF2F9]"
+            }`}
           style={{
             borderColor: "#C4C8D0",
             borderWidth: "1px",
@@ -205,7 +205,7 @@ export default function Step1Page() {
             <div className="-mt-1 cursor-pointer">
               <label
                 htmlFor="file-upload"
-                className="text-[#0F2844] text-[16px] lg:text-[20px]"
+                className="text-[#0F2844] text-[16px] lg:text-[20px] cursor-pointer"
                 style={{
                   fontFamily: '"Noto Sans TC", "思源黑體", sans-serif',
                   letterSpacing: "2px",
@@ -255,21 +255,20 @@ export default function Step1Page() {
             拖曳檔案至此或點擊選取
           </p>
         </div>
-
         {error && <p className="text-sm text-red-500 mt-2">{error}</p>}
-                {parsedData.length > 0 && (
+        {parsedData.length > 0 && (
           <div className="mt-10 space-y-2">
             <div className="flex items-center gap-2">
-            <Image
-            src="/step1/checkbox_icon@2x.png"
-            alt="checkbox"
-            width={21.33}
-            height={20}
-            className="-mt-10 -mr-2 lg:-mt-6 lg-mr-0"
-          />
-            <p className="text-xs text-[#0F2844] -mt-4 mb-2">
-              已上傳檔案，以下為預覽資料（最多顯示前五列）：
-            </p>
+              <Image
+                src="/step1/checkbox_icon@2x.png"
+                alt="checkbox"
+                width={21.33}
+                height={20}
+                className="-mt-10 -mr-2 lg:-mt-6 lg-mr-0"
+              />
+              <p className="text-xs text-[#0F2844] -mt-4 mb-2">
+                已上傳檔案，以下為預覽資料（最多顯示前五列）：
+              </p>
             </div>
             <div className="overflow-auto border rounded-lg text-sm max-h-64 text-[#0F2844]">
               <table className="min-w-full border-collapse text-left">
@@ -301,8 +300,8 @@ export default function Step1Page() {
         {showPreview && columnsPreview.length > 0 && (
           <div className="mt-10 rounded-lg border border-gray-300 bg-white p-4 shadow-sm space-y-2 text-[#0F2844]">
             <div className="flex items-center gap-1 mb-4">
-            <TableProperties size={20} className="text-[#0F2844]" />
-            <p className="text-sm font-medium text-[#0F2844]">自動欄位解析結果：</p>
+              <TableProperties size={20} className="text-[#0F2844]" />
+              <p className="text-sm font-medium text-[#0F2844]">自動欄位解析結果：</p>
             </div>
             <div className="overflow-auto max-h-64">
               <table className="min-w-full text-sm border border-gray-200">
@@ -314,20 +313,19 @@ export default function Step1Page() {
                   </tr>
                 </thead>
                 <tbody>
-                      {columnsPreview.map((col, i) => (
-                        <tr key={i} className="hover:bg-gray-50">
-                          <td className="px-3 py-2 border-b whitespace-nowrap">{col.column}</td>
-                          <td className="px-3 py-2 border-b whitespace-nowrap">{col.missing_pct}</td>
-                          <td
-                            className={`px-3 py-2 border-b whitespace-nowrap font-medium ${
-                              typeColorClass[col.suggested_type] || "text-gray-500"
-                            }`}
-                          >
-                            {col.suggested_type ?? "不明"}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
+                  {columnsPreview.map((col, i) => (
+                    <tr key={i} className="hover:bg-gray-50">
+                      <td className="px-3 py-2 border-b whitespace-nowrap">{col.column}</td>
+                      <td className="px-3 py-2 border-b whitespace-nowrap">{col.missing_pct}</td>
+                      <td
+                        className={`px-3 py-2 border-b whitespace-nowrap font-medium ${typeColorClass[col.suggested_type] || "text-gray-500"
+                          }`}
+                      >
+                        {col.suggested_type ?? "不明"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
               </table>
             </div>
           </div>
@@ -336,46 +334,17 @@ export default function Step1Page() {
 
 
         <div className="flex justify-center mt-6 lg:mt-10 mb-8 lg:mb-24">
-          <button
-            disabled={!file || loading}
+
+          <ActionButton
+            text="上傳並分析"
+            loading={loading}
+            disabled={!file}
             onClick={handleAnalyze}
-            className={`w-[186px] h-[50px] rounded-full border flex items-center justify-center gap-2 text-[18px] tracking-[2px] transition-all ${
-              file ? "bg-[#0F2844] text-white border-[#0F2844]" : "bg-transparent text-gray-400 border-gray-400"
-            } ${loading ? "opacity-60 cursor-not-allowed" : ""}`}
-          >
-            {loading ? (
-              <svg
-                className="animate-spin h-5 w-5 text-white"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8h4z"
-                />
-              </svg>
-            ) : (
-              <>
-                <Image
-                  src={file ? "/step1/upload_white.png" : "/step1/upload_gray.png"}
-                  alt="upload"
-                  width={20}
-                  height={20}
-                />
-                上傳並分析
-              </>
-            )}
-          </button>
+            iconSrc="/step1/upload_white.png"
+            iconGraySrc="/step1/upload_gray.png"
+            iconHoverSrc="/step1/Group 50@2x.png"
+            className="min-w-[186px] w-auto"
+          />
         </div>
       </div>
       <Footer />

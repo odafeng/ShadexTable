@@ -50,7 +50,7 @@ export default function Header() {
             <button
               onMouseEnter={() => setHoverDashboard(true)}
               onMouseLeave={() => setHoverDashboard(false)}
-              className="flex items-center justify-center gap-2 rounded-full border transition-all text-[15px] tracking-[2px] font-sans w-[120px] h-[40px]"
+              className="flex items-center justify-center gap-2 rounded-full border transition-all text-[15px] tracking-[2px] font-sans w-[120px] h-[40px] cursor-pointer"
               style={{
                 backgroundColor: hoverDashboard ? "#00858700" : "#008587",
                 borderColor: "#008587",

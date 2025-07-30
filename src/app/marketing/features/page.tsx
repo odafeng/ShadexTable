@@ -52,11 +52,10 @@ export default function FeaturesPage() {
             </p>
             <Link href="/step1_v2">
               <motion.button
-                whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onMouseEnter={() => setRightHover(true)}
                 onMouseLeave={() => setRightHover(false)}
-                className="mx-auto lg:mx-0 rounded-full border text-white bg-[#0F2844] hover:bg-transparent hover:text-[#0F2844] border-[#0F2844] transition-all flex items-center justify-center gap-3 text-[20px] lg:text-[23px] tracking-[2px] lg:tracking-[2.5px] leading-[32px] lg:leading-[37px] w-[215px] h-[50px] lg:w-[252px] lg:h-[65px]"
+                className="cursor-pointer mx-auto lg:mx-0 rounded-full border text-white bg-[#0F2844] hover:bg-transparent hover:text-[#0F2844] border-[#0F2844] transition-all flex items-center justify-center gap-3 text-[20px] lg:text-[23px] tracking-[2px] lg:tracking-[2.5px] leading-[32px] lg:leading-[37px] w-[215px] h-[50px] lg:w-[252px] lg:h-[65px]"
                 style={{ fontFamily: '"Noto Sans TC", "思源黑體", sans-serif' }}
               >
                 <Image
@@ -373,7 +372,7 @@ export default function FeaturesPage() {
               whileTap={{ scale: 0.95 }}
               onMouseEnter={() => setLeftHover(true)}
               onMouseLeave={() => setLeftHover(false)}
-              className="rounded-full border text-[#0F2844] bg-transparent hover:bg-[#0F2844] hover:text-white border-[#0F2844] transition-all flex items-center justify-center gap-3 w-[180px] h-[55px] lg:w-[200px] lg:h-[65px] text-[18px] lg:text-[20px] tracking-[2px] lg:tracking-[2.5px] leading-[32px] lg:leading-[37px]"
+              className="cursor-pointer rounded-full border text-[#0F2844] bg-transparent hover:bg-[#0F2844] hover:text-white border-[#0F2844] transition-all flex items-center justify-center gap-3 w-[180px] h-[55px] lg:w-[200px] lg:h-[65px] text-[18px] lg:text-[20px] tracking-[2px] lg:tracking-[2.5px] leading-[32px] lg:leading-[37px]"
               style={{
                 fontFamily: '"Noto Sans TC", "思源黑體", sans-serif',
                 marginTop: "30px",

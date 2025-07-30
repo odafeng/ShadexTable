@@ -21,7 +21,7 @@ export default function LightButton({ text, href, className = "" }: LightButtonP
         whileTap={{ scale: 0.97 }}
         onMouseEnter={() => setHover(true)}
         onMouseLeave={() => setHover(false)}
-        className={`rounded-full border text-white bg-[#0F2844] hover:bg-transparent hover:text-[#0F2844] border-[#0F2844] transition-all duration-200 flex items-center justify-center gap-2 px-4 py-1.5 text-sm sm:text-base ${className}`}
+        className={`cursor-pointer rounded-full border text-white bg-[#0F2844] hover:bg-transparent hover:text-[#0F2844] border-[#0F2844] transition-all duration-200 flex items-center justify-center gap-2 px-4 py-1.5 text-sm sm:text-base ${className}`}
         style={{
           fontFamily: '"Noto Sans TC", "思源黑體", sans-serif',
         }}

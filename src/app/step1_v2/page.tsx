@@ -96,7 +96,7 @@ export default function Step1Page() {
   const fetchColumnProfile = async (data: any[]) => {
     try {
       const token = localStorage.getItem("__session") || "";
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/analyze/columns-profile`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/table/columns-profile`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -342,7 +342,7 @@ export default function Step1Page() {
             onClick={handleAnalyze}
             iconSrc="/step1/upload_white.png"
             iconGraySrc="/step1/upload_gray.png"
-            iconHoverSrc="/step1/Group 50@2x.png"
+            iconHoverSrc="/step1/Group_50@2x.png"
             className="min-w-[186px] w-auto"
           />
         </div>

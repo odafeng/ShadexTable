@@ -116,7 +116,7 @@ export default function Step2VariableSelect() {
   useEffect(() => {
     const fetchPoints = async () => {
       const token = await getToken();
-      const res = await fetch(`${API_URL}/user/me/points`, {
+      const res = await fetch(`${API_URL}/api/table/api/table/user/me/points`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const json = await res.json();

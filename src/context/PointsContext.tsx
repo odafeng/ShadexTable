@@ -33,7 +33,7 @@ export const PointsProvider = ({ children }: { children: React.ReactNode }) => {
       const token = await getToken();
       if (!token) throw new Error("尚未取得有效 token");
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/me/points`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/table/user/me/points`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

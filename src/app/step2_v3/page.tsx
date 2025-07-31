@@ -153,7 +153,7 @@ export default function Step2Page() {
 
         try {
             const token = await getToken();
-            const res = await fetch(`${API_URL}/analyze`, {
+            const res = await fetch(`${API_URL}/api/table/analyze`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

@@ -24,7 +24,19 @@ export type AnalysisState = {
   aiDiagnosis: any; 
   setAiDiagnosis: (aiDiagnosis: any) => void;
   ColumnProfile: any[]; 
-  setColumnProfile: (profile: any[]) => void; 
+  setColumnProfile: (profile: any[]) => void;
+  
+  // 🆕 新增：自动分析相关状态
+  autoAnalysisResult: {
+    classification?: Record<string, string>;
+    success?: boolean;
+    message?: string;
+  } | null;
+  setAutoAnalysisResult: (result: any) => void;
+  
+  // 🆕 新增：跳过手动步骤的标志
+  skipManualStep: boolean;
+  setSkipManualStep: (skip: boolean) => void;
 };
 
 export const AnalysisContext = createContext<AnalysisState | undefined>(undefined);
@@ -41,6 +53,11 @@ export function AnalysisProvider({ children }: { children: ReactNode }) {
   const [groupCounts, setGroupCounts] = useState<Record<string, number>>({});
   const [aiDiagnosis, setAiDiagnosis] = useState<any>(null);
   const [ColumnProfile, setColumnProfile] = useState<any[]>([]);
+  
+  // 🆕 新增状态
+  const [autoAnalysisResult, setAutoAnalysisResult] = useState<any>(null);
+  const [skipManualStep, setSkipManualStep] = useState(false);
+
   const value: AnalysisState = {
     file,
     parsedData,
@@ -52,7 +69,10 @@ export function AnalysisProvider({ children }: { children: ReactNode }) {
     groupCounts,
     columnTypes,
     aiDiagnosis,
-    setColumnTypes,
+    ColumnProfile,
+    autoAnalysisResult,
+    skipManualStep,
+    
     setFile,
     setParsedData,
     setGroupVar,
@@ -61,34 +81,18 @@ export function AnalysisProvider({ children }: { children: ReactNode }) {
     setFillNA,
     setResultTable,
     setGroupCounts,
+    setColumnTypes,
     setAiDiagnosis,
-    ColumnProfile,
-    setColumnProfile
+    setColumnProfile,
+    setAutoAnalysisResult,
+    setSkipManualStep,
   };
 
-  return <AnalysisContext.Provider value={{file,
-    parsedData,
-    groupVar,
-    catVars,
-    contVars,
-    fillNA,
-    resultTable,
-    groupCounts,
-    columnTypes,
-    aiDiagnosis,
-    setColumnTypes,
-    setFile,
-    setParsedData,
-    setGroupVar,
-    setCatVars,
-    setContVars,
-    setFillNA,
-    setResultTable,
-    setGroupCounts,
-    setAiDiagnosis,
-    ColumnProfile,
-    setColumnProfile,
-  }}>{children}</AnalysisContext.Provider>;
+  return (
+    <AnalysisContext.Provider value={value}>
+      {children}
+    </AnalysisContext.Provider>
+  );
 }
 
 export const useAnalysis = () => {
@@ -99,5 +103,3 @@ export const useAnalysis = () => {
   
   return context;
 };
-
-

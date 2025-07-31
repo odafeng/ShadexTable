@@ -5,11 +5,12 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Bot, CheckCircle } from "lucide-react";
 import ActionButton2 from "@/components/ActionButton2";
 import ActionButton from "@/components/ActionButton";
 import { CheckCircle2, ClipboardCopy } from "lucide-react";
 import { motion } from "framer-motion";
+import { useAnalysis } from "@/context/AnalysisContext";
 
 interface Props {
   columns: string[];
@@ -61,6 +62,9 @@ export default function Step3Tabs({
 }: Props) {
   const [currentTab, setCurrentTab] = useState("table");
   const [copied, setCopied] = useState(false);
+  
+  // 🆕 获取 AI 分析结果
+  const { groupVar, catVars, contVars, autoAnalysisResult } = useAnalysis();
 
   const handleClick = () => {
     handleCopySummary();
@@ -70,6 +74,62 @@ export default function Step3Tabs({
 
   return (
     <div>
+      {/* 🆕 AI 分析结果展示区 */}
+      {autoAnalysisResult?.success && (
+        <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0">
+              <CheckCircle className="w-6 h-6 text-green-600 mt-0.5" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-green-800 mb-2 flex items-center gap-2">
+                <Bot className="w-5 h-5" />
+                AI 智能分析完成
+              </h3>
+              <div className="text-sm text-green-700 space-y-2">
+                <div>
+                  <strong>分组变项：</strong>
+                  <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
+                    {groupVar || "无"}
+                  </span>
+                </div>
+                <div>
+                  <strong>类别变项：</strong>
+                  <span className="ml-2">
+                    {catVars.length > 0 ? (
+                      catVars.map((catVar, idx) => (
+                        <span key={idx} className="inline-block px-2 py-1 bg-purple-100 text-purple-800 rounded text-xs mr-1 mb-1">
+                          {catVar}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-gray-500">无</span>
+                    )}
+                  </span>
+                </div>
+                <div>
+                  <strong>连续变项：</strong>
+                  <span className="ml-2">
+                    {contVars.length > 0 ? (
+                      contVars.map((contVar, idx) => (
+                        <span key={idx} className="inline-block px-2 py-1 bg-orange-100 text-orange-800 rounded text-xs mr-1 mb-1">
+                          {contVar}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-gray-500">无</span>
+                    )}
+                  </span>
+                </div>
+                <p className="text-xs mt-2 italic">
+                  💡 以上分类由 AI 自动识别完成，已直接应用于统计分析中
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Tabs 切換區 */}
       <div className="w-full max-h-[60px] flex border-b border-[#D9D9D9] mb-6 overflow-x-auto no-scrollbar whitespace-nowrap cursor-pointer">
         {tabs.map((tab) => {
@@ -178,11 +238,10 @@ export default function Step3Tabs({
             </Button>
           </div>
 
-
           {/* 匯出與 AI 按鈕 */}
           <TooltipProvider>
             <div className="flex flex-col items-center sm:flex-row sm:justify-end gap-3 mt-6">
-              {/* 導出按鈕區塊 */}
+              {/* 导出按鈕區塊 */}
               <div className="flex gap-3">
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -241,10 +300,6 @@ export default function Step3Tabs({
               </div>
             </div>
           </TooltipProvider>
-
-
-
-
         </>
       ) : (
         // AI摘要區塊
@@ -275,9 +330,6 @@ export default function Step3Tabs({
               </>
             )}
           </motion.button>
-
-
-
         </div>
       )}
     </div>

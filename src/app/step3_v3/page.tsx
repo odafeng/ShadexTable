@@ -17,14 +17,14 @@ import ActionButton2 from "@/components/ActionButton2";
 import Image from "next/image";
 
 export default function Step3Summary() {
-    const { 
-        resultTable, 
-        groupVar, 
-        groupCounts, 
-        autoAnalysisResult, 
-        setAutoAnalysisResult 
+    const {
+        resultTable,
+        groupVar,
+        groupCounts,
+        autoAnalysisResult,
+        setAutoAnalysisResult
     } = useAnalysis();
-    
+
     const router = useRouter();
     const [summaryText, setSummaryText] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
@@ -34,11 +34,36 @@ export default function Step3Summary() {
     const { refetch } = usePoints();
 
     useEffect(() => {
-        console.log("🔍 Step3 页面状态检查:");
+        console.log("🔍 Step3 页面狀態檢查:");
         console.log("  - resultTable:", resultTable?.length || 0, "rows");
-        console.log("  - groupVar:", groupVar);
-        console.log("  - groupCounts:", groupCounts);
-        console.log("  - autoAnalysisResult:", autoAnalysisResult);
+        console.log("  - groupVar:", groupVar, "類型:", typeof groupVar);
+        console.log("  - groupCounts:", groupCounts, "類型:", typeof groupCounts);
+        console.log("  - autoAnalysisResult:", autoAnalysisResult, "類型:", typeof autoAnalysisResult);
+
+        // 🔧 安全檢查 autoAnalysisResult
+        if (autoAnalysisResult && typeof autoAnalysisResult === 'object') {
+            console.log("🔍 autoAnalysisResult 詳細檢查:");
+            try {
+                (Object.keys(autoAnalysisResult) as Array<keyof typeof autoAnalysisResult>).forEach(key => {
+                    const value = autoAnalysisResult[key];
+                    console.log(`    - ${key}:`, value, "類型:", typeof value);
+                    
+                    // 檢查是否有問題的物件結構
+                    if (typeof value === 'object' && value !== null) {
+                        if (
+                            (value as any).type &&
+                            (value as any).loc &&
+                            (value as any).msg &&
+                            (value as any).input
+                        ) {
+                            console.error("⚠️ 發現問題物件:", key, value);
+                        }
+                    }
+                });
+            } catch (e) {
+                console.error("❌ autoAnalysisResult 檢查失敗:", e);
+            }
+        }
 
         if (!resultTable || resultTable.length === 0) {
             console.warn("⚠️ 没有分析结果，重定向到 Step1");
@@ -46,10 +71,10 @@ export default function Step3Summary() {
         } else {
             console.log("✅ 分析结果存在，显示统计表格");
             
-            // 🆕 如果有自动分析结果，显示成功信息
-            if (autoAnalysisResult?.success) {
+            // 🔧 安全檢查 autoAnalysisResult 後再顯示 toast
+            if (autoAnalysisResult?.success && typeof autoAnalysisResult.success === 'boolean') {
                 toast.success("🤖 AI 智能分析完成！", {
-                    description: "已自动识别变量类型并完成统计分析",
+                    description: "已自動識別變量類型並完成統計分析",
                     duration: 5000,
                 });
             }
@@ -61,7 +86,7 @@ export default function Step3Summary() {
             <div className="bg-white min-h-screen flex items-center justify-center">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0F2844] mx-auto mb-4"></div>
-                    <p className="text-[#0F2844]">正在加载分析结果...</p>
+                    <p className="text-[#0F2844]">正在載入分析結果...</p>
                 </div>
             </div>
         );
@@ -139,6 +164,7 @@ export default function Step3Summary() {
         window.URL.revokeObjectURL(url);
     };
 
+    // 🔧 修復後的 handleGenerateAIResult
     const handleGenerateAIResult = async () => {
         setLoading(true);
         setSummaryText(null);
@@ -156,6 +182,8 @@ export default function Step3Summary() {
             const token = await getToken();
             const url = `${process.env.NEXT_PUBLIC_API_URL}/api/table/ai-summary`;
 
+            console.log("🚀 發送 AI 摘要請求...");
+
             const res = await fetch(url, {
                 method: "POST",
                 headers: {
@@ -165,7 +193,19 @@ export default function Step3Summary() {
                 body: JSON.stringify({ data: coreData }),
             });
 
-            const json = await res.json();
+            // 🔧 先檢查回應是否可以解析為 JSON
+            let json;
+            try {
+                json = await res.json();
+                console.log("📄 API 回應 (完整):", json);
+                console.log("🔍 回應類型:", typeof json);
+                console.log("🔍 summary 字段:", json.summary, "類型:", typeof json.summary);
+            } catch (parseError) {
+                console.error("❌ JSON 解析失敗:", parseError);
+                setSummaryText("❌ 伺服器回應格式錯誤");
+                toast.error("❌ 伺服器回應格式錯誤");
+                return;
+            }
 
             if (!res.ok) {
                 if (res.status === 402) {
@@ -174,21 +214,47 @@ export default function Step3Summary() {
                     });
                     setSummaryText("⚠️ 點數不足，請購買點數後再試");
                 } else {
-                    toast("❌ 系統錯誤", {
-                        description: json?.detail || "AI 產生摘要失敗，請稍後再試",
-                    });
-                    setSummaryText(`❌ 系統錯誤：${json?.detail || "請稍後再試"}`);
+                    const errorMsg = typeof json?.detail === 'string' ? json.detail : "AI 產生摘要失敗，請稍後再試";
+                    toast("❌ 系統錯誤", { description: errorMsg });
+                    setSummaryText(`❌ 系統錯誤：${errorMsg}`);
                 }
                 return;
             }
 
-            setSummaryText(json.summary || "❌ 無法產生摘要");
-            toast("✅ AI 摘要產生完成！");
+            // 🔧 強健的摘要文本提取 - 根據你的 API 回應格式
+            let summaryResult = "❌ 無法產生摘要";
+            
+            try {
+                // 從 Console 可以看到，summary 直接在 json.summary
+                if (json && typeof json.summary === 'string') {
+                    summaryResult = json.summary;
+                } else if (json && json.data && typeof json.data.summary === 'string') {
+                    summaryResult = json.data.summary;
+                } else if (typeof json === 'string') {
+                    summaryResult = json;
+                } else {
+                    // 如果都不是預期格式，顯示原始回應以便除錯
+                    console.warn("⚠️ 未預期的回應格式:", json);
+                    summaryResult = `回應格式異常，請檢查後端 API`;
+                }
+            } catch (extractError) {
+                console.error("❌ 摘要提取失敗:", extractError);
+                summaryResult = `摘要提取錯誤：${typeof extractError === "object" && extractError !== null && "message" in extractError
+                    ? (extractError as { message?: string }).message
+                    : String(extractError)
+                }`;
+            }
+
+            console.log("✅ 最終摘要:", summaryResult.substring(0, 100) + "...");
+            setSummaryText(summaryResult);
+            toast.success("AI 摘要產生完成！");
             refetch();
+
         } catch (err: any) {
-            console.error("❌ AI Error:", err);
-            toast("❌ 發生錯誤，請檢查網路或稍後再試");
-            setSummaryText("❌ 發生錯誤，請稍後再試");
+            console.error("❌ 網路或其他錯誤:", err);
+            const errorMessage = err?.message || err?.toString() || "未知錯誤";
+            toast.error("❌ 發生錯誤，請檢查網路或稍後再試");
+            setSummaryText(`❌ 網路錯誤：${errorMessage}`);
         } finally {
             setLoading(false);
         }
@@ -197,7 +263,7 @@ export default function Step3Summary() {
     const handleCopySummary = () => {
         if (summaryText) {
             navigator.clipboard.writeText(summaryText);
-            toast.success("已复制到剪贴板");
+            toast.success("已複製到剪貼簿");
         }
     };
 

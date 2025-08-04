@@ -27,6 +27,7 @@ interface Props {
   handleGenerateAIResult: () => void;
   handleCopySummary: () => void;
   renderCell: (val: any) => JSX.Element;
+  autoMode?: boolean; // 新增 autoMode props
 }
 
 const tabs = [
@@ -59,12 +60,60 @@ export default function Step3Tabs({
   handleGenerateAIResult,
   handleCopySummary,
   renderCell,
+  autoMode = false,
 }: Props) {
   const [currentTab, setCurrentTab] = useState("table");
   const [copied, setCopied] = useState(false);
   
-  // 🆕 获取 AI 分析结果
+  // 获取 AI 分析结果
   const { groupVar, catVars, contVars, autoAnalysisResult } = useAnalysis();
+
+  // 安全渲染函數
+  const renderSafeText = (value: any): string => {
+    if (value === null || value === undefined) return "";
+    if (typeof value === 'string') return value;
+    if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+    return String(value);
+  };
+
+  // 安全渲染陣列
+  const renderSafeArray = (arr: any): string[] => {
+    if (!Array.isArray(arr)) {
+      console.warn("⚠️ 預期陣列但收到:", typeof arr, arr);
+      return [];
+    }
+    return arr.map(item => renderSafeText(item));
+  };
+
+  // 安全渲染摘要文本的函數
+  const renderSummaryText = (text: any): string => {
+    if (text === null || text === undefined) {
+      return "尚未產生摘要，請點擊按鈕產出。";
+    }
+    
+    if (typeof text === 'string') {
+      return text;
+    }
+    
+    if (typeof text === 'object') {
+      if (text.msg) {
+        return `錯誤：${text.msg}`;
+      }
+      if (text.message) {
+        return `錯誤：${text.message}`;
+      }
+      if (text.detail) {
+        return `錯誤：${text.detail}`;
+      }
+      try {
+        return `物件內容：\n${JSON.stringify(text, null, 2)}`;
+      } catch (e) {
+        return "無法顯示摘要內容（物件轉換失敗）";
+      }
+    }
+    
+    return String(text);
+  };
 
   const handleClick = () => {
     handleCopySummary();
@@ -74,8 +123,8 @@ export default function Step3Tabs({
 
   return (
     <div>
-      {/* 🆕 AI 分析结果展示区 */}
-      {autoAnalysisResult?.success && (
+      {/* 🔧 只在自動模式且有自動分析結果時顯示 */}
+      {autoMode && autoAnalysisResult?.success && (
         <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
           <div className="flex items-start gap-3">
             <div className="flex-shrink-0">
@@ -86,43 +135,43 @@ export default function Step3Tabs({
                 <Bot className="w-5 h-5" />
                 AI 智能分析完成
               </h3>
-              <div className="text-sm text-green-700 space-y-2">
+              <div className="text-sm text-green-700 space-y-4">
                 <div>
-                  <strong>分组变项：</strong>
-                  <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
-                    {groupVar || "无"}
+                  <strong>分組變項：</strong>
+                  <span className="ml-2 px-2 py-1 bg-slate-100 text-slate-800 rounded text-xs">
+                    {renderSafeText(groupVar) || "無"}
                   </span>
                 </div>
                 <div>
-                  <strong>类别变项：</strong>
+                  <strong>類別變項：</strong>
                   <span className="ml-2">
-                    {catVars.length > 0 ? (
-                      catVars.map((catVar, idx) => (
-                        <span key={idx} className="inline-block px-2 py-1 bg-purple-100 text-purple-800 rounded text-xs mr-1 mb-1">
+                    {renderSafeArray(catVars).length > 0 ? (
+                      renderSafeArray(catVars).map((catVar, idx) => (
+                        <span key={idx} className="inline-block px-2 py-1 bg-red-100 text-red-800 rounded text-xs mr-1 mb-1">
                           {catVar}
                         </span>
                       ))
                     ) : (
-                      <span className="text-gray-500">无</span>
+                      <span className="text-gray-500">無</span>
                     )}
                   </span>
                 </div>
                 <div>
-                  <strong>连续变项：</strong>
+                  <strong>連續變項：</strong>
                   <span className="ml-2">
-                    {contVars.length > 0 ? (
-                      contVars.map((contVar, idx) => (
-                        <span key={idx} className="inline-block px-2 py-1 bg-orange-100 text-orange-800 rounded text-xs mr-1 mb-1">
+                    {renderSafeArray(contVars).length > 0 ? (
+                      renderSafeArray(contVars).map((contVar, idx) => (
+                        <span key={idx} className="inline-block px-2 py-1 bg-emerald-100 text-emerald-800 rounded text-xs mr-1 mb-1">
                           {contVar}
                         </span>
                       ))
                     ) : (
-                      <span className="text-gray-500">无</span>
+                      <span className="text-gray-500">無</span>
                     )}
                   </span>
                 </div>
-                <p className="text-xs mt-2 italic">
-                  💡 以上分类由 AI 自动识别完成，已直接应用于统计分析中
+                <p className="text-xs mt-2">
+                  💡 以上分類由 AI 自動識別完成，已直接應用於統計分析中
                 </p>
               </div>
             </div>
@@ -305,18 +354,18 @@ export default function Step3Tabs({
         // AI摘要區塊
         <div className="border rounded-lg p-4 bg-gray-50 text-sm text-gray-800 whitespace-pre-wrap relative">
           <strong className="block text-primary mb-2"> AI 產出摘要：</strong>
-          <div>{summaryText || "尚未產生摘要，請點擊按鈕產出。"}</div>
+          <div>{renderSummaryText(summaryText)}</div>
           <motion.button
             whileTap={{ scale: 0.92 }}
             onClick={handleClick}
             disabled={!summaryText}
             className={`absolute top-2 right-2 flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-150 border
-    ${copied
+              ${copied
                 ? "bg-[#e6f4ea] text-green-700 border-green-300"
                 : "bg-white text-gray-700 border-gray-300 hover:bg-[#0F2844] hover:text-white hover:border-[#0F2844]"
               }
-    ${!summaryText ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:shadow-sm active:shadow-inner"}
-  `}
+              ${!summaryText ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:shadow-sm active:shadow-inner"}
+            `}
           >
             {copied ? (
               <>

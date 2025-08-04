@@ -35,6 +35,7 @@ export default function Step2Page() {
     const [warningMessage, setWarningMessage] = useState("");
     const [confirmedWarnings, setConfirmedWarnings] = useState<Set<string>>(new Set());
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+    const [confirmMessage, setConfirmMessage] = useState("");
 
     const router = useRouter();
     const { getToken } = useAuth();
@@ -53,11 +54,53 @@ export default function Step2Page() {
     const allColumns = parsedData.length > 0 ? Object.keys(parsedData[0]) : [];
     const getTypeOf = (col: string) => columnsPreview.find((c) => c.column === col)?.suggested_type ?? "不明";
 
-    const groupOptions = allColumns.map((col) => ({ label: col, value: col, type: getTypeOf(col) }));
-    const catOptions = allColumns.filter((c) => !contVars.includes(c)).map((col) => ({ label: col, value: col, type: getTypeOf(col) }));
-    const contOptions = allColumns.filter((c) => !catVars.includes(c)).map((col) => ({ label: col, value: col, type: getTypeOf(col) }));
-    const [confirmMessage, setConfirmMessage] = useState("");
+    // 排序函數：按照 suggested_type 排序
+    const sortByType = (options: any[]) => {
+        const typeOrder = ["類別變項", "連續變項", "日期變項", "不明"];
+        return options.sort((a, b) => {
+            const aIndex = typeOrder.indexOf(a.type);
+            const bIndex = typeOrder.indexOf(b.type);
 
+            // 如果類型相同，按字母順序排列
+            if (aIndex === bIndex) {
+                return a.label.localeCompare(b.label);
+            }
+
+            // 如果類型不在排序列表中，放到最後
+            if (aIndex === -1) return 1;
+            if (bIndex === -1) return -1;
+
+            return aIndex - bIndex;
+        });
+    };
+
+    const groupOptions = sortByType(
+        allColumns.map((col) => ({ label: col, value: col, type: getTypeOf(col) }))
+    );
+
+    const catOptions = sortByType(
+        allColumns
+            .filter((c) => !contVars.includes(c) && c !== groupVar) // 排除已選為連續變項和分組變項的欄位
+            .map((col) => ({
+                label: col,
+                value: col,
+                type: getTypeOf(col),
+                disabled: col === groupVar,
+                suffix: col === groupVar ? " (已選為分組變項)" : ""
+            }))
+    );
+
+    const contOptions = sortByType(
+        allColumns
+            .filter((c) => !catVars.includes(c) && c !== groupVar) // 排除已選為類別變項和分組變項的欄位
+            .map((col) => ({
+                label: col,
+                value: col,
+                type: getTypeOf(col),
+                disabled: col === groupVar,
+                suffix: col === groupVar ? " (已選為分組變項)" : ""
+            }))
+    );
 
     const isValid = catVars.length > 0 || contVars.length > 0;
     const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -70,31 +113,50 @@ export default function Step2Page() {
     };
 
     const handleGroupChange = (val: string) => {
+        // 如果選擇了新的分組變項，需要清除該變項在類別/連續變項中的選擇
+        const prevGroupVar = groupVar;
         setGroupVar(val);
+
+        // 如果新選的分組變項在類別變項中，移除它
+        if (catVars.includes(val)) {
+            setCatVars(catVars.filter(v => v !== val));
+        }
+
+        // 如果新選的分組變項在連續變項中，移除它
+        if (contVars.includes(val)) {
+            setContVars(contVars.filter(v => v !== val));
+        }
+
         const type = getTypeOf(val);
-        if (type !== "類別變項") {
+        if (val && type !== "類別變項") {
             triggerWarning("⚠️ 建議選擇類別型欄位作為分組變項，目前選取的欄位系統判定非類別型。", val);
         }
     };
 
     const handleCatChange = (vals: string[]) => {
-        vals.forEach((v) => {
+        // 過濾掉分組變項，防止被意外選中
+        const filteredVals = vals.filter(v => v !== groupVar);
+
+        filteredVals.forEach((v) => {
             const type = getTypeOf(v);
             if ((type === "連續變項" || type === "日期變項") && !confirmedWarnings.has(v)) {
                 triggerWarning(`⚠️系統判定${v} 為 ${type}，請務必再次確認以免後續分析錯誤`, v);
             }
         });
-        setCatVars(vals);
+        setCatVars(filteredVals);
     };
 
     const handleContChange = (vals: string[]) => {
-        vals.forEach((v) => {
+        // 過濾掉分組變項，防止被意外選中
+        const filteredVals = vals.filter(v => v !== groupVar);
+
+        filteredVals.forEach((v) => {
             const type = getTypeOf(v);
             if ((type === "類別變項" || type === "日期變項") && !confirmedWarnings.has(v)) {
                 triggerWarning(`⚠️ ${v} 為 ${type}，請務必再次確認以免後續分析錯誤。`, v);
             }
         });
-        setContVars(vals);
+        setContVars(filteredVals);
     };
 
     useEffect(() => {
@@ -115,15 +177,31 @@ export default function Step2Page() {
 
     useEffect(() => {
         const fetchPoints = async () => {
-            const token = await getToken();
-            const res = await fetch(`${API_URL}/api/table/api/table/user/me/points`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            const json = await res.json();
-            setUserPoints(json.points);
+            try {
+                const token = await getToken();
+                if (!token) {
+                    console.error("❌ 無法獲得 token");
+                    return;
+                }
+
+                const res = await fetch(`${API_URL}/api/account/user/me/points`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+
+                if (!res.ok) {
+                    console.error("❌ 獲取用戶點數失敗:", res.status);
+                    return;
+                }
+
+                const json = await res.json();
+                setUserPoints(json.points);
+                console.log("✅ 用戶點數:", json.points);
+            } catch (err) {
+                console.error("❌ 獲取點數錯誤:", err);
+            }
         };
         fetchPoints();
-    }, []);
+    }, [getToken, API_URL]);
 
     const hasTypeMismatch = () => {
         const checkMismatch = (selected: string[], expectedType: string) =>
@@ -136,99 +214,179 @@ export default function Step2Page() {
     };
 
     const handleAnalyze = async () => {
+        console.log("🚀 開始分析流程...");
+        console.log("📊 分析參數:", {
+            groupVar,
+            catVars,
+            contVars,
+            fillNA,
+            isValid,
+            hasTypeMismatch: hasTypeMismatch()
+        });
+
+        // 檢查基本驗證
+        if (!isValid) {
+            setErrorMsg("請至少選擇一個類別變項或連續變項");
+            return;
+        }
+
+        // 檢查類型不匹配
         if (hasTypeMismatch()) {
             setShowConfirmDialog(true);
             setConfirmMessage("部份您指定的變項類型和系統判定不一致，請務必確認後再繼續分析。");
             return;
         }
 
-        runAnalysis();
+        await runAnalysis();
     };
 
     const runAnalysis = async () => {
+        console.log("🔬 執行分析...");
+
+        // 更新 context 狀態
         setCtxGroupVar(groupVar);
         setCtxCatVars(catVars);
         setCtxContVars(contVars);
         setLoading(true);
+        setErrorMsg(null);
 
         try {
             const token = await getToken();
+            if (!token) {
+                throw new Error("授權失敗，請重新登入");
+            }
+
+            console.log("📡 呼叫分析 API...");
+            console.log("API URL:", `${API_URL}/api/table/analyze`);
+
+            const requestBody = {
+                data: parsedData,
+                group_col: groupVar, // 注意：後端使用 group_col，不是 groupVar
+                cat_vars: catVars,
+                cont_vars: contVars,
+                fillNA,
+            };
+
+            console.log("📤 請求內容:", {
+                ...requestBody,
+                data: `${parsedData.length} rows`
+            });
+
             const res = await fetch(`${API_URL}/api/table/analyze`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
                 },
-                body: JSON.stringify({
-                    data: parsedData,
-                    groupVar,
-                    catVars,
-                    contVars,
-                    fillNA,
-                }),
+                body: JSON.stringify(requestBody),
             });
 
-            const result = await res.json();
-            if (!res.ok || !Array.isArray(result.table)) throw new Error(result.detail || "分析失敗");
+            console.log("📄 API 回應狀態:", res.status);
 
-            setResultTable(result.table);
-            setGroupCounts(result.groupCounts);
-            router.push("/step3_v2");
+            if (!res.ok) {
+                const errorText = await res.text();
+                console.error("❌ API 錯誤詳情:", errorText);
+
+                try {
+                    const errorJson = JSON.parse(errorText);
+                    throw new Error(errorJson.detail || errorJson.message || `API 錯誤: ${res.status}`);
+                } catch (parseError) {
+                    throw new Error(`API 錯誤 ${res.status}: ${errorText}`);
+                }
+            }
+
+            const result = await res.json();
+            console.log("✅ 分析結果:", result);
+
+            // 檢查回應格式
+            if (!result.success) {
+                throw new Error(result.message || "分析失敗");
+            }
+
+            if (!result.data || !result.data.table) {
+                throw new Error("API 回應格式異常：缺少 table 資料");
+            }
+
+            if (!Array.isArray(result.data.table)) {
+                throw new Error("API 回應格式異常：table 不是陣列");
+            }
+
+            console.log("📊 設置分析結果...");
+            setResultTable(result.data.table);
+
+            if (result.data.groupCounts) {
+                setGroupCounts(result.data.groupCounts);
+                console.log("👥 群組計數:", result.data.groupCounts);
+            }
+
+            console.log("🎯 跳轉到 Step3...");
+            router.push("/step3_v3");
+
         } catch (err: any) {
-            console.error("分析失敗：", err);
-            setErrorMsg(err.message);
+            console.error("❌ 分析失敗：", err);
+            const errorMessage = err?.message || err?.toString() || "未知錯誤";
+            setErrorMsg(`分析失敗: ${errorMessage}`);
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        if (parsedData.length === 0) router.push("/step1_v2");
+        if (parsedData.length === 0) {
+            console.log("📍 沒有資料，重導向到 Step1");
+            router.push("/step1_v2");
+        }
     }, [parsedData, router]);
 
-    {/* 預先載入ICON圖片 */ }
-
-
-
-
     return (
-        <><div>
-            <img
-                src="/step2/sparkles_icon@2x.png"
-                alt="preload"
-                width={1}
-                height={1}
-                style={{ display: "none" }} />
-            <img
-                src="/step2/sparkles_icon_white.png"
-                alt="preload"
-                width={1}
-                height={1}
-                style={{ display: "none" }} />
-            <img
-                src="/step2/sparkles_icon_gray.png"
-                alt="preload"
-                width={1}
-                height={1}
-                style={{ display: "none" }} />
-        </div>
+        <>
+            {/* 預先載入ICON圖片 */}
+            <div>
+                <img
+                    src="/step2/sparkles_icon@2x.png"
+                    alt="preload"
+                    width={1}
+                    height={1}
+                    style={{ display: "none" }}
+                />
+                <img
+                    src="/step2/sparkles_icon_white.png"
+                    alt="preload"
+                    width={1}
+                    height={1}
+                    style={{ display: "none" }}
+                />
+                <img
+                    src="/step2/sparkles_icon_gray.png"
+                    alt="preload"
+                    width={1}
+                    height={1}
+                    style={{ display: "none" }}
+                />
+            </div>
+
             <div className="bg-white">
                 <Header />
                 <div className="container-custom pt-[70px] lg:pt-[110px] pb-2 lg:pb-45">
                     <StepNavigator />
-                    <h2 className="text-[26px] lg:text-[30px] mt-0 lg:mt-4 mb-4 leading-[42px] tracking-[3px] text-[#0F2844] font-normal">Step2：選擇變項</h2>
+                    <h2 className="text-[26px] lg:text-[30px] mt-0 lg:mt-4 mb-4 leading-[42px] tracking-[3px] text-[#0F2844] font-normal">
+                        Step2：選擇變項
+                    </h2>
+
                     <div className="space-y-8">
                         <div className="flex flex-col lg:flex-row gap-6 mt-4 lg:mt-8">
                             <div className="flex-1">
-                                <label className="block mb-2 text-[20px] tracking-[2px] leading-[32px] font-bold text-[#555555]">分組變項…</label>
+                                <label className="block mb-2 text-[20px] tracking-[2px] leading-[32px] font-bold text-[#555555]">
+                                    分組變項…
+                                </label>
                                 <GroupSelect
                                     options={groupOptions}
                                     selected={groupVar}
                                     onChange={handleGroupChange}
-                                    placeholder="選擇變項" />
+                                    placeholder="選擇變項"
+                                />
                                 {parsedData.length > 0 && (
                                     <>
-
                                         {/* 積分提示 */}
                                         <InlineNotice
                                             type="warn"
@@ -246,12 +404,10 @@ export default function Step2Page() {
                                             <span className="text-[#DC2626] font-semibold">注意：</span>
                                             目前系統不支援 <span className="font-semibold text-[#DC2626]">配對 (paired)</span> 分析
                                         </InlineNotice>
-
-
-
                                     </>
                                 )}
                             </div>
+
                             <div className="flex-1">
                                 <label className="block mb-2 text-[20px] tracking-[2px] leading-[32px] font-bold text-[#555555]">
                                     類別變項…
@@ -270,8 +426,10 @@ export default function Step2Page() {
                                     options={catOptions}
                                     selected={catVars}
                                     onChange={handleCatChange}
-                                    placeholder="選擇變項" />
+                                    placeholder="選擇變項"
+                                />
                             </div>
+
                             <div className="flex-1">
                                 <label className="block mb-2 text-[20px] tracking-[2px] leading-[32px] font-bold text-[#555555]">
                                     連續變項…
@@ -290,20 +448,24 @@ export default function Step2Page() {
                                     options={contOptions}
                                     selected={contVars}
                                     onChange={handleContChange}
-                                    placeholder="選擇變項" />
+                                    placeholder="選擇變項"
+                                />
                             </div>
                         </div>
+
                         <div className="flex items-center space-x-1">
                             <input
                                 type="checkbox"
                                 id="fillna"
                                 className="w-[25px] h-[25px] rounded-md border border-gray-400 bg-white checked:bg-[#0F2844] checked:border-[#0F2844] cursor-pointer"
                                 checked={fillNA}
-                                onChange={(e) => setFillNA(e.target.checked)} />
+                                onChange={(e) => setFillNA(e.target.checked)}
+                            />
                             <label htmlFor="fillna" className="text-[20px] text-[#555555] tracking-[2px] leading-[32px] font-bold cursor-pointer">
                                 填補缺值
                             </label>
                         </div>
+
                         <div className="flex justify-center pt-4 pb-10 lg:pb-24">
                             <ActionButton
                                 text={loading ? "分析中..." : "開始分析"}
@@ -311,14 +473,16 @@ export default function Step2Page() {
                                 disabled={!isValid || loading || (userPoints !== null && userPoints < pointCost)}
                                 loading={loading}
                                 loadingText="分析中..."
-                                iconSrc="/step2/sparkles_icon@2x.png"
-                                iconHoverSrc="/step2/sparkles_icon_white.png"
+                                iconSrc="/step2/sparkles_icon_white.png"
+                                iconHoverSrc="/step2/sparkles_icon@2x.png"
                                 iconGraySrc="/step2/sparkles_icon_gray.png"
-                                className="w-[260px] h-[50px] text-[20px] tracking-[2px] leading-[35px] border-[#0F2844] text-[#0F2844] hover:bg-[#0F2844] hover:text-white" />
+                                className="w-[260px] h-[50px] text-[20px] tracking-[2px] leading-[35px] border-[#0F2844] text-white hover:bg-[#0F2844] hover:[#0F2844]"
+                            />
                         </div>
                     </div>
                 </div>
                 <Footer />
+
                 <AnalysisErrorDialog
                     open={!!errorMsg || showWarning}
                     onClose={() => {
@@ -333,14 +497,19 @@ export default function Step2Page() {
                             setErrorMsg(null);
                         }
                     }}
-                    message={errorMsg || warningMessage} />
+                    message={errorMsg || warningMessage}
+                />
+
                 <ConfirmTypeMismatchDialog
                     open={showConfirmDialog}
                     onCancel={() => setShowConfirmDialog(false)}
                     onConfirm={() => {
                         setShowConfirmDialog(false);
                         runAnalysis();
-                    }} message={confirmMessage} />
-            </div></>
+                    }}
+                    message={confirmMessage}
+                />
+            </div>
+        </>
     );
 }

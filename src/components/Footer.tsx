@@ -87,7 +87,7 @@ export default function Footer() {
             fontFamily: '"Noto Sans TC", "思源黑體", sans-serif',
           }}
         >
-          © 2025 AI Medicus Inc.
+          © 2025 DatoVivo Co. Ltd. All rights reserved.
         </p>
       </div>
     </footer>

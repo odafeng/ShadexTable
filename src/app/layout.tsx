@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ShadyTable",
+  title: "ShadexTable",
   description: "讓醫療統計變得簡單、有型、可信任。",
   robots: {
     index: false,

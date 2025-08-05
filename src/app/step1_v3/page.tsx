@@ -130,14 +130,14 @@ export default function Step1Page() {
         setCtxFile(file);
 
         try {
-            console.log("🤖 開始自動分析流程...");
+            
 
             const token = await getToken();
             if (!token) {
                 throw new Error("授權失敗，請重新登入");
             }
 
-            console.log("📡 調用自動分析 API...");
+            
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/ai_automation/auto-analyze`, {
                 method: "POST",
                 headers: {
@@ -156,14 +156,14 @@ export default function Step1Page() {
             }
 
             const result = await response.json();
-            console.log("✅ 自动分析结果:", result);
+            
 
             if (!result.success) {
                 throw new Error(result.message || "自动分析失败");
             }
 
             // 更新 context 状态
-            console.log("📝 更新分析上下文...");
+            
             setCtxGroupVar(result.group_var || "");
             setCtxCatVars(result.cat_vars || []);
             setCtxContVars(result.cont_vars || []);
@@ -174,21 +174,21 @@ export default function Step1Page() {
             // 设置分析结果
             if (result.analysis?.table) {
                 setResultTable(result.analysis.table);
-                console.log("📊 分析表格已设置，行数:", result.analysis.table.length);
+                
             }
 
             if (result.analysis?.groupCounts) {
                 setGroupCounts(result.analysis.groupCounts);
-                console.log("👥 分组计数已设置:", result.analysis.groupCounts);
+                
             }
 
-            console.log("🎯 AI 变量分类:");
-            console.log("  - 分组变项:", result.group_var);
-            console.log("  - 类别变项:", result.cat_vars);
-            console.log("  - 连续变项:", result.cont_vars);
+            
+            
+            
+            
 
             // 跳转到结果页面
-            console.log("🚀 跳转到 Step3...");
+            
             router.push("/step3_v3");
 
         } catch (err: any) {
@@ -207,7 +207,7 @@ export default function Step1Page() {
             return;
         }
 
-        console.log("📁 開始處理檔案:", file.name);
+        
         setError("");
         setFile(file);
         setFileName(file.name);
@@ -220,14 +220,14 @@ export default function Step1Page() {
         const reader = new FileReader();
         reader.onload = (e) => {
             try {
-                console.log("📖 開始讀取檔案內容...");
+                
                 const data = new Uint8Array(e.target?.result as ArrayBuffer);
                 const workbook = XLSX.read(data, { type: "array" });
                 const sheetName = workbook.SheetNames[0];
                 const sheet = workbook.Sheets[sheetName];
                 const json = XLSX.utils.sheet_to_json<Record<string, any>>(sheet);
 
-                console.log("📊 原始資料行數:", json.length);
+                
 
                 if (json.length === 0) {
                     setError("檔案中沒有資料，請檢查檔案內容。");
@@ -235,7 +235,7 @@ export default function Step1Page() {
                 }
 
                 const allKeys = Array.from(new Set(json.flatMap((row) => Object.keys(row))));
-                console.log("🏷️ 發現欄位:", allKeys);
+                
 
                 const normalizedData = json.map((row) => {
                     const completeRow: any = {};
@@ -245,7 +245,7 @@ export default function Step1Page() {
                     return completeRow;
                 });
 
-                console.log("✅ 資料標準化完成，行數:", normalizedData.length);
+                
                 setParsedData(normalizedData);
 
                 // 立即呼叫欄位解析
@@ -272,7 +272,7 @@ export default function Step1Page() {
     };
 
     const fetchColumnProfile = async (data: any[]) => {
-        console.log("🔍 開始獲取欄位解析...");
+        
         setColumnAnalysisLoading(true);
 
         try {
@@ -287,7 +287,7 @@ export default function Step1Page() {
             }
 
             const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/preprocess/columns`;
-            console.log("📡 API URL:", apiUrl);
+            
 
             const res = await fetch(apiUrl, {
                 method: "POST",
@@ -298,7 +298,7 @@ export default function Step1Page() {
                 body: JSON.stringify({ data }),
             });
 
-            console.log("📄 API 回應狀態:", res.status);
+            
 
             if (!res.ok) {
                 const errorText = await res.text();
@@ -307,17 +307,17 @@ export default function Step1Page() {
             }
 
             const json = await res.json();
-            console.log("✅ API 回應成功:", json);
+            
 
             // 檢查回應格式並設置狀態
             if (json && json.data && json.data.columns && Array.isArray(json.data.columns)) {
-                console.log("📊 設置欄位預覽，欄位數量:", json.data.columns.length);
+                
                 setColumnsPreview(json.data.columns);
                 setColumnTypes(json.data.columns);
                 setShowPreview(true);
             } else {
                 console.warn("⚠️ API 回應格式異常，使用備用方案");
-                console.log("回應結構:", Object.keys(json));
+                
                 createFallbackColumnData(data);
             }
 
@@ -342,7 +342,7 @@ export default function Step1Page() {
             suggested_type: "不明"
         }));
         
-        console.log("🔄 使用備用欄位數據:", columns);
+        
         setColumnsPreview(columns);
         setShowPreview(true);
     };

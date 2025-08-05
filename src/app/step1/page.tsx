@@ -69,7 +69,7 @@ function Step1Inner() {
 
 const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
   const selected = e.target.files?.[0] || null;
-  console.log("📂 使用者選擇檔案：", selected?.name);
+  
 
   if (
     selected &&
@@ -88,7 +88,7 @@ const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 
   const reader = new FileReader();
   reader.onload = (e) => {
-    console.log("📖 開始解析檔案...");
+    
     const data = new Uint8Array(e.target?.result as ArrayBuffer);
     const workbook = XLSX.read(data, { type: "array" });
     const sheetName = workbook.SheetNames[0];
@@ -104,9 +104,9 @@ const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       return completeRow;
     });
 
-    console.log("✅ 解析完成，預覽資料如下（前 3 筆）：", normalizedData.slice(0, 3));
+    
     setParsedData(normalizedData);
-    console.log("🌍 API URL = ", `${process.env.NEXT_PUBLIC_API_URL}/analyze/columns-profile`);
+    
     fetchColumnProfile(normalizedData);
   };
 
@@ -123,7 +123,7 @@ const fetchColumnProfile = async (data: any[]) => {
       return;
     }
 
-    console.log("🚀 送出欄位型別分析 API...");
+    
 
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/analyze/columns-profile`, {
       method: "POST",
@@ -134,13 +134,13 @@ const fetchColumnProfile = async (data: any[]) => {
       body: JSON.stringify({ data }),
     });
 
-    console.log("🌐 API 回傳狀態：", res.status);
+    
 
     const json = await res.json();
-    console.log("📥 API 回傳資料：", json);
+    
 
     if (json.columns && json.columns.length > 0) {
-      console.log("✅ 有收到欄位型別建議，共", json.columns.length, "欄");
+      
       setColumnsPreview([...json.columns]);
       setColumnTypes([...json.columns]);
       setShowPreview(true);

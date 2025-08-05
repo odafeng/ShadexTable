@@ -195,7 +195,7 @@ export default function Step2Page() {
 
                 const json = await res.json();
                 setUserPoints(json.points);
-                console.log("✅ 用戶點數:", json.points);
+                
             } catch (err) {
                 console.error("❌ 獲取點數錯誤:", err);
             }
@@ -214,7 +214,7 @@ export default function Step2Page() {
     };
 
     const handleAnalyze = async () => {
-        console.log("🚀 開始分析流程...");
+        
         console.log("📊 分析參數:", {
             groupVar,
             catVars,
@@ -241,7 +241,7 @@ export default function Step2Page() {
     };
 
     const runAnalysis = async () => {
-        console.log("🔬 執行分析...");
+        
 
         // 更新 context 狀態
         setCtxGroupVar(groupVar);
@@ -256,8 +256,8 @@ export default function Step2Page() {
                 throw new Error("授權失敗，請重新登入");
             }
 
-            console.log("📡 呼叫分析 API...");
-            console.log("API URL:", `${API_URL}/api/table/analyze`);
+            
+            
 
             const requestBody = {
                 data: parsedData,
@@ -281,7 +281,7 @@ export default function Step2Page() {
                 body: JSON.stringify(requestBody),
             });
 
-            console.log("📄 API 回應狀態:", res.status);
+            
 
             if (!res.ok) {
                 const errorText = await res.text();
@@ -296,7 +296,7 @@ export default function Step2Page() {
             }
 
             const result = await res.json();
-            console.log("✅ 分析結果:", result);
+            
 
             // 檢查回應格式
             if (!result.success) {
@@ -311,15 +311,15 @@ export default function Step2Page() {
                 throw new Error("API 回應格式異常：table 不是陣列");
             }
 
-            console.log("📊 設置分析結果...");
+            
             setResultTable(result.data.table);
 
             if (result.data.groupCounts) {
                 setGroupCounts(result.data.groupCounts);
-                console.log("👥 群組計數:", result.data.groupCounts);
+                
             }
 
-            console.log("🎯 跳轉到 Step3...");
+            
             router.push("/step3_v3");
 
         } catch (err: any) {
@@ -333,7 +333,7 @@ export default function Step2Page() {
 
     useEffect(() => {
         if (parsedData.length === 0) {
-            console.log("📍 沒有資料，重導向到 Step1");
+            
             router.push("/step1_v2");
         }
     }, [parsedData, router]);

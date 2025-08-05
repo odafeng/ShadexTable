@@ -14,7 +14,7 @@ export default function LandingPlaceholder() {
       try {
         if (session) {
           const token = await session.getToken({ template: "shadytable-api" });
-          console.log("📌 JWT Token (shadytable-api):", token);
+          
         }
       } catch (error) {
         console.error("❌ 無法取得 Clerk token:", error);

@@ -34,19 +34,19 @@ export default function Step3Summary() {
     const { refetch } = usePoints();
 
     useEffect(() => {
-        console.log("🔍 Step3 页面狀態檢查:");
-        console.log("  - resultTable:", resultTable?.length || 0, "rows");
-        console.log("  - groupVar:", groupVar, "類型:", typeof groupVar);
-        console.log("  - groupCounts:", groupCounts, "類型:", typeof groupCounts);
-        console.log("  - autoAnalysisResult:", autoAnalysisResult, "類型:", typeof autoAnalysisResult);
+        
+        
+        
+        
+        
 
         // 🔧 安全檢查 autoAnalysisResult
         if (autoAnalysisResult && typeof autoAnalysisResult === 'object') {
-            console.log("🔍 autoAnalysisResult 詳細檢查:");
+            
             try {
                 (Object.keys(autoAnalysisResult) as Array<keyof typeof autoAnalysisResult>).forEach(key => {
                     const value = autoAnalysisResult[key];
-                    console.log(`    - ${key}:`, value, "類型:", typeof value);
+                    
                     
                     // 檢查是否有問題的物件結構
                     if (typeof value === 'object' && value !== null) {
@@ -69,7 +69,7 @@ export default function Step3Summary() {
             console.warn("⚠️ 没有分析结果，重定向到 Step1");
             router.push("/step1_v3");
         } else {
-            console.log("✅ 分析结果存在，显示统计表格");
+            
             
             // 🔧 安全檢查 autoAnalysisResult 後再顯示 toast
             if (autoAnalysisResult?.success && typeof autoAnalysisResult.success === 'boolean') {
@@ -182,7 +182,7 @@ export default function Step3Summary() {
             const token = await getToken();
             const url = `${process.env.NEXT_PUBLIC_API_URL}/api/table/ai-summary`;
 
-            console.log("🚀 發送 AI 摘要請求...");
+            
 
             const res = await fetch(url, {
                 method: "POST",
@@ -197,9 +197,9 @@ export default function Step3Summary() {
             let json;
             try {
                 json = await res.json();
-                console.log("📄 API 回應 (完整):", json);
-                console.log("🔍 回應類型:", typeof json);
-                console.log("🔍 summary 字段:", json.summary, "類型:", typeof json.summary);
+                
+                
+                
             } catch (parseError) {
                 console.error("❌ JSON 解析失敗:", parseError);
                 setSummaryText("❌ 伺服器回應格式錯誤");
@@ -245,7 +245,7 @@ export default function Step3Summary() {
                 }`;
             }
 
-            console.log("✅ 最終摘要:", summaryResult.substring(0, 100) + "...");
+            
             setSummaryText(summaryResult);
             toast.success("AI 摘要產生完成！");
             refetch();

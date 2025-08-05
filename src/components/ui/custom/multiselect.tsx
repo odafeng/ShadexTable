@@ -62,7 +62,7 @@ export function MultiSelect({
   const handleMouseDown = useCallback((e: React.MouseEvent, startOnItem?: string) => {
     if (!enableDragSelect || e.button !== 0) return; // 只處理左鍵點擊
     
-    console.log('handleMouseDown triggered, startOnItem:', startOnItem);
+    
     
     const rect = scrollAreaRef.current?.getBoundingClientRect();
     if (!rect) return;
@@ -76,7 +76,7 @@ export function MultiSelect({
     if (startOnItem) {
       const isCurrentlySelected = selected.includes(startOnItem);
       const mode = isCurrentlySelected ? 'deselect' : 'select';
-      console.log('設定拖曳模式:', mode, '基於項目:', startOnItem, '當前選擇狀態:', isCurrentlySelected);
+      
       setDragMode(mode);
     } else {
       setDragMode('select'); // 預設為選取模式
@@ -157,7 +157,7 @@ export function MultiSelect({
       });
     }
 
-    console.log('拖曳模式:', dragMode, '拖曳選擇:', newSelection);
+    
     setDragSelection(newSelection);
   }, [enableDragSelect, mouseDownPos, dragStart, isDragging, dragThreshold, dragMode, selected]);
 
@@ -279,7 +279,7 @@ export function MultiSelect({
                       data-disabled={option.disabled}
                       onMouseDown={(e) => {
                         if (!option.disabled && enableDragSelect) {
-                          console.log('MouseDown on:', option.value, 'isSelected:', isSelected);
+                          
                           handleMouseDown(e, option.value);
                         }
                       }}

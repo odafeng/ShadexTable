@@ -6,10 +6,10 @@ import { motion } from "framer-motion";
 
 export default function Footer() {
   const socialLinks = [
-    { alt: "IG", src: "/landing/ig_icon@2x.png", href: "https://www.instagram.com/shady_table" },
+    { alt: "IG", src: "/landing/ig_icon@2x.png", href: "https://www.instagram.com/shadex_stas" },
     { alt: "FB", src: "/landing/fb_icon@2x.png", href: "https://www.facebook.com/profile.php?id=61578576480356" },
     { alt: "LINE", src: "/landing/line_icon@2x.png", href: "#" },
-    { alt: "Email", src: "/landing/email_icon@2x.png", href: "mailto:support@shadytable.com" },
+    { alt: "Email", src: "/landing/email_icon@2x.png", href: "mailto:support@shadex.ai" },
   ];
 
   return (

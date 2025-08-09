@@ -81,7 +81,7 @@ export default function FaqPage() {
           transition={{ delay: 0.4 }}
           className="text-center text-sm text-gray-500 dark:text-gray-400 pt-4"
         >
-          若有其他問題，歡迎來信 <a href="mailto:support@Shadex.com" className="underline">support@Shadex.com</a> 詢問。
+          若有其他問題，歡迎來信 <a href="mailto:support@shadex.ai" className="underline">support@shadex.ai</a> 詢問。
         </motion.p>
 
         {/* 回首頁按鈕放底部 */}

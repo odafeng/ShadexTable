@@ -9,7 +9,7 @@ export default function SignInPage() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-[#E3E7F0] to-white px-4">
         {/* 自訂 Logo，完全取代 Clerk 預設 Logo */}
         <Image
-          src="/logo/Shadex Logo (2).png" // ← 放你自己的圖檔路徑
+          src="/logo/Shadex_Logo.png" // ← 放你自己的圖檔路徑
           alt="Shadex"
           width={200} // ← 想要多大就多大
           height={60}
@@ -20,7 +20,7 @@ export default function SignInPage() {
           path="/sign-in"
           routing="path"
           signUpUrl="/sign-up"
-          afterSignInUrl="/step1"
+          afterSignInUrl="/step1_v3"
           appearance={{
             elements: {
               card: "shadow-xl rounded-2xl border border-muted",

@@ -14,7 +14,7 @@ export default function SignUpPage() {
     <div className="flex flex-col items-center justify-center min-h-screen bg-[#F8FAFC] px-4">
       {/* 自訂 Logo，完全取代 Clerk 預設 Logo */}
       <Image
-        src="/logo/Shadex Logo (2).png" // ← 放你自己的圖檔路徑
+        src="/logo/Shadex_Logo.png" // ← 放你自己的圖檔路徑
         alt="Shadex"
         width={200} // ← 想要多大就多大
         height={60}

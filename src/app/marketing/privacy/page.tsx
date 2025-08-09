@@ -23,7 +23,7 @@ export default function PrivacyPage() {
           style={{ fontFamily: '"Noto Sans TC", "思源黑體", sans-serif' }}
         >
           <p>
-            本政策說明 ShadyTable（以下簡稱「本服務」）如何蒐集、使用、保護與分享使用者之個人資料與上傳資料。
+            本政策說明 Shadex（以下簡稱「本服務」）如何蒐集、使用、保護與分享使用者之個人資料與上傳資料。
             若您不同意本政策內容，請停止使用本服務。
           </p>
 
@@ -79,10 +79,10 @@ export default function PrivacyPage() {
                   使用者可隨時要求我們刪除其帳號與相關資料，並有權查詢其帳號所儲存之資訊。
                   若您希望刪除帳號，請來信{" "}
                   <a
-                    href="mailto:support@shadytable.com"
+                    href="mailto:support@Shadex.com"
                     className="underline text-[#008587]"
                   >
-                    support@shadytable.com
+                    support@Shadex.com
                   </a>
                   。
                 </>

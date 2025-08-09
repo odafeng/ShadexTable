@@ -28,7 +28,7 @@ export default function Step3Summary() {
 
     useEffect(() => {
         if (!resultTable || resultTable.length === 0) {
-            router.push("/step2_v2");
+            router.push("/step2_v3");
         }
     }, [resultTable, router]);
 

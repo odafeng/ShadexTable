@@ -144,7 +144,7 @@ export default function Step1Page() {
     setCtxFile(file);
     setTimeout(() => {
       setLoading(false);
-      router.push("/step2_v2");
+      router.push("/step2_v3");
     }, 1000);
   };
 

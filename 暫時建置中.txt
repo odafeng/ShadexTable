@@ -13,7 +13,7 @@ export default function LandingPlaceholder() {
     async function tryGetToken() {
       try {
         if (session) {
-          const token = await session.getToken({ template: "shadytable-api" });
+          const token = await session.getToken({ template: "Shadex-api" });
           
         }
       } catch (error) {
@@ -28,12 +28,12 @@ export default function LandingPlaceholder() {
     <main className="min-h-screen bg-[#F8FAFC] text-[#1D3557] flex flex-col items-center justify-center px-4 py-12 text-center">
       <Image
         src="/logo/shady_logo_dark.svg"
-        alt="ShadyTable Logo"
+        alt="Shadex Logo"
         width={80}
         height={80}
         className="mb-6"
       />
-      <h1 className="text-3xl md:text-4xl font-bold mb-4">ShadyTable 首頁建構中</h1>
+      <h1 className="text-3xl md:text-4xl font-bold mb-4">Shadex 首頁建構中</h1>
       <p className="text-[#64748B] max-w-md mb-6 text-base md:text-lg">
         我們正在打造全新的首頁體驗，敬請期待！
         <br />
@@ -42,7 +42,7 @@ export default function LandingPlaceholder() {
       <div className="flex flex-col sm:flex-row gap-4">
         <Link href="/step1">
           <Button className="bg-[#457B9D] text-white hover:bg-[#1D3557] text-sm px-6 py-2 rounded-lg">
-            開始使用 ShadyTable
+            開始使用 Shadex
           </Button>
         </Link>
         <Link href="/sign-in">

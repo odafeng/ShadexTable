@@ -21,7 +21,7 @@ export default function TechnicalPage() {
         </div>
 
         <p className="text-[15px] sm:text-[17px] text-[#586D81] tracking-[0.5px] sm:tracking-[1px] leading-[28px] sm:leading-[30px] text-left">
-          本頁面提供 ShadyTable 所採用之統計邏輯、中英文對照說明與引用建議。
+          本頁面提供 Shadex 所採用之統計邏輯、中英文對照說明與引用建議。
         </p>
 
         <Tabs defaultValue="zh" className="w-full">
@@ -40,7 +40,7 @@ export default function TechnicalPage() {
             >
               <section>
                 <h2 className="text-[18px] sm:text-xl font-semibold text-[#0F2844] mb-2">統計邏輯設計原則</h2>
-                <p>ShadyTable 以 Python 為核心，根據統計教科書與期刊慣例，設計標準化且可重複的統計檢定流程。</p>
+                <p>Shadex 以 Python 為核心，根據統計教科書與期刊慣例，設計標準化且可重複的統計檢定流程。</p>
               </section>
 
               <section>
@@ -54,7 +54,7 @@ export default function TechnicalPage() {
                     目前建議採用 Shapiro-Wilk 或 Chen-Shapiro 檢定，這兩種方法的整體表現通常優於傳統的 Kolmogorov-Smirnov 檢定。然而，這些方法在樣本數低於 50 時檢定力（power）較低，因此在詮釋結果時需格外謹慎。理解資料分布特性，有助於正確選擇統計方法與摘要指標。
                   </p>
                   <p className="text-[#D97706] italic text-[15px] leading-relaxed">
-                    <strong>ShadyTable 系統邏輯：</strong>當使用者將變項指定為連續型後，<span className="font-semibold">系統會自動執行 Shapiro-Wilk 檢定</span>，並顯示檢定統計量與 p 值。若資料不符合常態分布，系統將自動套用非參數檢定；若符合常態分布，則使用參數檢定。對於樣本數過少（如少於 50）者，請謹慎解讀檢定結果。
+                    <strong>Shadex 系統邏輯：</strong>當使用者將變項指定為連續型後，<span className="font-semibold">系統會自動執行 Shapiro-Wilk 檢定</span>，並顯示檢定統計量與 p 值。若資料不符合常態分布，系統將自動套用非參數檢定；若符合常態分布，則使用參數檢定。對於樣本數過少（如少於 50）者，請謹慎解讀檢定結果。
                   </p>
 
                   <li>類別變項 vs 類別變項 [9–14]：<span className="text-[#008587] font-semibold">卡方檢定、Fisher’s exact test</span></li>
@@ -68,7 +68,7 @@ export default function TechnicalPage() {
                     為克服上述限制，研究者已提出多種替代方法，如 G 檢定、多變項邏輯回歸等。使用卡方檢定時應保持謹慎，必要時輔以其他方法。
                   </p>
                   <p className="text-[#D97706] italic text-[15px] leading-relaxed">
-                    <strong>ShadyTable 系統邏輯：</strong>對於 2 × 2 列聯表，若任一格的期望值小於 5，<span className="font-semibold">系統將自動改用 Fisher’s exact test</span>。若為更大列聯表且樣本數較小，則會顯示警語，提醒使用者對結果謹慎詮釋。
+                    <strong>Shadex 系統邏輯：</strong>對於 2 × 2 列聯表，若任一格的期望值小於 5，<span className="font-semibold">系統將自動改用 Fisher’s exact test</span>。若為更大列聯表且樣本數較小，則會顯示警語，提醒使用者對結果謹慎詮釋。
                   </p>
 
                   <li>類別變項 vs 連續變項 [15–20]：<span className="text-[#008587] font-semibold">t-test、Mann–Whitney U、ANOVA、Kruskal–Wallis</span></li>
@@ -82,7 +82,7 @@ export default function TechnicalPage() {
                     雖然非參數檢定在統計檢定力上通常不如參數方法，但當資料違反常態分布或變異數齊性假設時，非參數方法提供了更穩健的選擇。
                   </p>
                   <p className="text-[#D97706] italic text-[15px] leading-relaxed">
-                    <strong>ShadyTable 系統邏輯：</strong>
+                    <strong>Shadex 系統邏輯：</strong>
                     系統會根據常態性檢定的結果，自動選擇適合的檢定方法，無需使用者手動切換。
                   </p>
                 </ul>
@@ -96,7 +96,7 @@ export default function TechnicalPage() {
               <section>
                 <h2 className="text-[18px] sm:text-xl font-semibold text-[#0F2844] mb-2">引用建議</h2>
                 <p>
-                  ShadyTable 之統計核心引擎乃基於<strong>Python 3.13.5</strong> 建構，所有統計數據計算皆於該版本環境中執行。
+                  Shadex 之統計核心引擎乃基於<strong>Python 3.13.5</strong> 建構，所有統計數據計算皆於該版本環境中執行。
                   撰寫學術論文時，建議於「統計方法」一節揭露此資訊，以提升分析過程之透明度與重現性。
                 </p>
               </section>
@@ -142,7 +142,7 @@ export default function TechnicalPage() {
               style={{ fontFamily: '"Noto Sans TC", "思源黑體", sans-serif' }}
             >
               <h2 className="text-[18px] sm:text-xl font-semibold text-[#0F2844] mb-2">Statistical Logic and Assumptions</h2>
-              <p>ShadyTable is powered by Python and follows best practices from statistical textbooks and peer-reviewed publications, aiming to provide a standardized and reproducible workflow.</p>
+              <p>Shadex is powered by Python and follows best practices from statistical textbooks and peer-reviewed publications, aiming to provide a standardized and reproducible workflow.</p>
               <div>
                 <h2 className="text-[18px] sm:text-xl font-semibold text-[#0F2844] mb-2">Supported Statistical Methods</h2>
                 <ul className="list-disc pl-5 space-y-2">
@@ -157,7 +157,7 @@ export default function TechnicalPage() {
                     Understanding the distribution of data is essential for selecting the appropriate statistical method and summary measure.
                   </p>
                   <p className="text-[#D97706] italic text-[15px] leading-relaxed">
-                    <strong>ShadyTable System Logic:</strong> Once a variable is designated as continuous, <span className="font-semibold">the system automatically performs the Shapiro-Wilk test</span> and displays the test statistic and p-value. If the data is not normally distributed, non-parametric tests will be used; otherwise, parametric tests will be applied. Note that for small sample sizes (e.g., &lt; 50), results should be interpreted with extra caution.
+                    <strong>Shadex System Logic:</strong> Once a variable is designated as continuous, <span className="font-semibold">the system automatically performs the Shapiro-Wilk test</span> and displays the test statistic and p-value. If the data is not normally distributed, non-parametric tests will be used; otherwise, parametric tests will be applied. Note that for small sample sizes (e.g., &lt; 50), results should be interpreted with extra caution.
                   </p>
 
                   <li>Category vs Category [9–14]: <span className="text-[#008587] font-semibold">Chi-square test, Fisher’s exact test</span></li>
@@ -171,7 +171,7 @@ export default function TechnicalPage() {
                     To address these issues, researchers have proposed alternative methods such as the G-test and multinomial logistic regression. Chi-square should be applied and interpreted with caution and, where appropriate, supplemented by additional techniques.
                   </p>
                   <p className="text-[#D97706] italic text-[15px] leading-relaxed">
-                    <strong>ShadyTable System Logic:</strong> For 2 × 2 tables, if any expected cell count is less than 5, <span className="font-semibold">Fisher’s exact test will be applied automatically.</span> For larger tables with small sample sizes, the system will display a warning. Advanced methods like the G-test and permutation tests are not yet available on this platform.
+                    <strong>Shadex System Logic:</strong> For 2 × 2 tables, if any expected cell count is less than 5, <span className="font-semibold">Fisher’s exact test will be applied automatically.</span> For larger tables with small sample sizes, the system will display a warning. Advanced methods like the G-test and permutation tests are not yet available on this platform.
                   </p>
 
                   <li>Category vs Continuous [15–20]: <span className="text-[#008587] font-semibold">t-test, Mann–Whitney U, ANOVA, Kruskal–Wallis</span></li>
@@ -185,7 +185,7 @@ export default function TechnicalPage() {
                     Although non-parametric tests generally have lower statistical power compared to their parametric counterparts, they are more robust and suitable when data conditions do not meet parametric assumptions.
                   </p>
                   <p className="text-[#D97706] italic text-[15px] leading-relaxed">
-                    <strong>ShadyTable System Logic:</strong> Based on the result of the normality test, ShadyTable will automatically select either a parametric or non-parametric test—no manual switching is required.
+                    <strong>Shadex System Logic:</strong> Based on the result of the normality test, Shadex will automatically select either a parametric or non-parametric test—no manual switching is required.
                   </p>
                 </ul>
               </div>
@@ -194,14 +194,14 @@ export default function TechnicalPage() {
               <div>
                 <h2 className="text-[18px] sm:text-xl font-semibold text-[#0F2844] mb-2">Data Processing and Privacy</h2>
                 <p>
-                  All uploaded files are processed locally in your browser. ShadyTable does <strong>not store or upload</strong> any data. Please ensure that all personally identifiable information is removed prior to use.
+                  All uploaded files are processed locally in your browser. Shadex does <strong>not store or upload</strong> any data. Please ensure that all personally identifiable information is removed prior to use.
                 </p>
               </div>
 
               <div>
                 <h2 className="text-[18px] sm:text-xl font-semibold text-[#0F2844] mb-2">Suggested Citation</h2>
                 <p>
-                  The statistical engine of ShadyTable is built on <strong>Python 3.13.5</strong>, and all statistical computations are performed within this environment. When preparing academic manuscripts, it is recommended to disclose this information in the 'Statistical Methods' section to enhance the transparency and reproducibility of the analysis.
+                  The statistical engine of Shadex is built on <strong>Python 3.13.5</strong>, and all statistical computations are performed within this environment. When preparing academic manuscripts, it is recommended to disclose this information in the 'Statistical Methods' section to enhance the transparency and reproducibility of the analysis.
                 </p>
               </div>
 

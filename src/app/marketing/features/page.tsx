@@ -48,9 +48,9 @@ export default function FeaturesPage() {
               className="text-[20px] lg:text-[25px] tracking-[2.2px] lg:tracking-[3px] leading-[34px] lg:leading-[42px] text-black text-center lg:text-left"
               style={{ fontFamily: '"Noto Sans TC", "思源黑體", sans-serif' }}
             >
-              ShadyTable 專為臨床研究者打造、自動選擇統計檢定、自動產表、自動產出學術摘要段落。
+              Shadex 專為臨床研究者打造、自動選擇統計檢定、自動產表、自動產出學術摘要段落。
             </p>
-            <Link href="/step1_v2">
+            <Link href="/step1_v3">
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 onMouseEnter={() => setRightHover(true)}
@@ -152,7 +152,7 @@ export default function FeaturesPage() {
                 >
                   不需任何程式經驗，只要上傳資料、選擇變項，
                   <span className="hidden lg:inline"><br /></span>
-                  ShadyTable 會根據型別與分組自動判斷統計方法，免除你操作 SPSS 的苦。
+                  Shadex 會根據型別與分組自動判斷統計方法，免除你操作 SPSS 的苦。
                 </p>
               </div>
             </div>
@@ -310,7 +310,7 @@ export default function FeaturesPage() {
                 style={{ fontFamily: '"Noto Sans TC", "思源黑體", sans-serif' }}
               >
                 你可以完全不用碰程式，也不用思考「該用哪個檢定方法」。
-                ShadyTable 幫你選、幫你跑、幫你寫，讓統計變得像使用 Google 一樣直覺。
+                Shadex 幫你選、幫你跑、幫你寫，讓統計變得像使用 Google 一樣直覺。
               </p>
             </div>
 
@@ -363,10 +363,10 @@ export default function FeaturesPage() {
             className="text-[20px] lg:text-[30px] leading-[32px] lg:leading-[42px] tracking-[2px] lg:tracking-[3px] text-black font-normal mb-[40px]"
             style={{ fontFamily: '"Noto Sans TC", "思源黑體", sans-serif' }}
           >
-            立即試用 ShadyTable，開始你的智慧統計之旅。
+            立即試用 Shadex，開始你的智慧統計之旅。
           </p>
 
-          <Link href="/step1_v2">
+          <Link href="/step1_v3">
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}

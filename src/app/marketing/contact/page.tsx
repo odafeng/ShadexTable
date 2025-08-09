@@ -19,7 +19,7 @@ export default function ContactPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch("https://shadytable-backend.onrender.com/contact/api/contact", {
+      const res = await fetch("https://shadexengine.onrender.com/api/account/contact/submit", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

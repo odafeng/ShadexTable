@@ -32,19 +32,19 @@ export default function FaqPage() {
             <AccordionItem value="q1">
               <AccordionTrigger className="cursor-pointer">1. 統計結果可信嗎？</AccordionTrigger>
               <AccordionContent>
-                可信。ShadyTable 的統計核心以 Python 3.13.5 運作，所有檢定邏輯均依循標準統計學教科書與慣例設計，並已於多項醫學研究中實際應用。
+                可信。Shadex 的統計核心以 Python 3.13.5 運作，所有檢定邏輯均依循標準統計學教科書與慣例設計，並已於多項醫學研究中實際應用。
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="q2">
               <AccordionTrigger className="cursor-pointer">2. 要如何在文章中描述所採用的統計方法？</AccordionTrigger>
               <AccordionContent>
-                ShadyTable 的統計核心以 Python 3.13.5 運作，建議撰寫論文時在方法段中寫明："All statistical analyses were conducted using Python version 3.13.5"
+                Shadex 的統計核心以 Python 3.13.5 運作，建議撰寫論文時在方法段中寫明："All statistical analyses were conducted using Python version 3.13.5"
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="q3">
               <AccordionTrigger className="cursor-pointer">3. 上傳資料時是否會有個資外洩風險？</AccordionTrigger>
               <AccordionContent>
-                ShadyTable 僅在使用者本機記憶體中處理資料，不會將資料存至後端伺服器。我們建議使用者上傳前去除姓名、ID 等直接識別資訊。
+                Shadex 僅在使用者本機記憶體中處理資料，不會將資料存至後端伺服器。我們建議使用者上傳前去除姓名、ID 等直接識別資訊。
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="q4">
@@ -68,7 +68,7 @@ export default function FaqPage() {
             <AccordionItem value="q7">
               <AccordionTrigger className="cursor-pointer">7. 遺漏值是怎麼處理的？</AccordionTrigger>
               <AccordionContent>
-                若開啟「填補遺漏值」選項，ShadyTable 會自動處理缺失資料：類別變項以眾數填補，連續變項則以平均數填補。若未啟用此選項，將依各檢定方式自動排除缺失值。
+                若開啟「填補遺漏值」選項，Shadex 會自動處理缺失資料：類別變項以眾數填補，連續變項則以平均數填補。若未啟用此選項，將依各檢定方式自動排除缺失值。
               </AccordionContent>
             </AccordionItem>
           </Accordion>
@@ -81,7 +81,7 @@ export default function FaqPage() {
           transition={{ delay: 0.4 }}
           className="text-center text-sm text-gray-500 dark:text-gray-400 pt-4"
         >
-          若有其他問題，歡迎來信 <a href="mailto:support@shadytable.com" className="underline">support@shadytable.com</a> 詢問。
+          若有其他問題，歡迎來信 <a href="mailto:support@Shadex.com" className="underline">support@Shadex.com</a> 詢問。
         </motion.p>
 
         {/* 回首頁按鈕放底部 */}

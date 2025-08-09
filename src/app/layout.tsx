@@ -40,7 +40,7 @@ export default function RootLayout({
         layout: {
           socialButtonsPlacement: "bottom",
           socialButtonsVariant: "blockButton",
-          termsPageUrl: "http://shadytable.com/marketing/terms",
+          termsPageUrl: "http://Shadex.com/marketing/terms",
         },
         elements: {
           card: "shadow-xl rounded-2xl border border-muted",

@@ -173,7 +173,7 @@ export default function Step2Page() {
 
             setResultTable(result.table);
             setGroupCounts(result.groupCounts);
-            router.push("/step3_v2");
+            router.push("/step3_v3");
         } catch (err: any) {
             console.error("分析失敗：", err);
             setErrorMsg(err.message);
@@ -183,7 +183,7 @@ export default function Step2Page() {
     };
 
     useEffect(() => {
-        if (parsedData.length === 0) router.push("/step1_v2");
+        if (parsedData.length === 0) router.push("/step1_v3");
     }, [parsedData, router]);
 
     {/* 預先載入ICON圖片 */ }

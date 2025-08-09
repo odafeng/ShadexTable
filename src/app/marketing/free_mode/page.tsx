@@ -46,7 +46,7 @@ export default function PricingPage() {
             不限次數、不限功能，隨時體驗。
           </div>
 
-          <Link href="/step1_v3">
+          <Link href="/step1">
             <Button className="cursor-pointer w-full rounded-2xl bg-[#0F2844] text-white hover:bg-transparent hover:text-[#0F2844] border border-[#0F2844] text-[18px] tracking-[2px] h-[50px]">
               開始分析
             </Button>

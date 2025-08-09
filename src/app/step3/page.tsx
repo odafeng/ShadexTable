@@ -3,358 +3,279 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAnalysis } from "@/context/AnalysisContext";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import {
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  TabsContent,
-} from "@/components/ui/tabs";
-import {
-  HoverCard,
-  HoverCardTrigger,
-  HoverCardContent,
-} from "@/components/ui/hover-card";
-import DashboardLayout from "@/components/ui/layout/DashboardLayout";
-import { BarChart3, Sparkles } from "lucide-react";
-import { motion } from "framer-motion";
-import * as XLSX from "xlsx";
-import { saveAs } from "file-saver";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@clerk/nextjs";
 import { toast } from "sonner";
-import {
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-  TooltipProvider,
-} from "@/components/ui/tooltip";
-import { usePoints } from "@/hooks/usePoints";
+import Header from "@/components/ui/layout/Header_ui2";
+import Footer from "@/components/Footer";
+import StepNavigator from "@/components/stepNavigator";
+import Step3Tabs from "@/components/Step3Tabs";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
+import ActionButton2 from "@/components/ActionButton2";
+import Image from "next/image";
 
 export default function Step3Summary() {
-  const { resultTable, groupVar, groupCounts } = useAnalysis();
-  const router = useRouter();
-  const [summaryText, setSummaryText] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [currentPage, setCurrentPage] = useState(0);
-  const rowsPerPage = 10;
-  const { getToken } = useAuth();
-  const { refetch } = usePoints();
+    const {
+        resultTable,
+        groupVar,
+        groupCounts,
+        autoAnalysisResult,
+        setAutoAnalysisResult
+    } = useAnalysis();
 
-  useEffect(() => {
+    const router = useRouter();
+    const [summaryText, setSummaryText] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [currentPage, setCurrentPage] = useState(0);
+    const rowsPerPage = 10;
+    const { getToken } = useAuth();
+
+    useEffect(() => {
+        // 🔧 安全檢查 autoAnalysisResult
+        if (autoAnalysisResult && typeof autoAnalysisResult === 'object') {
+            try {
+                (Object.keys(autoAnalysisResult) as Array<keyof typeof autoAnalysisResult>).forEach(key => {
+                    const value = autoAnalysisResult[key];
+                    
+                    // 檢查是否有問題的物件結構
+                    if (typeof value === 'object' && value !== null) {
+                        if (
+                            (value as any).type &&
+                            (value as any).loc &&
+                            (value as any).msg &&
+                            (value as any).input
+                        ) {
+                            console.error("⚠️ 發現問題物件:", key, value);
+                        }
+                    }
+                });
+            } catch (e) {
+                console.error("❌ autoAnalysisResult 檢查失敗:", e);
+            }
+        }
+
+        if (!resultTable || resultTable.length === 0) {
+            console.warn("⚠️ 没有分析结果，重定向到 Step1");
+            router.push("/step1");
+        } else {
+            // 🔧 安全檢查 autoAnalysisResult 後再顯示 toast
+            if (autoAnalysisResult?.success && typeof autoAnalysisResult.success === 'boolean') {
+                toast.success("🤖 AI 智能分析完成！", {
+                    description: "已自動識別變量類型並完成統計分析",
+                    duration: 5000,
+                });
+            }
+        }
+    }, [resultTable, router, autoAnalysisResult]);
+
     if (!resultTable || resultTable.length === 0) {
-      router.push("/step2");
-    }
-  }, [resultTable, router]);
-
-  if (!resultTable || resultTable.length === 0) return null;
-
-  const baseCols = ["Variable", "P", "Method", "Missing", "Normal"];
-  const exportCols = ["Variable", "P", "Method"];
-  const groupKeys = Object.keys(resultTable[0] || {}).filter(
-    (k) => !baseCols.includes(k)
-  );
-  const columns = ["Variable", ...groupKeys, "Normal", "P", "Method", "Missing"];
-  const exportColumns = ["Variable", ...groupKeys, "P", "Method"];
-
-  const filteredRows = resultTable.filter(
-    (row) => row.Variable?.replace(/\*/g, "") !== groupVar && row.Variable !== "**All**"
-  );
-  const pageCount = Math.ceil(filteredRows.length / rowsPerPage);
-
-  const renderCell = (val: any) => {
-    if (
-      val === undefined ||
-      val === null ||
-      val === "nan" ||
-      val === "undefined" ||
-      val?.toString().trim() === "—"
-    ) {
-      return <span className="text-gray-400 italic">&mdash;</span>;
-    }
-    return val;
-  };
-
-  const canExport = () => {
-  if (!groupVar) return false;
-  const uniqueGroups = Object.keys(groupCounts);
-  return uniqueGroups.length >= 2;
-};
-
-  const exportToExcel = () => {
-    const data = filteredRows.map((row) => {
-      const filtered: any = {};
-      exportColumns.forEach((col) => {
-        const isGroupCol = !["Variable", "Normal", "P", "Method", "Missing"].includes(col);
-        const label = isGroupCol ? `${col} (n=${groupCounts[col] ?? "?"})` : col;
-        filtered[label] = row[col] !== "nan" ? row[col] : "";
-      });
-      return filtered;
-    });
-
-    const worksheet = XLSX.utils.json_to_sheet(data);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Summary");
-    const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
-    const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
-    saveAs(blob, "table-summary.xlsx");
-  };
-
-  const exportToWord = async () => {
-    const res = await fetch("/api/export-word", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ resultTable, groupVar, groupCounts }),
-    });
-
-    if (!res.ok) {
-      alert("❌ 匯出失敗！");
-      return;
+        return (
+            <div className="bg-white min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0F2844] mx-auto mb-4"></div>
+                    <p className="text-[#0F2844]">正在載入分析結果...</p>
+                </div>
+            </div>
+        );
     }
 
-    const blob = await res.blob();
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "table-summary.docx";
-    a.click();
-    window.URL.revokeObjectURL(url);
-  };
+    const baseCols = ["Variable", "P", "Method", "Missing", "Normal"];
+    const exportCols = ["Variable", "P", "Method"];
+    const groupKeys = Object.keys(resultTable[0] || {}).filter(
+        (k) => !baseCols.includes(k)
+    );
+    const columns = ["Variable", ...groupKeys, "Normal", "P", "Method", "Missing"];
+    const exportColumns = ["Variable", ...groupKeys, "P", "Method"];
 
-const handleGenerateAIResult = async () => {
-  setLoading(true);
-  setSummaryText(null);
+    const filteredRows = resultTable.filter(
+        (row) => row.Variable?.replace(/\*/g, "") !== groupVar && row.Variable !== "**All**"
+    );
+    const pageCount = Math.ceil(filteredRows.length / rowsPerPage);
 
-  const coreData = filteredRows
-    .map((row) => {
-      const summary = exportColumns
-        .map((col) => `${col}: ${row[col] ?? "—"}`)
-        .join(" | ");
-      return summary;
-    })
-    .join("\n");
+    const renderCell = (val: any) => {
+        if (
+            val === undefined ||
+            val === null ||
+            val === "nan" ||
+            val === "undefined" ||
+            val?.toString().trim() === "—"
+        ) {
+            return <span className="text-gray-400 italic">&mdash;</span>;
+        }
+        return val;
+    };
 
-  try {
-    const token = await getToken();
-    const url = `${process.env.NEXT_PUBLIC_API_URL}/ai-summary`;
+    const canExport = () => {
+        if (!groupVar) return false;
+        const uniqueGroups = Object.keys(groupCounts);
+        return uniqueGroups.length >= 2;
+    };
 
-    console.log("📡 正在呼叫 /ai-summary：", {
-      url,
-      tokenPreview: token?.slice(0, 10), // 安全起見只顯示前幾碼
-      payload: { data: coreData },
-    });
-
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ data: coreData }),
-    });
-
-    const json = await res.json();
-
-    console.log("📥 回應 /ai-summary：", {
-      status: res.status,
-      body: json,
-    });
-
-    if (!res.ok) {
-      if (res.status === 402) {
-        toast("⚠️ 點數不足", {
-          description: "請前往購買頁面補充點數後再使用 AI 摘要功能",
+    const exportToExcel = () => {
+        const data = filteredRows.map((row) => {
+            const filtered: any = {};
+            exportColumns.forEach((col) => {
+                const isGroupCol = !["Variable", "Normal", "P", "Method", "Missing"].includes(col);
+                const label = isGroupCol ? `${col} (n=${groupCounts[col] ?? "?"})` : col;
+                filtered[label] = row[col] !== "nan" ? row[col] : "";
+            });
+            return filtered;
         });
-        setSummaryText("⚠️ 點數不足，請購買點數後再試");
-      } else {
-        toast("❌ 系統錯誤", {
-          description: json?.detail || "AI 產生摘要失敗，請稍後再試",
+
+        const worksheet = XLSX.utils.json_to_sheet(data);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Summary");
+        const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+        const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
+        saveAs(blob, "ai-analysis-summary.xlsx");
+    };
+
+    const exportToWord = async () => {
+        const res = await fetch("/api/export-word", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ resultTable, groupVar, groupCounts }),
         });
-        setSummaryText(`❌ 系統錯誤：${json?.detail || "請稍後再試"}`);
-      }
-      return;
-    }
 
-    setSummaryText(json.summary || "❌ 無法產生摘要");
-    toast("✅ AI 摘要產生完成！");
-    refetch();
-  } catch (err: any) {
-    console.error("❌ AI Error:", err);
-    toast("❌ 發生錯誤，請檢查網路或稍後再試");
-    setSummaryText("❌ 發生錯誤，請稍後再試");
-  } finally {
-    setLoading(false);
-  }
-};
+        if (!res.ok) {
+            toast.error("导出失败！");
+            return;
+        }
 
-  const handleCopySummary = () => {
-    if (summaryText) navigator.clipboard.writeText(summaryText);
-  };
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "ai-analysis-summary.docx";
+        a.click();
+        window.URL.revokeObjectURL(url);
+    };
 
-  return (
-    <DashboardLayout>
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="px-4 sm:px-6 md:px-8"
-      >
-        <Card className="w-full max-w-6xl mx-auto rounded-2xl shadow-lg border border-muted">
-          <CardHeader>
-            <CardTitle className="text-lg md:text-xl font-semibold text-primary flex items-center gap-2 whitespace-nowrap">
-              <BarChart3 className="w-5 h-5" /> Step 3：統計摘要
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <Tabs defaultValue="table">
-              <TabsList className="w-full overflow-x-auto whitespace-nowrap flex-nowrap flex gap-2 px-1">
-                <TabsTrigger value="table">📊 統計表</TabsTrigger>
-                <TabsTrigger value="summary">🧠 AI 摘要</TabsTrigger>
-              </TabsList>
+    // 🔧 修復後的 handleGenerateAIResult
+    const handleGenerateAIResult = async () => {
+        setLoading(true);
+        setSummaryText(null);
 
-              <TabsContent value="table">
-                <div className="overflow-x-auto w-full">
-                  <table className="min-w-[700px] text-sm border border-gray-300 table-auto whitespace-nowrap">
-                    <thead className="bg-gray-100 sticky top-0 z-10">
-                      <tr>
-                        {columns.map((key) => (
-                          <th
-                            key={key}
-                            className="px-4 py-3 border border-gray-200 font-semibold text-gray-700 text-left bg-gray-100"
-                          >
-                            {key === "Variable" ? (
-                              <HoverCard>
-                                <HoverCardTrigger>變項</HoverCardTrigger>
-                                <HoverCardContent className="text-sm">
-                                  本列為各項變數名稱與描述統計
-                                </HoverCardContent>
-                              </HoverCard>
-                            ) : key === "Normal"
-                            ? "Normality"
-                            : key === "P"
-                            ? "P"
-                            : key === "Method"
-                            ? "Method"
-                            : key === "Missing"
-                            ? "Missing"
-                            : `${key} (n = ${groupCounts?.[key] ?? "?"})`}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredRows
-                        .slice(currentPage * rowsPerPage, (currentPage + 1) * rowsPerPage)
-                        .map((row, idx) => (
-                          <tr key={idx} className="border-t border-gray-200 hover:bg-gray-50">
-                            {columns.map((key, i) => (
-                              <td
-                                key={key}
-                                className={`px-4 py-3 border border-gray-100 text-sm text-gray-800 ${
-                                  i === 0 ? "font-medium text-left" : "text-right"
-                                }`}
-                              >
-                                {i === 0 && typeof row[key] === "string" && row[key].startsWith("**") ? (
-                                  <strong>{row[key].replace(/\*\*/g, "")}</strong>
-                                ) : (
-                                  renderCell(row[key])
-                                )}
-                              </td>
-                            ))}
-                          </tr>
-                        ))}
-                    </tbody>
-                  </table>
+        const coreData = filteredRows
+            .map((row) => {
+                const summary = exportColumns
+                    .map((col) => `${col}: ${row[col] ?? "—"}`)
+                    .join(" | ");
+                return summary;
+            })
+            .join("\n");
+
+        try {
+            const token = await getToken();
+            const url = `${process.env.NEXT_PUBLIC_API_URL}/api/table/ai-summary`;
+
+            const res = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ data: coreData }),
+            });
+
+            // 🔧 先檢查回應是否可以解析為 JSON
+            let json;
+            try {
+                json = await res.json();
+            } catch (parseError) {
+                console.error("❌ JSON 解析失敗:", parseError);
+                setSummaryText("❌ 伺服器回應格式錯誤");
+                toast.error("❌ 伺服器回應格式錯誤");
+                return;
+            }
+
+            if (!res.ok) {
+                const errorMsg = typeof json?.detail === 'string' ? json.detail : "AI 產生摘要失敗，請稍後再試";
+                toast("❌ 系統錯誤", { description: errorMsg });
+                setSummaryText(`❌ 系統錯誤：${errorMsg}`);
+                return;
+            }
+
+            // 🔧 強健的摘要文本提取 - 根據你的 API 回應格式
+            let summaryResult = "❌ 無法產生摘要";
+            
+            try {
+                // 從 Console 可以看到，summary 直接在 json.summary
+                if (json && typeof json.summary === 'string') {
+                    summaryResult = json.summary;
+                } else if (json && json.data && typeof json.data.summary === 'string') {
+                    summaryResult = json.data.summary;
+                } else if (typeof json === 'string') {
+                    summaryResult = json;
+                } else {
+                    // 如果都不是預期格式，顯示原始回應以便除錯
+                    console.warn("⚠️ 未預期的回應格式:", json);
+                    summaryResult = `回應格式異常，請檢查後端 API`;
+                }
+            } catch (extractError) {
+                console.error("❌ 摘要提取失敗:", extractError);
+                summaryResult = `摘要提取錯誤：${typeof extractError === "object" && extractError !== null && "message" in extractError
+                    ? (extractError as { message?: string }).message
+                    : String(extractError)
+                }`;
+            }
+
+            setSummaryText(summaryResult);
+            toast.success("AI 摘要產生完成！");
+
+        } catch (err: any) {
+            console.error("❌ 網路或其他錯誤:", err);
+            const errorMessage = err?.message || err?.toString() || "未知錯誤";
+            toast.error("❌ 發生錯誤，請檢查網路或稍後再試");
+            setSummaryText(`❌ 網路錯誤：${errorMessage}`);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleCopySummary = () => {
+        if (summaryText) {
+            navigator.clipboard.writeText(summaryText);
+            toast.success("已複製到剪貼簿");
+        }
+    };
+
+    return (
+        <div className="bg-white">
+            <Header />
+            <div className="container-custom pt-[70px] lg:pt-[110px] pb-10 lg:pb-45">
+                <StepNavigator />
+
+                {/* ✅ 上方標題 */}
+                <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 md:px-8 mb-6">
+                    <h1 className="text-[26px] lg:text-[30px] mt-0 lg:mt-4 mb-4 leading-[42px] tracking-[3px] text-[#0F2844] font-normal">
+                        Step 3：統計摘要
+                    </h1>
                 </div>
 
-                <div className="flex justify-center items-center gap-4 mt-4 text-sm text-muted-foreground whitespace-nowrap">
-                  <Button variant="ghost" disabled={currentPage === 0} onClick={() => setCurrentPage(currentPage - 1)}>
-                    ⬅ 上一頁
-                  </Button>
-                  <span>
-                    Page {currentPage + 1} / {pageCount}
-                  </span>
-                  <Button
-                    variant="ghost"
-                    disabled={(currentPage + 1) * rowsPerPage >= filteredRows.length}
-                    onClick={() => setCurrentPage(currentPage + 1)}
-                  >
-                    下一頁 ➡
-                  </Button>
+                {/* ✅ Tab 與內容區塊 */}
+                <div className="w-full max-w-6xl mx-auto px-0 sm:px-6 md:px-8">
+                    <Step3Tabs
+                        columns={columns}
+                        filteredRows={filteredRows}
+                        groupCounts={groupCounts}
+                        currentPage={currentPage}
+                        setCurrentPage={setCurrentPage}
+                        pageCount={pageCount}
+                        summaryText={summaryText}
+                        loading={loading}
+                        canExport={canExport}
+                        exportToExcel={exportToExcel}
+                        exportToWord={exportToWord}
+                        handleGenerateAIResult={handleGenerateAIResult}
+                        handleCopySummary={handleCopySummary}
+                        renderCell={renderCell}
+                    />
                 </div>
-<TooltipProvider>
-  <div className="flex flex-col sm:flex-row justify-end gap-3 mt-4">
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <span>
-          <Button
-            variant="outline"
-            onClick={exportToExcel}
-            className="w-full sm:w-auto"
-            disabled={!canExport()}
-          >
-            導出 Excel
-          </Button>
-        </span>
-      </TooltipTrigger>
-      {!canExport() && (
-        <TooltipContent>需有分組（兩組或以上）才可匯出</TooltipContent>
-      )}
-    </Tooltip>
+            </div>
 
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <span>
-          <Button
-            variant="outline"
-            onClick={exportToWord}
-            className="w-full sm:w-auto"
-            disabled={!canExport()}
-          >
-            導出 Word
-          </Button>
-        </span>
-      </TooltipTrigger>
-      {!canExport() && (
-        <TooltipContent>需有分組（兩組或以上）才可匯出</TooltipContent>
-      )}
-    </Tooltip>
-
-    <Button
-      onClick={handleGenerateAIResult}
-      disabled={loading}
-      className="gap-2 w-full sm:w-auto"
-    >
-      <Sparkles className="w-4 h-4" /> {loading ? "產生中..." : "AI 產生摘要"}
-    </Button>
-  </div>
-</TooltipProvider>
-
-              </TabsContent>
-
-              <TabsContent value="summary">
-                <div className="border rounded-lg p-4 bg-gray-50 text-sm text-gray-800 whitespace-pre-wrap relative">
-                  <strong className="block text-primary mb-2">🧠 AI 產出摘要：</strong>
-                  <div>{summaryText || "尚未產生摘要，請點擊按鈕產出。"}</div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="absolute top-2 right-2 text-xs"
-                    onClick={handleCopySummary}
-                  >
-                    📋 複製
-                  </Button>
-                </div>
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
-      </motion.div>
-    </DashboardLayout>
-  );
+            <Footer />
+        </div>
+    );
 }

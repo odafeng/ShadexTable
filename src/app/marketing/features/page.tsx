@@ -50,7 +50,7 @@ export default function FeaturesPage() {
             >
               Shadex 專為臨床研究者打造、自動選擇統計檢定、自動產表、自動產出學術摘要段落。
             </p>
-            <Link href="/step1_v3">
+            <Link href="/step1">
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 onMouseEnter={() => setRightHover(true)}
@@ -366,7 +366,7 @@ export default function FeaturesPage() {
             立即試用 Shadex，開始你的智慧統計之旅。
           </p>
 
-          <Link href="/step1_v3">
+          <Link href="/step1">
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}

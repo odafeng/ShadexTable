@@ -101,7 +101,7 @@ export default function Hero() {
 
 
               {/* 右側按鈕 */}
-              <Link href="/step1_v3" passHref>
+              <Link href="/step1" passHref>
                 <motion.button
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}

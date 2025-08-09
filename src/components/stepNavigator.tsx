@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 const steps = [
   {
     name: "上傳資料",
-    href: "/step1_v3",
+    href: "/step1",
     icon: "/locationbar/step1_icon@2x.png",
     iconActive: "/locationbar/step1_icon_active@2x.png",
     iconWidth: 30,
@@ -15,7 +15,7 @@ const steps = [
   },
   {
     name: "變項選擇",
-    href: "/step2_v3",
+    href: "/step2",
     icon: "/locationbar/step2_icon@2x.png",
     iconActive: "/locationbar/step2_icon_active@2x.png",
     iconWidth: 22.04,
@@ -23,7 +23,7 @@ const steps = [
   },
   {
     name: "統計摘要",
-    href: "/step3_v3",
+    href: "/step3",
     icon: "/locationbar/step3_icon@2x.png",
     iconActive: "/locationbar/step3_icon_active@2x.png",
     iconWidth: 23.48,

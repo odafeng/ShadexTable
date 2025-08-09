@@ -20,7 +20,7 @@ export default function SignInPage() {
           path="/sign-in"
           routing="path"
           signUpUrl="/sign-up"
-          afterSignInUrl="/step1_v3"
+          afterSignInUrl="/step1"
           appearance={{
             elements: {
               card: "shadow-xl rounded-2xl border border-muted",

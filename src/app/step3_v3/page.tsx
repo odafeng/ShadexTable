@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useAnalysis } from "@/context/AnalysisContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@clerk/nextjs";
-import { usePoints } from "@/hooks/usePoints";
 import { toast } from "sonner";
 import Header from "@/components/ui/layout/Header_ui2";
 import Footer from "@/components/Footer";
@@ -31,22 +30,13 @@ export default function Step3Summary() {
     const [currentPage, setCurrentPage] = useState(0);
     const rowsPerPage = 10;
     const { getToken } = useAuth();
-    const { refetch } = usePoints();
 
     useEffect(() => {
-        
-        
-        
-        
-        
-
         // 🔧 安全檢查 autoAnalysisResult
         if (autoAnalysisResult && typeof autoAnalysisResult === 'object') {
-            
             try {
                 (Object.keys(autoAnalysisResult) as Array<keyof typeof autoAnalysisResult>).forEach(key => {
                     const value = autoAnalysisResult[key];
-                    
                     
                     // 檢查是否有問題的物件結構
                     if (typeof value === 'object' && value !== null) {
@@ -69,8 +59,6 @@ export default function Step3Summary() {
             console.warn("⚠️ 没有分析结果，重定向到 Step1");
             router.push("/step1_v3");
         } else {
-            
-            
             // 🔧 安全檢查 autoAnalysisResult 後再顯示 toast
             if (autoAnalysisResult?.success && typeof autoAnalysisResult.success === 'boolean') {
                 toast.success("🤖 AI 智能分析完成！", {
@@ -182,8 +170,6 @@ export default function Step3Summary() {
             const token = await getToken();
             const url = `${process.env.NEXT_PUBLIC_API_URL}/api/table/ai-summary`;
 
-            
-
             const res = await fetch(url, {
                 method: "POST",
                 headers: {
@@ -197,9 +183,6 @@ export default function Step3Summary() {
             let json;
             try {
                 json = await res.json();
-                
-                
-                
             } catch (parseError) {
                 console.error("❌ JSON 解析失敗:", parseError);
                 setSummaryText("❌ 伺服器回應格式錯誤");
@@ -208,16 +191,9 @@ export default function Step3Summary() {
             }
 
             if (!res.ok) {
-                if (res.status === 402) {
-                    toast("⚠️ 點數不足", {
-                        description: "請前往購買頁面補充點數後再使用 AI 摘要功能",
-                    });
-                    setSummaryText("⚠️ 點數不足，請購買點數後再試");
-                } else {
-                    const errorMsg = typeof json?.detail === 'string' ? json.detail : "AI 產生摘要失敗，請稍後再試";
-                    toast("❌ 系統錯誤", { description: errorMsg });
-                    setSummaryText(`❌ 系統錯誤：${errorMsg}`);
-                }
+                const errorMsg = typeof json?.detail === 'string' ? json.detail : "AI 產生摘要失敗，請稍後再試";
+                toast("❌ 系統錯誤", { description: errorMsg });
+                setSummaryText(`❌ 系統錯誤：${errorMsg}`);
                 return;
             }
 
@@ -245,10 +221,8 @@ export default function Step3Summary() {
                 }`;
             }
 
-            
             setSummaryText(summaryResult);
             toast.success("AI 摘要產生完成！");
-            refetch();
 
         } catch (err: any) {
             console.error("❌ 網路或其他錯誤:", err);

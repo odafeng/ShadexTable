@@ -18,7 +18,7 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Siren, ShieldAlert } from "lucide-react";
+import { ShieldAlert } from "lucide-react";
 import InlineNotice from "@/components/InlineNotice"
 import ActionButton from "@/components/ActionButton";
 
@@ -27,8 +27,6 @@ export default function Step2Page() {
     const [catVars, setCatVars] = useState<string[]>([]);
     const [contVars, setContVars] = useState<string[]>([]);
     const [groupVar, setGroupVar] = useState<string>("");
-    const [pointCost, setPointCost] = useState(1);
-    const [userPoints, setUserPoints] = useState<number | null>(null);
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [showWarning, setShowWarning] = useState(false);
@@ -159,50 +157,6 @@ export default function Step2Page() {
         setContVars(filteredVals);
     };
 
-    useEffect(() => {
-        if (!groupVar) {
-            setPointCost(1);
-        } else {
-            const groups = parsedData.map((row) => row[groupVar]).filter((v) => v !== undefined && v !== null && v !== "");
-            const uniqueGroups = Array.from(new Set(groups));
-            if (uniqueGroups.length <= 1) {
-                setPointCost(1);
-            } else if (uniqueGroups.length === 2) {
-                setPointCost(2);
-            } else {
-                setPointCost(3);
-            }
-        }
-    }, [groupVar, parsedData]);
-
-    useEffect(() => {
-        const fetchPoints = async () => {
-            try {
-                const token = await getToken();
-                if (!token) {
-                    console.error("❌ 無法獲得 token");
-                    return;
-                }
-
-                const res = await fetch(`${API_URL}/api/account/user/me/points`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-
-                if (!res.ok) {
-                    console.error("❌ 獲取用戶點數失敗:", res.status);
-                    return;
-                }
-
-                const json = await res.json();
-                setUserPoints(json.points);
-                
-            } catch (err) {
-                console.error("❌ 獲取點數錯誤:", err);
-            }
-        };
-        fetchPoints();
-    }, [getToken, API_URL]);
-
     const hasTypeMismatch = () => {
         const checkMismatch = (selected: string[], expectedType: string) =>
             selected.some((v) => getTypeOf(v) !== expectedType);
@@ -214,7 +168,6 @@ export default function Step2Page() {
     };
 
     const handleAnalyze = async () => {
-        
         console.log("📊 分析參數:", {
             groupVar,
             catVars,
@@ -241,8 +194,6 @@ export default function Step2Page() {
     };
 
     const runAnalysis = async () => {
-        
-
         // 更新 context 狀態
         setCtxGroupVar(groupVar);
         setCtxCatVars(catVars);
@@ -255,9 +206,6 @@ export default function Step2Page() {
             if (!token) {
                 throw new Error("授權失敗，請重新登入");
             }
-
-            
-            
 
             const requestBody = {
                 data: parsedData,
@@ -272,7 +220,7 @@ export default function Step2Page() {
                 data: `${parsedData.length} rows`
             });
 
-            const res = await fetch(`${API_URL}/api/table/analyze`, {
+            const res = await fetch(`${API_URL}/api/table/table-analyze`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -280,8 +228,6 @@ export default function Step2Page() {
                 },
                 body: JSON.stringify(requestBody),
             });
-
-            
 
             if (!res.ok) {
                 const errorText = await res.text();
@@ -296,7 +242,6 @@ export default function Step2Page() {
             }
 
             const result = await res.json();
-            
 
             // 檢查回應格式
             if (!result.success) {
@@ -311,15 +256,12 @@ export default function Step2Page() {
                 throw new Error("API 回應格式異常：table 不是陣列");
             }
 
-            
             setResultTable(result.data.table);
 
             if (result.data.groupCounts) {
                 setGroupCounts(result.data.groupCounts);
-                
             }
 
-            
             router.push("/step3_v3");
 
         } catch (err: any) {
@@ -333,7 +275,6 @@ export default function Step2Page() {
 
     useEffect(() => {
         if (parsedData.length === 0) {
-            
             router.push("/step1_v2");
         }
     }, [parsedData, router]);
@@ -387,15 +328,6 @@ export default function Step2Page() {
                                 />
                                 {parsedData.length > 0 && (
                                     <>
-                                        {/* 積分提示 */}
-                                        <InlineNotice
-                                            type="warn"
-                                            icon={<Siren className="w-4 h-4 text-[#E4A700] mt-[2px]" />}
-                                            className="text-[14px] leading-[24px] sm:text-[15px] sm:leading-[26px]"
-                                        >
-                                            免費模式開放中
-                                        </InlineNotice>
-
                                         <InlineNotice
                                             type="error"
                                             icon={<ShieldAlert className="w-4 h-4 text-[#DC2626] mt-[2px]" />}
@@ -470,7 +402,7 @@ export default function Step2Page() {
                             <ActionButton
                                 text={loading ? "分析中..." : "開始分析"}
                                 onClick={handleAnalyze}
-                                disabled={!isValid || loading || (userPoints !== null && userPoints < pointCost)}
+                                disabled={!isValid || loading}
                                 loading={loading}
                                 loadingText="分析中..."
                                 iconSrc="/step2/sparkles_icon_white.png"

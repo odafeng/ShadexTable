@@ -130,14 +130,11 @@ export default function Step1Page() {
         setCtxFile(file);
 
         try {
-            
-
             const token = await getToken();
             if (!token) {
                 throw new Error("授權失敗，請重新登入");
             }
 
-            
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/ai_automation/auto-analyze`, {
                 method: "POST",
                 headers: {
@@ -156,14 +153,12 @@ export default function Step1Page() {
             }
 
             const result = await response.json();
-            
 
             if (!result.success) {
                 throw new Error(result.message || "自动分析失败");
             }
 
             // 更新 context 状态
-            
             setCtxGroupVar(result.group_var || "");
             setCtxCatVars(result.cat_vars || []);
             setCtxContVars(result.cont_vars || []);
@@ -174,21 +169,13 @@ export default function Step1Page() {
             // 设置分析结果
             if (result.analysis?.table) {
                 setResultTable(result.analysis.table);
-                
             }
 
             if (result.analysis?.groupCounts) {
                 setGroupCounts(result.analysis.groupCounts);
-                
             }
 
-            
-            
-            
-            
-
             // 跳转到结果页面
-            
             router.push("/step3_v3");
 
         } catch (err: any) {
@@ -207,7 +194,6 @@ export default function Step1Page() {
             return;
         }
 
-        
         setError("");
         setFile(file);
         setFileName(file.name);
@@ -220,14 +206,11 @@ export default function Step1Page() {
         const reader = new FileReader();
         reader.onload = (e) => {
             try {
-                
                 const data = new Uint8Array(e.target?.result as ArrayBuffer);
                 const workbook = XLSX.read(data, { type: "array" });
                 const sheetName = workbook.SheetNames[0];
                 const sheet = workbook.Sheets[sheetName];
                 const json = XLSX.utils.sheet_to_json<Record<string, any>>(sheet);
-
-                
 
                 if (json.length === 0) {
                     setError("檔案中沒有資料，請檢查檔案內容。");
@@ -235,7 +218,6 @@ export default function Step1Page() {
                 }
 
                 const allKeys = Array.from(new Set(json.flatMap((row) => Object.keys(row))));
-                
 
                 const normalizedData = json.map((row) => {
                     const completeRow: any = {};
@@ -245,7 +227,6 @@ export default function Step1Page() {
                     return completeRow;
                 });
 
-                
                 setParsedData(normalizedData);
 
                 // 立即呼叫欄位解析
@@ -272,7 +253,6 @@ export default function Step1Page() {
     };
 
     const fetchColumnProfile = async (data: any[]) => {
-        
         setColumnAnalysisLoading(true);
 
         try {
@@ -287,7 +267,6 @@ export default function Step1Page() {
             }
 
             const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/preprocess/columns`;
-            
 
             const res = await fetch(apiUrl, {
                 method: "POST",
@@ -298,8 +277,6 @@ export default function Step1Page() {
                 body: JSON.stringify({ data }),
             });
 
-            
-
             if (!res.ok) {
                 const errorText = await res.text();
                 console.error("❌ API 錯誤:", res.status, errorText);
@@ -307,17 +284,14 @@ export default function Step1Page() {
             }
 
             const json = await res.json();
-            
 
             // 檢查回應格式並設置狀態
             if (json && json.data && json.data.columns && Array.isArray(json.data.columns)) {
-                
                 setColumnsPreview(json.data.columns);
                 setColumnTypes(json.data.columns);
                 setShowPreview(true);
             } else {
                 console.warn("⚠️ API 回應格式異常，使用備用方案");
-                
                 createFallbackColumnData(data);
             }
 
@@ -341,7 +315,6 @@ export default function Step1Page() {
             missing_pct: "0.0%", // 字串格式
             suggested_type: "不明"
         }));
-        
         
         setColumnsPreview(columns);
         setShowPreview(true);

@@ -21,10 +21,6 @@ export default function ConfirmTypeMismatchDialog({
   const [isConfirmHover, setIsConfirmHover] = useState(false);
   const [isCancelHover, setIsCancelHover] = useState(false);
 
-  console.log("=== ConfirmTypeMismatchDialog 渲染 ===");
-  console.log("open:", open);
-  console.log("message:", message);
-
   return (
     <AlertDialog.Root open={open}>
       <AlertDialog.Portal>

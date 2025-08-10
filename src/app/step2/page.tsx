@@ -177,15 +177,6 @@ export default function Step2Page() {
     };
 
     const handleAnalyze = async () => {
-        console.log("📊 分析參數:", {
-            groupVar,
-            catVars,
-            contVars,
-            fillNA,
-            isValid,
-            hasTypeMismatch: hasTypeMismatch()
-        });
-
         // 檢查基本驗證
         if (!isValid) {
             setErrorMsg("請至少選擇一個類別變項或連續變項");
@@ -223,11 +214,6 @@ export default function Step2Page() {
                 cont_vars: contVars,
                 fillNA,
             };
-
-            console.log("📤 請求內容:", {
-                ...requestBody,
-                data: `${parsedData.length} rows`
-            });
 
             const res = await fetch(`${API_URL}/api/table/table-analyze`, {
                 method: "POST",

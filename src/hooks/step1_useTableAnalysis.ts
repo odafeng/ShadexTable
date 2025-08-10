@@ -122,14 +122,6 @@ export const useTableAnalysis = (props: UseTableAnalysisProps) => {
                 fillNA,
             };
 
-            console.log("📊 分析參數:", {
-                groupVar,
-                catVars,
-                contVars,
-                fillNA,
-                dataRows: parsedData.length
-            });
-
             // 使用統一的 apiClient
             const result = await apiClient.post('/api/analysis/table', requestBody, {
                 headers: {

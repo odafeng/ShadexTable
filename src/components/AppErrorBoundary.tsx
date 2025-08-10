@@ -92,7 +92,6 @@ export class AppErrorBoundary extends Component<Props, State> {
     }
 
     handleGoHome = () => {
-        console.log('🏠 Error Boundary: Going home...')
         window.location.href = '/'
     }
 

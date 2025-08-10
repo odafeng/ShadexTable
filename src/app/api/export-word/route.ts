@@ -61,13 +61,13 @@ export async function POST(req: NextRequest) {
 
     // 資料列
     const dataRows = resultTable.filter((row: any) => row.Variable?.replace(/\*/g, "") !== groupVar);
-    console.log("📊 資料列數量:", dataRows.length);
+    
     
     dataRows.forEach((row: any, index: number) => {
       const isMainVariable = row.Variable?.startsWith("**");
       const isLastRow = index === dataRows.length - 1; // 檢查是否為最後一列
       
-      console.log(`📝 處理第 ${index + 1}/${dataRows.length} 列, 是否最後一列: ${isLastRow}, 變項: ${row.Variable}`);
+      
 
       const rowCells = exportCols.map((col) => {
         const raw = row[col];
@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
         } : undefined;
 
         if (isLastRow) {
-          console.log(`🔧 為最後一列的 ${col} 欄位添加下框線`);
+          
         }
 
         return new TableCell({
@@ -170,8 +170,6 @@ export async function POST(req: NextRequest) {
     // 🔧 修復：將 Buffer 轉換為 Uint8Array
     const buffer = await Packer.toBuffer(doc);
     const uint8Array = new Uint8Array(buffer);
-
-    console.log("✅ Word 文件生成成功，大小:", buffer.length, "bytes");
 
     return new NextResponse(uint8Array, {
       status: 200,

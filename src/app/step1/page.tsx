@@ -35,11 +35,11 @@ export default function Step1Page() {
         fillNA,
         isLoading,
         isSignedIn,
-        
+
         // 設置函數
         setAutoMode,
         setFillNA,
-        
+
         // 事件處理
         handleFileChange,
         handleDrop,
@@ -74,22 +74,13 @@ export default function Step1Page() {
                 </h2>
 
                 {/* 檔案限制警語 - 簡約一行式 */}
-                <div className="mb-6 px-4 py-2 bg-slate-50 border-l-4 border-blue-400 rounded-r-md">
-                    <p className="text-sm text-slate-700">
-                        <span className="font-medium text-blue-700">{limitsInfo.formattedLimits.userTypeName}</span>
-                        <span className="mx-2">•</span>
-                        檔案上限 <span className="font-medium">{limitsInfo.formattedLimits.maxSize}</span>
-                        <span className="mx-2">•</span>
-                        最多 <span className="font-medium">{limitsInfo.formattedLimits.maxRows}</span> 筆資料
-                        <span className="mx-2">•</span>
-                        <span className="font-medium">{limitsInfo.formattedLimits.maxColumns}</span> 個欄位
-                        {limitsInfo.canUpgradeFile && (
-                            <>
-                                <span className="mx-2">•</span>
-                                <span className="text-blue-600 hover:text-blue-800 cursor-pointer font-medium">升級專業版解鎖更大限制</span>
-                            </>
-                        )}
-                    </p>
+                <div className="mb-4 text-xs text-gray-500">
+                    檔案上限 {limitsInfo.formattedLimits.maxSize} · {limitsInfo.formattedLimits.maxRows} 筆資料 · {limitsInfo.formattedLimits.maxColumns} 個欄位
+                    {limitsInfo.canUpgradeFile && (
+                        <span className="ml-2 text-gray-400 hover:text-blue-500 cursor-pointer transition-colors">
+                            · 專業版解鎖更大限制
+                        </span>
+                    )}
                 </div>
 
                 {/* 隱私提醒 */}
@@ -112,10 +103,10 @@ export default function Step1Page() {
                 </div>
 
                 {/* 錯誤訊息顯示 */}
-                <ErrorDisplay 
-                    error={error} 
-                    onClearError={clearError} 
-                    onRetry={retryColumnAnalysis} 
+                <ErrorDisplay
+                    error={error}
+                    onClearError={clearError}
+                    onRetry={retryColumnAnalysis}
                 />
 
                 {/* 檔案上傳區 */}

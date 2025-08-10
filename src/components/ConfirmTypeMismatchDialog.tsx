@@ -21,8 +21,12 @@ export default function ConfirmTypeMismatchDialog({
   const [isConfirmHover, setIsConfirmHover] = useState(false);
   const [isCancelHover, setIsCancelHover] = useState(false);
 
+  console.log("=== ConfirmTypeMismatchDialog 渲染 ===");
+  console.log("open:", open);
+  console.log("message:", message);
+
   return (
-    <AlertDialog.Root open={open} onOpenChange={onCancel}>
+    <AlertDialog.Root open={open}>
       <AlertDialog.Portal>
         <AlertDialog.Overlay className="fixed inset-0 bg-black/40 z-40" />
         <AlertDialog.Content
@@ -52,9 +56,11 @@ export default function ConfirmTypeMismatchDialog({
             <Button
               onMouseEnter={() => setIsCancelHover(true)}
               onMouseLeave={() => setIsCancelHover(false)}
-              onClick={onCancel}
+              onClick={() => {
+                onCancel();
+              }}
               variant="outline"
-              className="w-[205px] h-[50px] text-[#0F2844] border-[#0F2844] hover:bg-[#0F2844] hover:text-white text-[20px] tracking-[2px] leading-[32px] px-6 py-2 rounded-full flex items-center gap-2"
+              className="w-[205px] h-[50px] text-[#0F2844] border-[#0F2844] hover:bg-[#0F2844] hover:text-white text-[20px] tracking-[2px] leading-[32px] px-6 py-2 rounded-full flex items-center gap-2 cursor-pointer"
             >
               <Image
                 src={
@@ -72,8 +78,10 @@ export default function ConfirmTypeMismatchDialog({
             <Button
               onMouseEnter={() => setIsConfirmHover(true)}
               onMouseLeave={() => setIsConfirmHover(false)}
-              onClick={onConfirm}
-              className="w-[160px] h-[50px] bg-[#0F2844] text-white hover:bg-white hover:text-[#0F2844] text-[20px] tracking-[2px] leading-[32px] px-6 py-2 rounded-full flex items-center gap-2 border border-[#0F2844]"
+              onClick={() => {                
+                onConfirm();
+              }}
+              className="w-[160px] h-[50px] bg-[#0F2844] text-white hover:bg-white hover:text-[#0F2844] text-[20px] tracking-[2px] leading-[32px] px-6 py-2 rounded-full flex items-center gap-2 border border-[#0F2844] cursor-pointer"
             >
               <Image
                 src={

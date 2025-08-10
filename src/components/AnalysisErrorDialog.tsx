@@ -63,7 +63,7 @@ export default function AnalysisErrorDialog({ open, onClose, message }: Props) {
               onMouseLeave={() => setIsCopyHover(false)}
               onClick={handleCopy}
               variant="outline"
-              className="w-full sm:w-[205px] h-[50px] text-[#0F2844] border-[#0F2844] hover:bg-[#0F2844] hover:text-white text-[18px] sm:text-[20px] tracking-[1.5px] sm:tracking-[2px] leading-[28px] sm:leading-[32px] px-6 py-2 rounded-full flex items-center justify-center gap-2"
+              className="w-full sm:w-[205px] h-[50px] text-[#0F2844] border-[#0F2844] hover:bg-[#0F2844] hover:text-white text-[18px] sm:text-[20px] tracking-[1.5px] sm:tracking-[2px] leading-[28px] sm:leading-[32px] px-6 py-2 rounded-full flex items-center justify-center gap-2 cursor-pointer"
             >
               <Image
                 src={
@@ -84,7 +84,7 @@ export default function AnalysisErrorDialog({ open, onClose, message }: Props) {
               onMouseEnter={() => setIsCloseHover(true)}
               onMouseLeave={() => setIsCloseHover(false)}
               onClick={handleClose}  // 關閉對話框
-              className="w-full sm:w-[111px] h-[50px] bg-[#0F2844] text-white hover:bg-white hover:text-[#0F2844] text-[18px] sm:text-[20px] tracking-[1.5px] sm:tracking-[2px] leading-[28px] sm:leading-[32px] px-6 py-2 rounded-full flex items-center justify-center gap-2 border border-[#0F2844]"
+              className="w-full sm:w-[111px] h-[50px] bg-[#0F2844] text-white hover:bg-white hover:text-[#0F2844] text-[18px] sm:text-[20px] tracking-[1.5px] sm:tracking-[2px] leading-[28px] sm:leading-[32px] px-6 py-2 rounded-full flex items-center justify-center gap-2 border border-[#0F2844] cursor-pointer"
             >
               <Image
                 src={

@@ -131,10 +131,6 @@ export default function Step3Tabs({
               <CheckCircle className="w-6 h-6 text-green-600 mt-0.5" />
             </div>
             <div className="flex-1">
-              <h3 className="text-lg font-semibold text-green-800 mb-2 flex items-center gap-2">
-                <Bot className="w-5 h-5" />
-                AI 智能分析完成
-              </h3>
               <div className="text-sm text-green-700 space-y-4">
                 <div>
                   <strong>分組變項：</strong>

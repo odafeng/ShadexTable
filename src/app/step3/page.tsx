@@ -9,11 +9,13 @@ import { toast } from "sonner";
 import Header from "@/components/ui/layout/Header_ui2";
 import Footer from "@/components/Footer";
 import StepNavigator from "@/components/stepNavigator";
-import Step3Tabs from "@/components/Step3Tabs";
+import Step3Tabs from "./components/ResultsTabs";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import ActionButton2 from "@/components/ActionButton2";
 import Image from "next/image";
+import { apiClient } from "@/lib/apiClient"
+import { ErrorContext, isAppError } from "@/utils/error"
 
 export default function Step3Summary() {
     const {
@@ -37,7 +39,7 @@ export default function Step3Summary() {
             try {
                 (Object.keys(autoAnalysisResult) as Array<keyof typeof autoAnalysisResult>).forEach(key => {
                     const value = autoAnalysisResult[key];
-                    
+
                     // 檢查是否有問題的物件結構
                     if (typeof value === 'object' && value !== null) {
                         if (
@@ -61,7 +63,7 @@ export default function Step3Summary() {
         } else {
             // 🔧 安全檢查 autoAnalysisResult 後再顯示 toast
             if (autoAnalysisResult?.success && typeof autoAnalysisResult.success === 'boolean') {
-                toast.success("🤖 AI 智能分析完成！", {
+                toast.success("AI 智能分析完成！", {
                     description: "已自動識別變量類型並完成統計分析",
                     duration: 5000,
                 });
@@ -132,27 +134,46 @@ export default function Step3Summary() {
     };
 
     const exportToWord = async () => {
-        const res = await fetch("/api/export-word", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ resultTable, groupVar, groupCounts }),
-        });
+        try {
+            const blob = await apiClient.post<Blob>("/api/export-word",
+                { resultTable, groupVar, groupCounts },
+                {
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    context: ErrorContext.NETWORK
+                }
+            );
 
-        if (!res.ok) {
-            toast.error("导出失败！");
-            return;
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "ai-analysis-summary.docx";
+            a.click();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            if (isAppError(error)) {
+                toast.error(error.userMessage || "匯出失敗！");
+            } else {
+                toast.error("匯出失敗！");
+            }
         }
-
-        const blob = await res.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "ai-analysis-summary.docx";
-        a.click();
-        window.URL.revokeObjectURL(url);
     };
 
+    interface AISummaryResponse {
+        summary?: string;
+        data?: {
+            summary?: string;
+        };
+    }
     // 🔧 修復後的 handleGenerateAIResult
+    interface AISummaryResponse {
+        summary?: string;
+        data?: {
+            summary?: string;
+        };
+    }
+
     const handleGenerateAIResult = async () => {
         setLoading(true);
         setSummaryText(null);
@@ -168,67 +189,41 @@ export default function Step3Summary() {
 
         try {
             const token = await getToken();
-            const url = `${process.env.NEXT_PUBLIC_API_URL}/api/table/ai-summary`;
 
-            const res = await fetch(url, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({ data: coreData }),
-            });
-
-            // 🔧 先檢查回應是否可以解析為 JSON
-            let json;
-            try {
-                json = await res.json();
-            } catch (parseError) {
-                console.error("❌ JSON 解析失敗:", parseError);
-                setSummaryText("❌ 伺服器回應格式錯誤");
-                toast.error("❌ 伺服器回應格式錯誤");
-                return;
-            }
-
-            if (!res.ok) {
-                const errorMsg = typeof json?.detail === 'string' ? json.detail : "AI 產生摘要失敗，請稍後再試";
-                toast("❌ 系統錯誤", { description: errorMsg });
-                setSummaryText(`❌ 系統錯誤：${errorMsg}`);
-                return;
-            }
-
-            // 🔧 強健的摘要文本提取 - 根據你的 API 回應格式
-            let summaryResult = "❌ 無法產生摘要";
-            
-            try {
-                // 從 Console 可以看到，summary 直接在 json.summary
-                if (json && typeof json.summary === 'string') {
-                    summaryResult = json.summary;
-                } else if (json && json.data && typeof json.data.summary === 'string') {
-                    summaryResult = json.data.summary;
-                } else if (typeof json === 'string') {
-                    summaryResult = json;
-                } else {
-                    // 如果都不是預期格式，顯示原始回應以便除錯
-                    console.warn("⚠️ 未預期的回應格式:", json);
-                    summaryResult = `回應格式異常，請檢查後端 API`;
+            const json = await apiClient.post<AISummaryResponse>("/api/table/ai-summary",
+                { data: coreData },
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    context: ErrorContext.ANALYSIS
                 }
-            } catch (extractError) {
-                console.error("❌ 摘要提取失敗:", extractError);
-                summaryResult = `摘要提取錯誤：${typeof extractError === "object" && extractError !== null && "message" in extractError
-                    ? (extractError as { message?: string }).message
-                    : String(extractError)
-                }`;
+            );
+
+            // 強健的摘要文本提取
+            let summaryResult = "❌ 無法產生摘要";
+
+            if (json?.summary) {
+                summaryResult = json.summary;
+            } else if (json?.data?.summary) {
+                summaryResult = json.data.summary;
+            } else {
+                console.warn("⚠️ 未預期的回應格式:", json);
+                summaryResult = `回應格式異常，請檢查後端 API`;
             }
 
             setSummaryText(summaryResult);
             toast.success("AI 摘要產生完成！");
 
-        } catch (err: any) {
-            console.error("❌ 網路或其他錯誤:", err);
-            const errorMessage = err?.message || err?.toString() || "未知錯誤";
-            toast.error("❌ 發生錯誤，請檢查網路或稍後再試");
-            setSummaryText(`❌ 網路錯誤：${errorMessage}`);
+        } catch (error) {
+            if (isAppError(error)) {
+                setSummaryText(`❌ ${error.userMessage}`);
+                toast.error(error.userMessage);
+            } else {
+                setSummaryText("❌ 發生未知錯誤，請稍後再試");
+                toast.error("❌ 發生錯誤，請檢查網路或稍後再試");
+            }
         } finally {
             setLoading(false);
         }

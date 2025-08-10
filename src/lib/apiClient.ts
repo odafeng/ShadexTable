@@ -67,7 +67,7 @@ class ApiClient {
   }
 
   // POST 請求
-  async post<T>(url: string, data?: any, options: RequestOptions = {}): Promise<T> {
+  async post<T = any>(url: string, data?: any, options: RequestOptions = {}): Promise<T> {
     const { timeout, correlationId, context, ...restOptions } = options
 
     return this.request<T>(url, {
@@ -264,7 +264,7 @@ class ApiClient {
 
 // 預設實例
 export const apiClient = new ApiClient({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || '',
+  baseURL: process.env.NEXT_PUBLIC_API_URL || '',
 })
 
 // 錯誤回報函式

@@ -29,8 +29,6 @@ export default function Step2Page() {
     const [groupVar, setGroupVar] = useState<string>("");
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
-    const [showWarning, setShowWarning] = useState(false);
-    const [warningMessage, setWarningMessage] = useState("");
     const [confirmedWarnings, setConfirmedWarnings] = useState<Set<string>>(new Set());
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
     const [confirmMessage, setConfirmMessage] = useState("");
@@ -105,8 +103,8 @@ export default function Step2Page() {
 
     const triggerWarning = (message: string, col: string) => {
         if (!confirmedWarnings.has(col)) {
-            setWarningMessage(message);
-            setShowWarning(true);
+            setShowConfirmDialog(true);
+            setConfirmMessage(message);
         }
     };
 
@@ -126,7 +124,9 @@ export default function Step2Page() {
         }
 
         const type = getTypeOf(val);
-        if (val && type !== "類別變項") {
+        
+        // 只在類型真的不是類別變項且未確認過時才警告
+        if (val && type !== "類別變項" && !confirmedWarnings.has(val)) {
             triggerWarning("⚠️ 建議選擇類別型欄位作為分組變項，目前選取的欄位系統判定非類別型。", val);
         }
     };
@@ -135,8 +135,12 @@ export default function Step2Page() {
         // 過濾掉分組變項，防止被意外選中
         const filteredVals = vals.filter(v => v !== groupVar);
 
-        filteredVals.forEach((v) => {
+        // 找出新增的變項（只對新增的變項進行警告檢查）
+        const newlyAdded = filteredVals.filter(v => !catVars.includes(v));
+
+        newlyAdded.forEach((v) => {
             const type = getTypeOf(v);
+            // 加入 confirmedWarnings 檢查
             if ((type === "連續變項" || type === "日期變項") && !confirmedWarnings.has(v)) {
                 triggerWarning(`⚠️系統判定${v} 為 ${type}，請務必再次確認以免後續分析錯誤`, v);
             }
@@ -148,8 +152,12 @@ export default function Step2Page() {
         // 過濾掉分組變項，防止被意外選中
         const filteredVals = vals.filter(v => v !== groupVar);
 
-        filteredVals.forEach((v) => {
+        // 找出新增的變項（只對新增的變項進行警告檢查）
+        const newlyAdded = filteredVals.filter(v => !contVars.includes(v));
+
+        newlyAdded.forEach((v) => {
             const type = getTypeOf(v);
+            // 加入 confirmedWarnings 檢查
             if ((type === "類別變項" || type === "日期變項") && !confirmedWarnings.has(v)) {
                 triggerWarning(`⚠️ ${v} 為 ${type}，請務必再次確認以免後續分析錯誤。`, v);
             }
@@ -326,20 +334,7 @@ export default function Step2Page() {
                                     onChange={handleGroupChange}
                                     placeholder="選擇變項"
                                 />
-                                {parsedData.length > 0 && (
-                                    <>
-                                        <InlineNotice
-                                            type="error"
-                                            icon={<ShieldAlert className="w-4 h-4 text-[#DC2626] mt-[2px]" />}
-                                            className="text-[14px] leading-[24px] sm:text-[15px] sm:leading-[26px]"
-                                        >
-                                            <span className="text-[#DC2626] font-semibold">注意：</span>
-                                            目前系統不支援 <span className="font-semibold text-[#DC2626]">配對 (paired)</span> 分析
-                                        </InlineNotice>
-                                    </>
-                                )}
                             </div>
-
                             <div className="flex-1">
                                 <label className="block mb-2 text-[20px] tracking-[2px] leading-[32px] font-bold text-[#555555]">
                                     類別變項…
@@ -349,7 +344,7 @@ export default function Step2Page() {
                                                 <span className="ml-1 text-gray-400 cursor-default">&#9432;</span>
                                             </TooltipTrigger>
                                             <TooltipContent side="top">
-                                                <p>多選一或多個類別型欄位（如性別、分期等）</p>
+                                                <p>請指定所有的類別變項欄位（如性別、分期等）</p>
                                             </TooltipContent>
                                         </Tooltip>
                                     </TooltipProvider>
@@ -371,7 +366,7 @@ export default function Step2Page() {
                                                 <span className="ml-1 text-gray-400 cursor-default">&#9432;</span>
                                             </TooltipTrigger>
                                             <TooltipContent side="top">
-                                                <p>多選一或多個數值欄位（如年齡、檢驗值等）</p>
+                                                <p>請指定所有的連續變項欄位（如年齡、檢驗值等）</p>
                                             </TooltipContent>
                                         </Tooltip>
                                     </TooltipProvider>
@@ -384,6 +379,19 @@ export default function Step2Page() {
                                 />
                             </div>
                         </div>
+
+                        {parsedData.length > 0 && (
+                                <>
+                                    <InlineNotice
+                                        type="error"
+                                        icon={<ShieldAlert className="w-4 h-4 text-[#DC2626] mt-0" />}
+                                        className="text-[16px] leading-[24px] sm:text-[20px] sm:leading-[26px] -mt-4"
+                                    >
+                                        <span className="text-[#DC2626] font-semibold">注意：</span>
+                                        目前系統不支援 <span className="font-semibold text-[#DC2626]">配對 (paired)</span> 分析
+                                    </InlineNotice>
+                                </>
+                            )}
 
                         <div className="flex items-center space-x-1">
                             <input
@@ -415,32 +423,64 @@ export default function Step2Page() {
                 </div>
                 <Footer />
 
+                {/* AnalysisErrorDialog 只處理真正的錯誤 */}
                 <AnalysisErrorDialog
-                    open={!!errorMsg || showWarning}
-                    onClose={() => {
-                        if (warningMessage) {
-                            const matchedCol = allColumns.find((col) => warningMessage.includes(col));
+                    open={!!errorMsg}
+                    onClose={() => setErrorMsg(null)}
+                    message={errorMsg || ""}
+                />
+
+                {/* ConfirmTypeMismatchDialog 處理類型不匹配的確認 */}
+                {showConfirmDialog && (
+                    <ConfirmTypeMismatchDialog
+                        open={showConfirmDialog}
+                        onCancel={() => {
+                            // 找到需要確認的欄位並加入 confirmedWarnings
+                            let matchedCol = null;
+                            const currentColumns = [groupVar, ...catVars, ...contVars].filter(Boolean);
+                            for (const col of currentColumns) {
+                                if (confirmMessage.includes(col)) {
+                                    matchedCol = col;
+                                    break;
+                                }
+                            }
+                            
+                            if (!matchedCol) {
+                                matchedCol = allColumns.find((col) => confirmMessage.includes(col));
+                            }
+                            
                             if (matchedCol) {
                                 setConfirmedWarnings((prev) => new Set(prev).add(matchedCol));
                             }
-                            setWarningMessage("");
-                            setShowWarning(false);
-                        } else {
-                            setErrorMsg(null);
-                        }
-                    }}
-                    message={errorMsg || warningMessage}
-                />
-
-                <ConfirmTypeMismatchDialog
-                    open={showConfirmDialog}
-                    onCancel={() => setShowConfirmDialog(false)}
-                    onConfirm={() => {
-                        setShowConfirmDialog(false);
-                        runAnalysis();
-                    }}
-                    message={confirmMessage}
-                />
+                            
+                            setShowConfirmDialog(false);
+                            setConfirmMessage("");
+                        }}
+                        onConfirm={() => {
+                            // 找到需要確認的欄位並加入 confirmedWarnings
+                            let matchedCol = null;
+                            const currentColumns = [groupVar, ...catVars, ...contVars].filter(Boolean);
+                            for (const col of currentColumns) {
+                                if (confirmMessage.includes(col)) {
+                                    matchedCol = col;
+                                    break;
+                                }
+                            }
+                            
+                            if (!matchedCol) {
+                                matchedCol = allColumns.find((col) => confirmMessage.includes(col));
+                            }
+                            
+                            if (matchedCol) {
+                                setConfirmedWarnings((prev) => new Set(prev).add(matchedCol));
+                            }
+                            
+                            setShowConfirmDialog(false);
+                            setConfirmMessage("");
+                        }}
+                        message={confirmMessage}
+                    />
+                )}
             </div>
         </>
     );

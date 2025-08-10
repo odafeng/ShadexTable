@@ -38,9 +38,6 @@ API 請求在 apiClient.ts：
 不要引用已刪除的檔案：原有的 i18n/errors.ts 和 errorHandler.ts 已被整合/淘汰，禁止重新引入或創建類似檔案。
 
 💡 範例
-ts
-複製
-編輯
 import { ErrorContext, ErrorCode, createError, CommonErrors, createErrorHandler, isAppError } from '@/utils/error';
 import { apiClient } from '@/apiClient';
 

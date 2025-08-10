@@ -1,6 +1,6 @@
 "use client";
 
-import { JSX, useState } from "react";
+import { JSX, useState, useEffect } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
@@ -27,7 +27,7 @@ interface Props {
   handleGenerateAIResult: () => void;
   handleCopySummary: () => void;
   renderCell: (val: any) => JSX.Element;
-  autoMode?: boolean; // 新增 autoMode props
+  autoMode?: boolean;
 }
 
 const tabs = [
@@ -43,6 +43,12 @@ const tabs = [
     activeIcon: "/step3/tab_icon_2_active@2x.png",
     inactiveIcon: "/step3/tab_icon_2@2x.png",
   },
+];
+
+const loadingSteps = [
+  "正在解析結果表格...",
+  "正在撰寫論文等級摘要...",
+  "完成！"
 ];
 
 export default function Step3Tabs({
@@ -64,9 +70,47 @@ export default function Step3Tabs({
 }: Props) {
   const [currentTab, setCurrentTab] = useState("table");
   const [copied, setCopied] = useState(false);
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [showCompleted, setShowCompleted] = useState(false);
   
   // 获取 AI 分析结果
   const { groupVar, catVars, contVars, autoAnalysisResult } = useAnalysis();
+
+  // 处理加载状态的动画效果
+  useEffect(() => {
+    if (loading) {
+      setCurrentStepIndex(0);
+      setShowCompleted(false);
+      
+      // 第一步：解析結果表格 (顯示2秒)
+      const timer1 = setTimeout(() => {
+        if (loading) { // 確保還在loading狀態才切換
+          setCurrentStepIndex(1);
+        }
+      }, 2000);
+      
+      return () => {
+        clearTimeout(timer1);
+      };
+    }
+  }, [loading]);
+
+  // 單獨處理完成狀態
+  useEffect(() => {
+    if (!loading && currentStepIndex > 0) {
+      // loading 結束時，顯示完成狀態
+      setCurrentStepIndex(2);
+      setShowCompleted(true);
+      
+      // 完成狀態顯示1.5秒後隱藏
+      const hideTimer = setTimeout(() => {
+        setShowCompleted(false);
+        setCurrentStepIndex(0);
+      }, 1500);
+      
+      return () => clearTimeout(hideTimer);
+    }
+  }, [loading, currentStepIndex]);
 
   // 安全渲染函數
   const renderSafeText = (value: any): string => {
@@ -331,8 +375,8 @@ export default function Step3Tabs({
                 </Tooltip>
               </div>
 
-              {/* AI 產生按鈕 */}
-              <div className="w-full sm:w-auto flex justify-center sm:justify-start">
+              {/* AI 按鈕區塊 */}
+              <div className="w-full sm:w-auto flex justify-center sm:justify-start relative">
                 <ActionButton
                   text="AI 產生結果摘要"
                   onClick={handleGenerateAIResult}
@@ -342,6 +386,28 @@ export default function Step3Tabs({
                   icon={Sparkles}
                   className="mt-2 sm:mt-0 w-full sm:w-auto px-6"
                 />
+
+                {/* 動態狀態提示文字 - 絕對定位在按鈕上方 */}
+                {(loading || showCompleted) && (
+                  <motion.div
+                    key={`${loading}-${showCompleted}-${currentStepIndex}`}
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.3 }}
+                    className="absolute bottom-full mb-1 left-1/2 transform -translate-x-1/2 whitespace-nowrap"
+                  >
+                    <span className="text-sm text-gray-500 flex items-center gap-2">
+                      {loading && (
+                        <div className="w-3 h-3 border border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                      )}
+                      {!loading && showCompleted && (
+                        <CheckCircle className="w-4 h-4 text-green-500" />
+                      )}
+                      {loading ? loadingSteps[currentStepIndex] : "完成！"}
+                    </span>
+                  </motion.div>
+                )}
               </div>
             </div>
           </TooltipProvider>

@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useAnalysis } from "@/context/AnalysisContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@clerk/nextjs";
-import { toast } from "sonner";
 import Header from "@/components/ui/layout/Header_ui2";
 import Footer from "@/components/Footer";
 import StepNavigator from "@/components/stepNavigator";
@@ -60,14 +59,6 @@ export default function Step3Summary() {
         if (!resultTable || resultTable.length === 0) {
             console.warn("⚠️ 沒有分析結果，重定向到 Step1");
             router.push("/step1");
-        } else {
-            // 🔧 安全檢查 autoAnalysisResult 後再顯示 toast
-            if (autoAnalysisResult?.success && typeof autoAnalysisResult.success === 'boolean') {
-                toast.success("AI 智能分析完成！", {
-                    description: "已自動識別變量類型並完成統計分析",
-                    duration: 5000,
-                });
-            }
         }
     }, [resultTable, router, autoAnalysisResult]);
 
@@ -152,21 +143,10 @@ export default function Step3Summary() {
             a.click();
             window.URL.revokeObjectURL(url);
         } catch (error) {
-            if (isAppError(error)) {
-                toast.error(error.userMessage || "匯出失敗！");
-            } else {
-                toast.error("匯出失敗！");
-            }
+            console.error("匯出失敗:", error);
         }
     };
 
-    interface AISummaryResponse {
-        summary?: string;
-        data?: {
-            summary?: string;
-        };
-    }
-    // 🔧 修復後的 handleGenerateAIResult
     interface AISummaryResponse {
         summary?: string;
         data?: {
@@ -214,15 +194,12 @@ export default function Step3Summary() {
             }
 
             setSummaryText(summaryResult);
-            toast.success("AI 摘要產生完成！");
 
         } catch (error) {
             if (isAppError(error)) {
                 setSummaryText(`❌ ${error.userMessage}`);
-                toast.error(error.userMessage);
             } else {
                 setSummaryText("❌ 發生未知錯誤，請稍後再試");
-                toast.error("❌ 發生錯誤，請檢查網路或稍後再試");
             }
         } finally {
             setLoading(false);
@@ -232,7 +209,6 @@ export default function Step3Summary() {
     const handleCopySummary = () => {
         if (summaryText) {
             navigator.clipboard.writeText(summaryText);
-            toast.success("已複製到剪貼簿");
         }
     };
 

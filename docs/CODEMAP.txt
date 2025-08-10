@@ -1,0 +1,31 @@
+# 此檔案建議由自動化產生。以下僅為示例。
+
+apps/
+└── web/
+    ├── app/
+    │   ├── step1/page.tsx
+    │   ├── step2/page.tsx
+    │   ├── step3/page.tsx
+    │   ├── dashboard/page.tsx
+    │   └── marketing/features/page.tsx
+    ├── components/
+    ├── lib/
+    └── utils/
+backend/
+└── app/
+    ├── api/
+    ├── core/
+    ├── schemas/
+    └── main.py
+docs/
+  ├── ARCHITECTURE.md
+  ├── API_SURFACE.md
+  └── DEPENDENCIES.md
+scripts/
+  ├── build_snapshot_zip.py
+  └── upload_snapshot.py
+.github/workflows/
+  └── refresh_snapshot.yml
+
+# 產生建議：
+# npx --yes tree-cli -a -I "node_modules,.next,.git,.venv,__pycache__,dist,build,.turbo" > CODEMAP.txt

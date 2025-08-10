@@ -12,6 +12,7 @@ import { useAnalysis } from "@/context/AnalysisContext";
 import { useAuth } from "@clerk/nextjs";
 import AnalysisErrorDialog from "@/components/AnalysisErrorDialog";
 import ConfirmTypeMismatchDialog from "@/components/ConfirmTypeMismatchDialog";
+import AnalysisLoadingModal, { DEFAULT_ANALYSIS_STEPS } from "@/components/AnalysisLoadingModal";
 import {
     Tooltip,
     TooltipContent,
@@ -270,15 +271,20 @@ export default function Step2Page() {
                 setGroupCounts(result.data.groupCounts);
             }
 
-            router.push("/step3");
+            // 注意：跳轉邏輯現在由 AnalysisLoadingModal 的 onComplete 處理
+            // router.push("/step3");
 
         } catch (err: any) {
             console.error("❌ 分析失敗：", err);
             const errorMessage = err?.message || err?.toString() || "未知錯誤";
             setErrorMsg(`分析失敗: ${errorMessage}`);
-        } finally {
-            setLoading(false);
+            setLoading(false); // 發生錯誤時關閉載入狀態
         }
+    };
+
+    const handleAnalysisComplete = () => {
+        setLoading(false);
+        router.push("/step3");
     };
 
     useEffect(() => {
@@ -481,6 +487,14 @@ export default function Step2Page() {
                         message={confirmMessage}
                     />
                 )}
+
+                {/* 使用重構後的 AnalysisLoadingModal */}
+                <AnalysisLoadingModal
+                    isOpen={loading}
+                    steps={DEFAULT_ANALYSIS_STEPS}
+                    onComplete={handleAnalysisComplete}
+                    autoStart={true}
+                />
             </div>
         </>
     );

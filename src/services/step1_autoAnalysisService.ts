@@ -1,11 +1,13 @@
 import { apiClient, reportError } from "@/lib/apiClient";
-import { 
-  AppError, 
-  ErrorCode, 
-  ErrorContext,
-  createError,
-  CommonErrors 
+import {
+    isAppError,
+    ErrorCode,
+    ErrorContext,
+    createError,
+    CommonErrors
 } from "@/utils/error";
+
+import { AppError } from "@/types/errors"
 
 export interface AutoAnalysisRequest {
     parsedData: any[];
@@ -28,7 +30,7 @@ export class AutoAnalysisService {
 
     async analyzeData(request: AutoAnalysisRequest, token: string): Promise<AutoAnalysisResponse> {
         const correlationId = `auto-analysis-${Date.now()}`;
-        
+
         try {
             // 驗證輸入參數
             if (!token) {
@@ -59,12 +61,12 @@ export class AutoAnalysisService {
                     ErrorCode.ANALYSIS_ERROR,
                     ErrorContext.ANALYSIS,
                     'analysis.auto_failed',
-                    { 
+                    {
                         correlationId,
                         customMessage: result.message || "AI 自動分析處理失敗"
                     }
                 );
-                await reportError(error, { 
+                await reportError(error, {
                     action: "auto_analysis",
                     dataRows: request.parsedData.length,
                     response: result
@@ -73,19 +75,19 @@ export class AutoAnalysisService {
             }
 
             // 驗證必要的回應欄位
-            if (!result.group_var && 
-                (!result.cat_vars || result.cat_vars.length === 0) && 
+            if (!result.group_var &&
+                (!result.cat_vars || result.cat_vars.length === 0) &&
                 (!result.cont_vars || result.cont_vars.length === 0)) {
                 const error = createError(
                     ErrorCode.ANALYSIS_ERROR,
                     ErrorContext.ANALYSIS,
                     undefined,
-                    { 
+                    {
                         correlationId,
                         customMessage: "自動分析未能識別到有效的變項，請改用手動模式"
                     }
                 );
-                await reportError(error, { 
+                await reportError(error, {
                     action: "auto_analysis",
                     response: result
                 });
@@ -96,23 +98,24 @@ export class AutoAnalysisService {
 
         } catch (error: any) {
             // 如果已經是 AppError，直接重新拋出
-            if (error instanceof AppError) {
+            if (isAppError(error) && error.code && error.userMessage) {
                 throw error;
             }
-            
+
+
             // 包裝為 AppError
             const appError = createError(
                 ErrorCode.NETWORK_ERROR,
                 ErrorContext.ANALYSIS,
                 undefined,
-                { 
+                {
                     correlationId,
                     customMessage: `自動分析服務連線失敗: ${error.message || error.toString()}`,
                     cause: error instanceof Error ? error : undefined
                 }
             );
-            
-            await reportError(appError, { 
+
+            await reportError(appError, {
                 action: "auto_analysis",
                 dataRows: request.parsedData.length,
                 originalError: error

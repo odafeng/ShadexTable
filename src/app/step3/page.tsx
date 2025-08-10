@@ -58,7 +58,7 @@ export default function Step3Summary() {
         }
 
         if (!resultTable || resultTable.length === 0) {
-            console.warn("⚠️ 没有分析结果，重定向到 Step1");
+            console.warn("⚠️ 沒有分析結果，重定向到 Step1");
             router.push("/step1");
         } else {
             // 🔧 安全檢查 autoAnalysisResult 後再顯示 toast

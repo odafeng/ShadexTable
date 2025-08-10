@@ -1,11 +1,13 @@
 import { FileProcessor } from "@/utils/fileProcessor";
 import { 
-  AppError, 
+  isAppError, 
   ErrorCode, 
   ErrorContext,
   createError,
   CommonErrors 
 } from "@/utils/error";
+
+import { AppError } from "@/types/errors"
 import { reportError } from "@/lib/apiClient";
 
 export interface SensitiveCheckResult {

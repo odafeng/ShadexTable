@@ -1,11 +1,13 @@
 import { apiClient, reportError } from "@/lib/apiClient";
-import { 
-  AppError, 
-  ErrorCode, 
-  ErrorContext,
-  createError,
-  CommonErrors 
+import {
+    isAppError,
+    ErrorCode,
+    ErrorContext,
+    createError,
+    CommonErrors
 } from "@/utils/error";
+
+import { AppError } from "@/types/errors"
 
 export interface ColumnProfile {
     column: string;
@@ -23,7 +25,7 @@ export class ColumnAnalysisService {
 
     async analyzeColumns(data: any[], token?: string): Promise<ColumnAnalysisResult> {
         const correlationId = `column-analysis-${Date.now()}`;
-        
+
         try {
             // 驗證輸入資料
             if (!data || data.length === 0) {
@@ -75,13 +77,13 @@ export class ColumnAnalysisService {
                     ErrorCode.SERVER_ERROR,
                     ErrorContext.ANALYSIS,
                     'column.type_detection_failed',
-                    { 
+                    {
                         correlationId,
                         customMessage: "欄位分析服務回應異常，已使用基本解析"
                     }
                 );
-                await reportError(error, { 
-                    action: "column_analysis", 
+                await reportError(error, {
+                    action: "column_analysis",
                     dataRows: data.length,
                     responseFormat: typeof response
                 });
@@ -93,33 +95,33 @@ export class ColumnAnalysisService {
 
         } catch (error: any) {
             console.error("❌ 欄位解析錯誤：", error);
-            
+
             // 如果已經是 AppError，直接使用
-            if (error instanceof AppError) {
+            if (isAppError(error)) {
                 return {
                     columns: [],
                     success: false,
                     error
                 };
             }
-            
+
             // 包裝為 AppError
             const appError = createError(
                 ErrorCode.ANALYSIS_ERROR,
                 ErrorContext.ANALYSIS,
                 'column.type_detection_failed',
-                { 
+                {
                     correlationId,
                     cause: error instanceof Error ? error : undefined
                 }
             );
-            
-            await reportError(appError, { 
-                action: "column_analysis", 
+
+            await reportError(appError, {
+                action: "column_analysis",
                 dataRows: data.length,
                 originalError: error
             });
-            
+
             // 嘗試使用備用方案
             try {
                 const fallback = this.createFallbackColumnData(data);
@@ -144,7 +146,7 @@ export class ColumnAnalysisService {
                 ErrorCode.VALIDATION_ERROR,
                 ErrorContext.ANALYSIS,
                 'column.no_valid_columns',
-                { 
+                {
                     correlationId: `fallback-${Date.now()}`
                 }
             );
@@ -171,7 +173,7 @@ export class ColumnAnalysisService {
                 ErrorCode.ANALYSIS_ERROR,
                 ErrorContext.ANALYSIS,
                 'column.type_detection_failed',
-                { 
+                {
                     correlationId: `fallback-error-${Date.now()}`,
                     cause: error instanceof Error ? error : undefined
                 }
@@ -188,13 +190,13 @@ export class ColumnAnalysisService {
     private calculateMissingPercentage(data: any[], column: string): string {
         try {
             const totalRows = data.length;
-            const missingCount = data.filter(row => 
-                row[column] === null || 
-                row[column] === undefined || 
+            const missingCount = data.filter(row =>
+                row[column] === null ||
+                row[column] === undefined ||
                 row[column] === '' ||
                 (typeof row[column] === 'string' && row[column].trim() === '')
             ).length;
-            
+
             const percentage = ((missingCount / totalRows) * 100).toFixed(1);
             return `${percentage}%`;
         } catch (error) {
@@ -233,8 +235,8 @@ export class ColumnAnalysisService {
             }
 
             // 檢查是否為布林值
-            const boolSample = sample.filter(val => 
-                val === true || val === false || 
+            const boolSample = sample.filter(val =>
+                val === true || val === false ||
                 val === 'true' || val === 'false' ||
                 val === 'True' || val === 'False' ||
                 val === '是' || val === '否' ||

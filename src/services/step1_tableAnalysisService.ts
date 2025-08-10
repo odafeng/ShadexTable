@@ -1,11 +1,13 @@
 import { apiClient, reportError } from "@/lib/apiClient";
-import { 
-  AppError, 
-  ErrorCode, 
-  ErrorContext,
-  createError,
-  CommonErrors 
+import {
+    isAppError,
+    ErrorCode,
+    ErrorContext,
+    createError,
+    CommonErrors
 } from "@/utils/error";
+
+import { AppError } from "@/types/errors"
 
 export interface TableAnalysisRequest {
     data: any[];
@@ -28,7 +30,7 @@ export class TableAnalysisService {
 
     async analyzeTable(request: TableAnalysisRequest, token: string): Promise<TableAnalysisResponse> {
         const correlationId = `table-analysis-${Date.now()}`;
-        
+
         console.log("📤 請求內容:", {
             ...request,
             data: `${request.data.length} rows`
@@ -45,8 +47,8 @@ export class TableAnalysisService {
             }
 
             // 驗證變項選擇
-            if (!request.group_col && 
-                (!request.cat_vars || request.cat_vars.length === 0) && 
+            if (!request.group_col &&
+                (!request.cat_vars || request.cat_vars.length === 0) &&
                 (!request.cont_vars || request.cont_vars.length === 0)) {
                 throw CommonErrors.noVariablesSelected();
             }
@@ -71,12 +73,12 @@ export class TableAnalysisService {
                     ErrorCode.ANALYSIS_ERROR,
                     ErrorContext.ANALYSIS,
                     undefined,
-                    { 
+                    {
                         correlationId,
                         customMessage: result.message || "表格分析處理失敗"
                     }
                 );
-                await reportError(error, { 
+                await reportError(error, {
                     action: "table_analysis",
                     dataRows: request.data.length,
                     response: result
@@ -90,12 +92,12 @@ export class TableAnalysisService {
                     ErrorCode.ANALYSIS_ERROR,
                     ErrorContext.ANALYSIS,
                     undefined,
-                    { 
+                    {
                         correlationId,
                         customMessage: "分析服務未返回結果資料"
                     }
                 );
-                await reportError(error, { 
+                await reportError(error, {
                     action: "table_analysis",
                     response: result
                 });
@@ -108,12 +110,12 @@ export class TableAnalysisService {
                     ErrorCode.ANALYSIS_ERROR,
                     ErrorContext.ANALYSIS,
                     undefined,
-                    { 
+                    {
                         correlationId,
                         customMessage: "分析結果缺少表格資料"
                     }
                 );
-                await reportError(error, { 
+                await reportError(error, {
                     action: "table_analysis",
                     response: result
                 });
@@ -125,12 +127,12 @@ export class TableAnalysisService {
                     ErrorCode.ANALYSIS_ERROR,
                     ErrorContext.ANALYSIS,
                     undefined,
-                    { 
+                    {
                         correlationId,
                         customMessage: "分析結果表格格式不正確"
                     }
                 );
-                await reportError(error, { 
+                await reportError(error, {
                     action: "table_analysis",
                     tableType: typeof result.data.table
                 });
@@ -143,12 +145,12 @@ export class TableAnalysisService {
                     ErrorCode.ANALYSIS_ERROR,
                     ErrorContext.ANALYSIS,
                     undefined,
-                    { 
+                    {
                         correlationId,
                         customMessage: "分析未產生任何結果，請檢查變項設定或資料內容"
                     }
                 );
-                await reportError(error, { 
+                await reportError(error, {
                     action: "table_analysis",
                     request: {
                         groupCol: request.group_col,
@@ -167,26 +169,23 @@ export class TableAnalysisService {
             return result;
 
         } catch (error: any) {
-            console.error("❌ 表格分析服務錯誤:", error);
-            
-            // 如果已經是 AppError，直接重新拋出
-            if (error instanceof AppError) {
+            if (isAppError(error)) {
                 throw error;
             }
-            
+
             // 包裝為 AppError
             const appError = createError(
                 ErrorCode.NETWORK_ERROR,
                 ErrorContext.ANALYSIS,
                 undefined,
-                { 
+                {
                     correlationId,
                     customMessage: `表格分析服務連線失敗: ${error.message || error.toString()}`,
                     cause: error instanceof Error ? error : undefined
                 }
             );
-            
-            await reportError(appError, { 
+
+            await reportError(appError, {
                 action: "table_analysis",
                 dataRows: request.data.length,
                 originalError: error,
@@ -230,7 +229,7 @@ export class TableAnalysisService {
 
         // 檢查選擇的變項是否存在於資料中
         const availableColumns = Object.keys(firstRow);
-        
+
         if (hasGroupVar && !availableColumns.includes(request.group_col)) {
             throw createError(
                 ErrorCode.VALIDATION_ERROR,

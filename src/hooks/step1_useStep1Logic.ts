@@ -96,8 +96,6 @@ export function useStep1Logic() {
         setSensitiveDetectionLoading(true);
         
         try {
-            console.log(`📁 開始處理檔案: ${selectedFile.name}`);
-
             // 檔案驗證
             const validation = validateFile(selectedFile);
             if (!validation.isValid) {

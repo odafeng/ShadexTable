@@ -165,6 +165,65 @@ export default function Step3Tabs({
     setTimeout(() => setCopied(false), 1500);
   };
 
+  const exportToWordHandler = async () => {
+    try {
+      // 創建一個自訂的請求來處理二進制響應
+      const controller = new AbortController();
+      const timeout = 30000; // 30秒超時
+      const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+      const response = await fetch("/api/export-word", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Correlation-Id": crypto.randomUUID(),
+        },
+        body: JSON.stringify({ resultTable: filteredRows, groupVar, groupCounts }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        console.error(`❌ API 回應錯誤: ${response.status} ${response.statusText}`);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      // 檢查 Content-Type
+      const contentType = response.headers.get('content-type');
+            
+      if (!contentType?.includes('application/vnd.openxmlformats-officedocument.wordprocessingml.document')) {
+        console.warn('⚠️ 回應的 Content-Type 不是 DOCX，但繼續處理');
+      }
+
+      // 獲取二進制數據
+      const blob = await response.blob();
+        
+      if (!blob || blob.size === 0) {
+        throw new Error("收到空的檔案");
+      }
+
+      // 創建下載鏈接
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "ai-analysis-summary.docx";
+      a.style.display = "none";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+
+      } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.error("❌ 匯出超時");
+      } else {
+        console.error("❌ 匯出 Word 失敗:", error);
+      }
+      // 根據錯誤類型提供不同的用戶提示
+    }
+  };
+
   return (
     <div>
       {/* 🔧 只在自動模式且有自動分析結果時顯示 */}
@@ -358,7 +417,7 @@ export default function Step3Tabs({
                     <span>
                       <ActionButton2
                         text="導出 Word"
-                        onClick={exportToWord}
+                        onClick={exportToWordHandler}
                         disabled={!canExport()}
                         className="rounded-2xl px-6 w-[160px]"
                         iconSrc="/step3/export_icon@2x.png"

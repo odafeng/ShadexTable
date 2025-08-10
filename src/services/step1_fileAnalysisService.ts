@@ -33,8 +33,6 @@ export class FileAnalysisService {
         userType: 'GENERAL' | 'PROFESSIONAL' = 'GENERAL'
     ): Promise<FileAnalysisResult> {
         try {
-            console.log(`📁 開始完整檔案處理: ${file.name}`);
-
             // 1. 檔案驗證
             const validation = FileProcessor.validateFile(file, userType);
             if (!validation.isValid) {
@@ -101,8 +99,6 @@ export class FileAnalysisService {
         error?: any;
     }> {
         try {
-            console.log(`🔍 開始分析欄位特性，資料筆數: ${data.length}`);
-
             if (!process.env.NEXT_PUBLIC_API_URL) {
                 throw createError(
                     ErrorCode.SERVER_ERROR,
@@ -128,7 +124,6 @@ export class FileAnalysisService {
             );
 
             if (response && response.data && response.data.columns && Array.isArray(response.data.columns)) {
-                console.log(`✅ 欄位分析成功，發現 ${response.data.columns.length} 個有效欄位`);
                 return {
                     success: true,
                     columns: response.data.columns
@@ -180,8 +175,6 @@ export class FileAnalysisService {
         error?: any;
     }> {
         try {
-            console.log(`🤖 開始 AI 自動分析`);
-
             const correlationId = crypto.randomUUID();
 
             const response = await apiClient.post<{ success: boolean; message?: string; [key: string]: any }>(
@@ -212,14 +205,12 @@ export class FileAnalysisService {
                 );
             }
 
-            console.log("✅ AI 自動分析成功");
             return {
                 success: true,
                 result: response
             };
 
         } catch (err: unknown) {
-            console.error("❌ 自動分析失敗:", err);
             return {
                 success: false,
                 error: err

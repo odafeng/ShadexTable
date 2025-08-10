@@ -85,7 +85,6 @@ export class AppErrorBoundary extends Component<Props, State> {
     }
 
     handleRetry = () => {
-        console.log('🔄 Error Boundary: Retrying...')
         this.setState({ hasError: false, error: null })
 
         // 可以選擇重新載入頁面或只是重置狀態

@@ -31,11 +31,6 @@ export class TableAnalysisService {
     async analyzeTable(request: TableAnalysisRequest, token: string): Promise<TableAnalysisResponse> {
         const correlationId = `table-analysis-${Date.now()}`;
 
-        console.log("📤 請求內容:", {
-            ...request,
-            data: `${request.data.length} rows`
-        });
-
         try {
             // 驗證輸入參數
             if (!token) {
@@ -160,11 +155,6 @@ export class TableAnalysisService {
                 });
                 throw error;
             }
-
-            console.log("✅ 表格分析成功", {
-                tableRows: result.data.table.length,
-                hasGroupCounts: !!result.data.groupCounts
-            });
 
             return result;
 

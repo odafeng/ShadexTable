@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
 
     const tableRows: TableRow[] = [];
 
-    // 表頭列
+    // 表頭列 - 添加下框線
     tableRows.push(
       new TableRow({
         children: exportCols.map((col) => {
@@ -47,52 +47,76 @@ export async function POST(req: NextRequest) {
                 spacing: { line: 360 },
               }),
             ],
+            borders: {
+              bottom: {
+                style: "single",
+                size: 4,
+                color: "000000",
+              },
+            },
           });
         }),
       })
     );
 
     // 資料列
-    resultTable
-      .filter((row: any) => row.Variable?.replace(/\*/g, "") !== groupVar)
-      .forEach((row: any) => {
-        const isMainVariable = row.Variable?.startsWith("**");
+    const dataRows = resultTable.filter((row: any) => row.Variable?.replace(/\*/g, "") !== groupVar);
+    console.log("📊 資料列數量:", dataRows.length);
+    
+    dataRows.forEach((row: any, index: number) => {
+      const isMainVariable = row.Variable?.startsWith("**");
+      const isLastRow = index === dataRows.length - 1; // 檢查是否為最後一列
+      
+      console.log(`📝 處理第 ${index + 1}/${dataRows.length} 列, 是否最後一列: ${isLastRow}, 變項: ${row.Variable}`);
 
-        const rowCells = exportCols.map((col) => {
-          const raw = row[col];
+      const rowCells = exportCols.map((col) => {
+        const raw = row[col];
 
-          // ✅ 強制過濾空值符號
-          const cleanRaw =
-            raw === null || raw === "nan" || raw === "undefined" || raw === "—"
-              ? ""
-              : String(raw);
+        // ✅ 強制過濾空值符號
+        const cleanRaw =
+          raw === null || raw === "nan" || raw === "undefined" || raw === "—"
+            ? ""
+            : String(raw);
 
-          // ✅ 主變項名稱處理與粗體邏輯
-          const isVariableCol = col === "Variable";
-          const displayText = isVariableCol
-            ? cleanRaw.replace(/\*/g, "")
-            : cleanRaw;
+        // ✅ 主變項名稱處理與粗體邏輯
+        const isVariableCol = col === "Variable";
+        const displayText = isVariableCol
+          ? cleanRaw.replace(/\*/g, "")
+          : cleanRaw;
 
-          return new TableCell({
-            children: [
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text: displayText,
-                    bold: isVariableCol && isMainVariable,
-                    font: "Arial",
-                    size: 21,
-                  }),
-                ],
-                spacing: { line: 360 },
-                indent: isVariableCol && !isMainVariable ? { left: 500 } : undefined, // ✅ 子變項縮排
-              }),
-            ],
-          });
+        const cellBorders = isLastRow ? {
+          bottom: {
+            style: "single" as const,
+            size: 6, // 增加線條寬度
+            color: "000000",
+          },
+        } : undefined;
+
+        if (isLastRow) {
+          console.log(`🔧 為最後一列的 ${col} 欄位添加下框線`);
+        }
+
+        return new TableCell({
+          children: [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: displayText,
+                  bold: isVariableCol && isMainVariable,
+                  font: "Arial",
+                  size: 21,
+                }),
+              ],
+              spacing: { line: 360 },
+              indent: isVariableCol && !isMainVariable ? { left: 500 } : undefined, // ✅ 子變項縮排
+            }),
+          ],
+          borders: cellBorders,
         });
-
-        tableRows.push(new TableRow({ children: rowCells }));
       });
+
+      tableRows.push(new TableRow({ children: rowCells }));
+    });
 
     const doc = new Document({
       sections: [
@@ -143,9 +167,13 @@ export async function POST(req: NextRequest) {
       ],
     });
 
+    // 🔧 修復：將 Buffer 轉換為 Uint8Array
     const buffer = await Packer.toBuffer(doc);
+    const uint8Array = new Uint8Array(buffer);
 
-    return new NextResponse(buffer, {
+    console.log("✅ Word 文件生成成功，大小:", buffer.length, "bytes");
+
+    return new NextResponse(uint8Array, {
       status: 200,
       headers: {
         "Content-Type":

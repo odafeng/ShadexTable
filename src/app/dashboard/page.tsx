@@ -3,8 +3,8 @@
 import Header from "@/components/ui/layout/Header_ui2";
 import Footer from "@/components/Footer";
 import { useUser } from "@clerk/nextjs";
-import { usePoints } from "@/hooks/usePoints";
-import { useLogs } from "@/hooks/useLogs";
+import { usePoints } from "@/hooks/general_usePoints";
+import { useLogs } from "@/hooks/general_useLogs";
 import { useEffect, useState } from "react";
 import { CircleDollarSign } from "lucide-react";
 import LightButton from "@/components/LightButton";

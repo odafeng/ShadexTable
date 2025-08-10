@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { UserButton, SignedIn, SignedOut, SignOutButton } from "@clerk/nextjs";
-import { usePoints } from "@/hooks/usePoints";
+import { usePoints } from "@/hooks/general_usePoints";
 
 export default function HeaderBanner() {
   const { points, loading } = usePoints();

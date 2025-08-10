@@ -1,6 +1,6 @@
 "use client";
 
-import { useLogs } from "@/hooks/useLogs";
+import { useLogs } from "@/hooks/general_useLogs";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import Link from "next/link";

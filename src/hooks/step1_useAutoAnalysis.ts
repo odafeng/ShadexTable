@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { AutoAnalysisService, AutoAnalysisRequest } from '../services/autoAnalysisService';
+import { AutoAnalysisService, AutoAnalysisRequest } from '../services/step1_autoAnalysisService';
 import { 
-  AppError, 
+  isAppError, 
   ErrorCode, 
   ErrorContext,
   createError,
@@ -9,6 +9,7 @@ import {
   CommonErrors 
 } from "@/utils/error";
 import { apiClient, reportError } from "@/lib/apiClient";
+import { AppError } from '@/types/errors';
 
 interface UseAutoAnalysisProps {
     getToken: () => Promise<string | null>;
@@ -135,7 +136,9 @@ export const useAutoAnalysis = (props: UseAutoAnalysisProps) => {
         } catch (err) {
             // 使用統一錯誤處理器
             handleError(err);
-            await reportError(err instanceof AppError ? err : createError(
+            
+            // 修正：使用 isAppError 函數來檢查，而不是 instanceof AppError
+            const errorToReport = isAppError(err) ? err : createError(
                 ErrorCode.ANALYSIS_ERROR,
                 ErrorContext.ANALYSIS,
                 undefined,
@@ -143,7 +146,9 @@ export const useAutoAnalysis = (props: UseAutoAnalysisProps) => {
                     correlationId,
                     cause: err instanceof Error ? err : undefined
                 }
-            ), { 
+            );
+            
+            await reportError(errorToReport, { 
                 action: "auto_analysis_error",
                 fileName: file?.name,
                 dataSize: parsedData.length

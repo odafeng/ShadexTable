@@ -1,7 +1,7 @@
 "use client";
 
 import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/nextjs";
-import { usePoints } from "@/hooks/usePoints";
+import { usePoints } from "@/hooks/general_usePoints";
 import DashboardLayout from "@/components/ui/layout/DashboardLayout";
 import {
   Card,

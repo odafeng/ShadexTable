@@ -2,13 +2,14 @@
 
 import { Component, ErrorInfo, ReactNode } from 'react'
 import {
-    AppError,
+    isAppError,
     ErrorCode,
     ErrorContext,
     createError,
-    extractErrorMessage
+    extractErrorMessage,
 } from '@/utils/error'
 import { reportError } from '@/lib/apiClient'
+import { AppError } from '@/types/errors'
 
 interface Props {
     children: ReactNode
@@ -31,14 +32,15 @@ export class AppErrorBoundary extends Component<Props, State> {
         // 使用統一錯誤處理系統創建 AppError
         let appError: AppError
 
-        if (error instanceof AppError) {
+        // 🔧 修正：使用 isAppError 類型守衛而不是 instanceof
+        if (isAppError(error)) {
             // 如果已經是 AppError，直接使用
-            appError = error
+            appError = error as AppError
         } else {
             // 轉換為 AppError
             appError = createError(
                 ErrorCode.UNKNOWN_ERROR,
-                ErrorContext.DATA_FETCH, // 預設情境，可以透過 props 覆蓋
+                ErrorContext.UNKNOWN, // 預設情境，可以透過 props 覆蓋
                 undefined,
                 {
                     customMessage: `應用程式發生未預期的錯誤：${extractErrorMessage(error)}`,
@@ -166,6 +168,24 @@ export class AppErrorBoundary extends Component<Props, State> {
                                                         建議動作：{this.state.error.action}
                                                     </p>
                                                 )}
+                                                {/* 🆕 顯示錯誤詳細資訊（開發模式） */}
+                                                {process.env.NODE_ENV === 'development' && (
+                                                    <details className="mt-3">
+                                                        <summary className="text-xs text-stone-500 cursor-pointer hover:text-stone-700">
+                                                            開發者資訊 ▼
+                                                        </summary>
+                                                        <div className="mt-2 p-3 bg-stone-100 rounded-lg text-xs font-mono text-stone-600 space-y-1">
+                                                            <div><strong>錯誤代碼:</strong> {this.state.error.code}</div>
+                                                            <div><strong>上下文:</strong> {this.state.error.context}</div>
+                                                            <div><strong>嚴重程度:</strong> {this.state.error.severity}</div>
+                                                            <div><strong>可重試:</strong> {this.state.error.canRetry ? '是' : '否'}</div>
+                                                            <div><strong>追蹤碼:</strong> {this.state.error.correlationId}</div>
+                                                            {this.state.error.details && (
+                                                                <div><strong>詳細資訊:</strong> {JSON.stringify(this.state.error.details, null, 2)}</div>
+                                                            )}
+                                                        </div>
+                                                    </details>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -173,18 +193,21 @@ export class AppErrorBoundary extends Component<Props, State> {
 
                                 {/* Premium action buttons */}
                                 <div className="space-y-4 mb-8">
-                                    <button
-                                        onClick={this.handleRetry}
-                                        className="group w-full relative bg-gradient-to-r from-stone-800 to-stone-900 text-white px-6 py-4 rounded-2xl font-medium tracking-wide shadow-lg shadow-stone-900/20 hover:shadow-xl hover:shadow-stone-900/30 transition-all duration-300 overflow-hidden"
-                                    >
-                                        <div className="absolute inset-0 bg-gradient-to-r from-stone-900 to-black opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                                        <div className="relative flex items-center justify-center space-x-3">
-                                            <svg className="w-4 h-4 group-hover:rotate-180 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
-                                            </svg>
-                                            <span>重試</span>
-                                        </div>
-                                    </button>
+                                    {/* 🆕 只在可重試時顯示重試按鈕 */}
+                                    {this.state.error.canRetry && (
+                                        <button
+                                            onClick={this.handleRetry}
+                                            className="group w-full relative bg-gradient-to-r from-stone-800 to-stone-900 text-white px-6 py-4 rounded-2xl font-medium tracking-wide shadow-lg shadow-stone-900/20 hover:shadow-xl hover:shadow-stone-900/30 transition-all duration-300 overflow-hidden"
+                                        >
+                                            <div className="absolute inset-0 bg-gradient-to-r from-stone-900 to-black opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                            <div className="relative flex items-center justify-center space-x-3">
+                                                <svg className="w-4 h-4 group-hover:rotate-180 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                                                </svg>
+                                                <span>重試</span>
+                                            </div>
+                                        </button>
+                                    )}
 
                                     <button
                                         onClick={this.handleGoHome}
@@ -280,7 +303,7 @@ function AnalysisPage() {
         <div className="custom-error-ui">
           <h2>分析失敗</h2>
           <p>{error.userMessage}</p>
-          <button onClick={retry}>重試分析</button>
+          {error.canRetry && <button onClick={retry}>重試分析</button>}
         </div>
       )}
     >
@@ -297,7 +320,7 @@ const SafeComponent = withErrorBoundary(MyComponent, {
 // 5. 在頁面層級使用
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <AppErrorBoundary context={ErrorContext.DATA_FETCH}>
+    <AppErrorBoundary context={ErrorContext.UNKNOWN}>
       <div className="min-h-screen">
         {children}
       </div>

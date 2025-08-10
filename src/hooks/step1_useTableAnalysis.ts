@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { TableAnalysisService, TableAnalysisRequest } from '../services/tableAnalysisService';
+import { TableAnalysisService, TableAnalysisRequest } from '../services/step1_tableAnalysisService';
 import { 
-  AppError, 
+  isAppError, 
   ErrorCode, 
   ErrorContext,
   createError,
@@ -10,6 +10,7 @@ import {
   CommonErrors 
 } from '@/utils/error';
 import { apiClient, reportError } from '@/lib/apiClient';
+import { AppError } from '@/types/errors';
 
 interface UseTableAnalysisProps {
     getToken: () => Promise<string | null>;
@@ -148,7 +149,7 @@ export const useTableAnalysis = (props: UseTableAnalysisProps) => {
             handleError(err);
             
             // 回報錯誤
-            const errorToReport = err instanceof AppError ? err : createError(
+            const errorToReport = isAppError(err) ? err : createError(
                 ErrorCode.ANALYSIS_ERROR,
                 ErrorContext.ANALYSIS,
                 undefined,

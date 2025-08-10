@@ -10,13 +10,14 @@ import { reportError } from "@/lib/apiClient";
 
 // 使用統一錯誤處理系統
 import { 
-    AppError, 
     ErrorCode, 
     ErrorContext,
     createError, 
     createErrorHandler,
     CommonErrors 
 } from "@/utils/error";
+
+import { AppError } from '@/types/errors'
 
 interface Props {
     open: boolean;

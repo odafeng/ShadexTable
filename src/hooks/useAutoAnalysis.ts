@@ -1,0 +1,163 @@
+import { useState } from 'react';
+import { AutoAnalysisService, AutoAnalysisRequest } from '../services/autoAnalysisService';
+import { 
+  AppError, 
+  ErrorCode, 
+  ErrorContext,
+  createError,
+  createErrorHandler,
+  CommonErrors 
+} from "@/utils/error";
+import { apiClient, reportError } from "@/lib/apiClient";
+
+interface UseAutoAnalysisProps {
+    getToken: () => Promise<string | null>;
+    setCtxFile: (file: File) => void;
+    setCtxGroupVar: (groupVar: string) => void;
+    setCtxCatVars: (catVars: string[]) => void;
+    setCtxContVars: (contVars: string[]) => void;
+    setAutoAnalysisResult: (result: any) => void;
+    setResultTable: (table: any) => void;
+    setGroupCounts: (counts: any) => void;
+    onSuccess?: () => void;
+}
+
+export const useAutoAnalysis = (props: UseAutoAnalysisProps) => {
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<AppError | null>(null);
+    const autoAnalysisService = new AutoAnalysisService();
+
+    // 清除錯誤
+    const clearError = () => setError(null);
+
+    // 統一的錯誤處理器
+    const handleError = createErrorHandler((appError: AppError) => {
+        setError(appError);
+    });
+
+    const validateInput = (file: File | null, parsedData: any[]): boolean => {
+        if (!file) {
+            const validationError = CommonErrors.fileNotSelected();
+            setError(validationError);
+            reportError(validationError, { action: "auto_analysis_validation" });
+            return false;
+        }
+
+        if (parsedData.length === 0) {
+            const dataError = CommonErrors.insufficientData();
+            setError(dataError);
+            reportError(dataError, { action: "auto_analysis_validation" });
+            return false;
+        }
+
+        return true;
+    };
+
+    const getAuthToken = async (): Promise<string> => {
+        const correlationId = `auto-analysis-auth-${Date.now()}`;
+        
+        try {
+            const token = await props.getToken();
+            if (!token) {
+                throw CommonErrors.authError(ErrorContext.ANALYSIS);
+            }
+            return token;
+        } catch (err) {
+            const authError = createError(
+                ErrorCode.AUTH_ERROR,
+                ErrorContext.ANALYSIS,
+                undefined,
+                { 
+                    correlationId,
+                    cause: err instanceof Error ? err : undefined
+                }
+            );
+            setError(authError);
+            await reportError(authError, { action: "auto_analysis_auth" });
+            throw authError;
+        }
+    };
+
+    const updateContextState = (result: any, file: File) => {
+        props.setCtxFile(file);
+        props.setCtxGroupVar(result.group_var || "");
+        props.setCtxCatVars(result.cat_vars || []);
+        props.setCtxContVars(result.cont_vars || []);
+        props.setAutoAnalysisResult(result);
+    };
+
+    const updateAnalysisResults = (result: any) => {
+        if (result.analysis?.table) {
+            props.setResultTable(result.analysis.table);
+        }
+
+        if (result.analysis?.groupCounts) {
+            props.setGroupCounts(result.analysis.groupCounts);
+        }
+    };
+
+    const handleAutoAnalyze = async (file: File | null, parsedData: any[], fillNA: boolean) => {
+        clearError();
+        
+        if (!validateInput(file, parsedData)) {
+            return;
+        }
+
+        setLoading(true);
+        const correlationId = `auto-analysis-${Date.now()}`;
+
+        try {
+            const token = await getAuthToken();
+
+            const requestData: AutoAnalysisRequest = {
+                parsedData,
+                fillNA
+            };
+
+            // 使用 apiClient 進行請求
+            const result = await apiClient.post('/api/analysis/auto', requestData, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+                context: ErrorContext.ANALYSIS,
+                correlationId,
+                timeout: 60000 // 分析需要較長時間
+            });
+
+            updateContextState(result, file!);
+            updateAnalysisResults(result);
+
+            // 調用成功回調
+            if (props.onSuccess) {
+                props.onSuccess();
+            }
+
+        } catch (err) {
+            // 使用統一錯誤處理器
+            handleError(err);
+            await reportError(err instanceof AppError ? err : createError(
+                ErrorCode.ANALYSIS_ERROR,
+                ErrorContext.ANALYSIS,
+                undefined,
+                {
+                    correlationId,
+                    cause: err instanceof Error ? err : undefined
+                }
+            ), { 
+                action: "auto_analysis_error",
+                fileName: file?.name,
+                dataSize: parsedData.length
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return {
+        loading,
+        error,
+        handleAutoAnalyze,
+        setError: (error: AppError | null) => setError(error),
+        clearError
+    };
+};

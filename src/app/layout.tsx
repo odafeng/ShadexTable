@@ -5,6 +5,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { zhTW } from '@clerk/localizations';
 import ClientProviders from './clientProvider';
 import { AnalysisProvider } from "@/context/AnalysisContext";  // 引入 AnalysisProvider
+import { AppErrorBoundary } from "@/components/AppErrorBoundary";
 
 const geistSans = Geist({
   subsets: ["latin"],
@@ -40,7 +41,7 @@ export default function RootLayout({
         layout: {
           socialButtonsPlacement: "bottom",
           socialButtonsVariant: "blockButton",
-          termsPageUrl: "http://Shadex.com/marketing/terms",
+          termsPageUrl: "http://table.shadex.ai/marketing/terms",
         },
         elements: {
           card: "shadow-xl rounded-2xl border border-muted",
@@ -54,12 +55,13 @@ export default function RootLayout({
     >
       <html lang="zhTW">
         <body className={`${geistSans.variable} ${geistMono.variable}`}>
-          {/* AnalysisProvider 包裹 Step1Page 和 Step2Page，並確保共享狀態 */}
-          <AnalysisProvider>
-            <ClientProviders>
-              {children}
-            </ClientProviders>
-          </AnalysisProvider>
+          <AppErrorBoundary>
+            <AnalysisProvider>
+              <ClientProviders>
+                {children}
+              </ClientProviders>
+            </AnalysisProvider>
+          </AppErrorBoundary>
         </body>
       </html>
     </ClerkProvider>

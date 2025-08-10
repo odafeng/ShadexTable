@@ -10,7 +10,7 @@ import Footer from "@/components/Footer";
 import StepNavigator from "@/components/stepNavigator";
 import { useAnalysis } from "@/context/AnalysisContext";
 import { typeColorClass } from "@/lib/constants";
-import { ChevronDown, TableProperties } from "lucide-react";
+import { ChevronDown, TableProperties, Shield, AlertTriangle, Info, CircleQuestionMark } from "lucide-react";
 import ActionButton from "@/components/ActionButton";
 import {
     Accordion,
@@ -21,6 +21,21 @@ import {
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import ToggleSwitch from "@/components/ToggleSwitch";
 
+import { SensitiveDataDetector } from "@/services/sensitiveDataDetector";
+import { FileProcessor } from "@/utils/fileProcessor";
+import { useUserLimits, useFileValidation } from "@/hooks/useUserLimits";
+import DataPrivacyDialog from "./components/DataPrivacyDialog";
+import {
+    isAppError,
+    ErrorCode,
+    ErrorContext,
+    createError,
+    createErrorHandler,
+    CommonErrors
+} from "@/utils/error";
+import { reportError } from "@/lib/apiClient";
+import { AppError } from "@/types/errors";
+
 const allowedExtensions = [".csv", ".xls", ".xlsx"];
 
 interface ParsedDataRow {
@@ -29,11 +44,11 @@ interface ParsedDataRow {
 
 interface ColumnProfile {
     column: string;
-    missing_pct: string; // 後端回傳的是字串格式，例如 "5.2%"
+    missing_pct: string;
     suggested_type: string;
 }
 
-interface Step1PageProps {}
+interface Step1PageProps { }
 
 export default function Step1Page() {
     const router = useRouter();
@@ -53,217 +68,304 @@ export default function Step1Page() {
         setAutoAnalysisResult,
     } = useAnalysis();
 
+    // 基本狀態
     const [fileName, setFileName] = useState<string | null>(null);
     const [file, setFile] = useState<File | null>(null);
-    const [error, setError] = useState("");
+    const [pendingFile, setPendingFile] = useState<File | null>(null);
+    const [error, setError] = useState<AppError | null>(null);
     const [loading, setLoading] = useState(false);
     const [dragOver, setDragOver] = useState(false);
     const [columnsPreview, setColumnsPreview] = useState<ColumnProfile[]>([]);
     const [showPreview, setShowPreview] = useState(false);
-    const [autoMode, setAutoMode] = useState(false); // false = 半自動, true = 全自動
+    const [autoMode, setAutoMode] = useState(false);
     const [columnAnalysisLoading, setColumnAnalysisLoading] = useState(false);
 
+    // 敏感資料檢測相關狀態
+    const [showPrivacyDialog, setShowPrivacyDialog] = useState(false);
+    const [sensitiveColumns, setSensitiveColumns] = useState<string[]>([]);
+    const [privacySuggestions, setPrivacySuggestions] = useState<string[]>([]);
+    const [fileValidationWarnings, setFileValidationWarnings] = useState<string[]>([]);
+    const [fileBasicInfo, setFileBasicInfo] = useState<any>(null);
+    const [sensitiveDetectionLoading, setSensitiveDetectionLoading] = useState(false);
+
+    // 檔案大小相關狀態 (使用 hook)
+    const limitsInfo = useUserLimits();
+    const { validateFile, getFileSizeWarning } = useFileValidation();
+
+    // ==========================================
+    // 統一錯誤處理器
+    const errorHandler = createErrorHandler((appError: AppError) => {
+        setError(appError);
+
+        // 自動清除非關鍵錯誤
+        const isTemporaryError = [
+            ErrorCode.NETWORK_ERROR,
+            ErrorCode.RATE_LIMIT_ERROR
+        ].includes(appError.code);
+
+        if (isTemporaryError) {
+            setTimeout(() => setError(null), 8000);
+        }
+
+        // 記錄錯誤到外部系統
+        reportError(appError, {
+            step: "step1",
+            component: "Step1Page",
+            fileName: file?.name || pendingFile?.name,
+            hasSensitiveData: sensitiveColumns.length > 0,
+            autoMode,
+            timestamp: new Date().toISOString()
+        }).catch(console.warn);
+    });
+
+    const clearError = () => setError(null);
+
+    // ==========================================
+    // 生命週期 Effects
     useEffect(() => {
-        getToken().then((token) => {
-            if (token) localStorage.setItem("__session", token);
-        });
+        getToken()
+            .then((token) => {
+                if (token) localStorage.setItem("__session", token);
+            })
+            .catch((err) => {
+                errorHandler(CommonErrors.authTokenMissing(), "獲取認證令牌");
+            });
     }, [getToken]);
 
     useEffect(() => {
         if (isSignedIn === false) {
             router.push("/sign-in");
         }
-    }, [isSignedIn]);
+    }, [isSignedIn, router]);
 
     if (!isSignedIn) return null;
 
-    const validateFile = (file: File) => {
-        const ext = file.name.substring(file.name.lastIndexOf(".")).toLowerCase();
-        return allowedExtensions.includes(ext);
-    };
-
-    // Excel 日期轉換函數
-    const excelDateToJSDate = (excelDate: number) => {
-        return new Date((excelDate - 25569) * 86400 * 1000);
-    };
-
-    // 統一的分析處理函數
-    const handleAnalyze = async () => {
-        if (!file) {
-            setError("請先選擇檔案後再上傳。");
-            return;
-        }
-
-        if (autoMode) {
-            await handleAutoAnalyze();
-        } else {
-            await handleManualAnalyze();
-        }
-    };
-
-    // 半自動模式處理函數
-    const handleManualAnalyze = async () => {
-        setLoading(true);
-        setCtxFile(file);
-        setAutoAnalysisResult(null);
+    // ==========================================
+    // 敏感資料檢測處理
+    const handleSensitiveDataDetection = async (selectedFile: File) => {
+        setSensitiveDetectionLoading(true);
+        clearError();
 
         try {
-            setTimeout(() => {
-                setLoading(false);
-                router.push("/step2");
-            }, 1000);
-        } catch (err) {
-            console.error("❌ 半自動分析失敗:", err);
-            setError("半自動分析失敗，請稍後再試");
-            setLoading(false);
-        }
-    };
+            console.log(`🔍 開始敏感資料檢測: ${selectedFile.name}`);
 
-    // 自動分析函數
-    const handleAutoAnalyze = async () => {
-        if (!file || parsedData.length === 0) {
-            setError("請先選擇檔案後再上傳。");
-            return;
-        }
+            // 使用 SensitiveDataDetector 檢測敏感資料
+            const sensitiveResult = await SensitiveDataDetector.checkFileForSensitiveData(selectedFile);
 
-        setLoading(true);
-        setCtxFile(file);
-
-        try {
-            const token = await getToken();
-            if (!token) {
-                throw new Error("授權失敗，請重新登入");
+            if (sensitiveResult.error) {
+                errorHandler(sensitiveResult.error, "敏感資料檢測");
+                return false;
             }
 
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/ai_automation/auto-analyze`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                    parsedData: parsedData,
-                    fillNA: fillNA
-                }),
+            console.log(`🔒 敏感資料檢測完成: 發現 ${sensitiveResult.sensitiveColumns.length} 個敏感欄位`);
+
+            // 設置敏感資料相關狀態
+            setSensitiveColumns(sensitiveResult.sensitiveColumns);
+            setPrivacySuggestions(sensitiveResult.suggestions);
+
+            // 準備檔案基本資訊
+            setFileBasicInfo({
+                name: selectedFile.name,
+                size: selectedFile.size,
+                hasMultipleSheets: false // 將在檔案處理時更新
             });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || `API 错误: ${response.status}`);
-            }
+            return true;
 
-            const result = await response.json();
-
-            if (!result.success) {
-                throw new Error(result.message || "自动分析失败");
-            }
-
-            // 更新 context 状态
-            setCtxGroupVar(result.group_var || "");
-            setCtxCatVars(result.cat_vars || []);
-            setCtxContVars(result.cont_vars || []);
-
-            // 設置自動分析結果到 context
-            setAutoAnalysisResult(result);
-
-            // 设置分析结果
-            if (result.analysis?.table) {
-                setResultTable(result.analysis.table);
-            }
-
-            if (result.analysis?.groupCounts) {
-                setGroupCounts(result.analysis.groupCounts);
-            }
-
-            // 跳转到结果页面
-            router.push("/step3");
-
-        } catch (err: any) {
-            console.error("❌ 自动分析失败:", err);
-            const errorMessage = err?.message || err?.toString() || "未知錯誤";
-            setError(`自动分析失败: ${errorMessage}`);
+        } catch (err: unknown) {
+            console.error(`❌ 敏感資料檢測失敗:`, err);
+            errorHandler(
+                createError(
+                    ErrorCode.PRIVACY_ERROR,
+                    undefined,
+                    undefined,
+                    {
+                        customMessage: "敏感資料檢測失敗，請重試",
+                        cause: err instanceof Error ? err : undefined
+                    }
+                ),
+                "敏感資料檢測"
+            );
+            return false;
         } finally {
-            setLoading(false);
+            setSensitiveDetectionLoading(false);
         }
     };
 
-    const handleFile = (file: File) => {
-        if (!validateFile(file)) {
-            setError("請上傳 CSV 或 Excel 檔案。");
-            setFile(null);
+    // ==========================================
+    // 檔案處理主函數 (使用 FileProcessor)
+    const handleFileSelection = async (selectedFile: File) => {
+        clearError();
+        console.log(`📁 開始處理檔案: ${selectedFile.name} (${FileProcessor.formatFileSize(selectedFile.size)})`);
+
+        // 1. 使用 hook 進行檔案驗證
+        const validation = validateFile(selectedFile);
+        if (!validation.isValid) {
+            errorHandler(validation.error!, `檔案驗證: ${selectedFile.name}`);
             return;
         }
 
-        setError("");
-        setFile(file);
-        setFileName(file.name);
+        // 2. 檢查檔案大小警告
+        const sizeWarning = getFileSizeWarning(selectedFile);
+        const warnings: string[] = [];
 
-        // 重置狀態
+        if (validation.warnings) {
+            warnings.push(...validation.warnings);
+        }
+
+        if (sizeWarning) {
+            warnings.push(sizeWarning);
+        }
+
+        setFileValidationWarnings(warnings);
+
+        // 3. 設置待處理檔案
+        setPendingFile(selectedFile);
+
+        // 4. 進行敏感資料檢測
+        const detectionSuccess = await handleSensitiveDataDetection(selectedFile);
+        if (!detectionSuccess) {
+            setPendingFile(null);
+            return;
+        }
+
+        // 5. 顯示隱私對話框
+        setShowPrivacyDialog(true);
+    };
+
+    // ==========================================
+    // 隱私對話框處理
+    const handlePrivacyConfirm = async () => {
+        if (!pendingFile) {
+            errorHandler(CommonErrors.fileNotSelected(), "隱私確認");
+            return;
+        }
+
+        // 檢查是否有敏感資料
+        if (sensitiveColumns.length > 0) {
+            errorHandler(CommonErrors.sensitiveDataDetected(), "隱私確認 - 有敏感資料");
+            return;
+        }
+
+        setShowPrivacyDialog(false);
+        console.log(`✅ 隱私確認完成，開始處理檔案: ${pendingFile.name}`);
+
+        try {
+            await processFile(pendingFile);
+            cleanupPendingState();
+        } catch (err: unknown) {
+            errorHandler(
+                createError(
+                    ErrorCode.PRIVACY_ERROR,
+                    undefined,
+                    'privacy.agreement_required',
+                    {
+                        customMessage: "檔案處理失敗，請重試",
+                        cause: err instanceof Error ? err : undefined
+                    }
+                ),
+                "隱私確認後檔案處理"
+            );
+        }
+    };
+
+    const handlePrivacyCancel = () => {
+        console.log(`❌ 用戶取消隱私確認`);
+        setShowPrivacyDialog(false);
+        cleanupPendingState();
+
+        // 清除檔案選擇
+        const fileInput = document.getElementById('file-upload') as HTMLInputElement;
+        if (fileInput) {
+            fileInput.value = '';
+        }
+    };
+
+    const cleanupPendingState = () => {
+        setPendingFile(null);
+        setSensitiveColumns([]);
+        setPrivacySuggestions([]);
+        setFileValidationWarnings([]);
+        setFileBasicInfo(null);
+    };
+
+    // ==========================================
+    // 檔案內容處理 (使用 FileProcessor)
+    const processFile = async (fileToProcess: File) => {
+        setFile(fileToProcess);
+        setFileName(fileToProcess.name);
         setShowPreview(false);
         setColumnsPreview([]);
         setColumnAnalysisLoading(false);
 
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                const data = new Uint8Array(e.target?.result as ArrayBuffer);
-                const workbook = XLSX.read(data, { type: "array" });
-                const sheetName = workbook.SheetNames[0];
-                const sheet = workbook.Sheets[sheetName];
-                const json = XLSX.utils.sheet_to_json<Record<string, any>>(sheet);
+        try {
+            console.log(`⚙️ 開始解析檔案內容: ${fileToProcess.name}`);
 
-                if (json.length === 0) {
-                    setError("檔案中沒有資料，請檢查檔案內容。");
-                    return;
-                }
+            // 使用 FileProcessor 處理檔案
+            const result = await FileProcessor.processFile(fileToProcess, limitsInfo.userType);
 
-                const allKeys = Array.from(new Set(json.flatMap((row) => Object.keys(row))));
-
-                const normalizedData = json.map((row) => {
-                    const completeRow: any = {};
-                    allKeys.forEach((key) => {
-                        completeRow[key] = key in row ? row[key] : "";
-                    });
-                    return completeRow;
-                });
-
-                setParsedData(normalizedData);
-
-                // 立即呼叫欄位解析
-                fetchColumnProfile(normalizedData);
-
-            } catch (error) {
-                console.error("❌ 檔案處理錯誤:", error);
-                let errorMessage = "檔案處理失敗";
-                if (error instanceof Error) {
-                    errorMessage += `: ${error.message}`;
-                } else if (typeof error === "string") {
-                    errorMessage += `: ${error}`;
-                }
-                setError(errorMessage);
+            if (result.error) {
+                errorHandler(result.error, `檔案處理: ${fileToProcess.name}`);
+                return;
             }
-        };
 
-        reader.onerror = () => {
-            console.error("❌ 檔案讀取失敗");
-            setError("檔案讀取失敗，請重新選擇檔案。");
-        };
+            if (result.data.length === 0) {
+                const error = createError(
+                    ErrorCode.FILE_ERROR,
+                    ErrorContext.FILE_UPLOAD,
+                    'file.empty_file'
+                );
+                errorHandler(error, `檔案處理: ${fileToProcess.name}`);
+                return;
+            }
 
-        reader.readAsArrayBuffer(file);
+            // 更新檔案基本資訊
+            setFileBasicInfo((prev: any) => ({
+                ...prev,
+                hasMultipleSheets: result.fileInfo?.hasMultipleSheets || false
+            }));
+
+            console.log(`📊 檔案解析成功，資料筆數: ${result.data.length}，欄位數: ${result.fileInfo?.columns || 0}`);
+            setParsedData(result.data);
+
+            // 立即進行欄位分析
+            await fetchColumnProfile(result.data);
+
+        } catch (err: unknown) {
+            console.error("❌ 檔案處理錯誤:", err);
+            const appError = createError(
+                ErrorCode.FILE_ERROR,
+                ErrorContext.FILE_UPLOAD,
+                'file.read_failed',
+                {
+                    customMessage: `檔案處理失敗: ${err instanceof Error ? err.message : String(err)}`,
+                    cause: err instanceof Error ? err : undefined
+                }
+            );
+            errorHandler(appError, `檔案處理: ${fileToProcess.name}`);
+        }
     };
 
+    // ==========================================
+    // 欄位分析
     const fetchColumnProfile = async (data: any[]) => {
         setColumnAnalysisLoading(true);
+        console.log(`🔍 開始分析欄位特性，資料筆數: ${data.length}`);
 
         try {
             const token = localStorage.getItem("__session") || "";
-            
+
             if (!token) {
-                throw new Error("授權 token 不存在");
+                throw CommonErrors.authTokenMissing();
             }
 
             if (!process.env.NEXT_PUBLIC_API_URL) {
-                throw new Error("API URL 未配置");
+                throw createError(
+                    ErrorCode.SERVER_ERROR,
+                    ErrorContext.ANALYSIS,
+                    undefined,
+                    { customMessage: "API URL 未配置" }
+                );
             }
 
             const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/preprocess/columns`;
@@ -280,13 +382,26 @@ export default function Step1Page() {
             if (!res.ok) {
                 const errorText = await res.text();
                 console.error("❌ API 錯誤:", res.status, errorText);
-                throw new Error(`API 錯誤: ${res.status} - ${errorText}`);
+
+                // 根據 HTTP 狀態碼創建適當的錯誤
+                if (res.status === 401 || res.status === 403) {
+                    throw CommonErrors.analysisAuthFailed();
+                } else if (res.status >= 500) {
+                    throw CommonErrors.serverError(ErrorContext.ANALYSIS);
+                } else {
+                    throw createError(
+                        ErrorCode.ANALYSIS_ERROR,
+                        ErrorContext.ANALYSIS,
+                        'column.type_detection_failed',
+                        { customMessage: `API 錯誤: ${res.status} - ${errorText}` }
+                    );
+                }
             }
 
             const json = await res.json();
 
-            // 檢查回應格式並設置狀態
             if (json && json.data && json.data.columns && Array.isArray(json.data.columns)) {
+                console.log(`✅ 欄位分析成功，發現 ${json.data.columns.length} 個有效欄位`);
                 setColumnsPreview(json.data.columns);
                 setColumnTypes(json.data.columns);
                 setShowPreview(true);
@@ -295,10 +410,26 @@ export default function Step1Page() {
                 createFallbackColumnData(data);
             }
 
-        } catch (err: any) {
-            console.error("❌ 欄位解析錯誤：", err);
-            setError(`欄位解析失敗: ${err.message}`);
-            
+        } catch (err: unknown) {
+            console.error("❌ 欄位解析錯誤:", err);
+
+            if (err instanceof isAppError) {
+                errorHandler(err, "欄位分析");
+            } else {
+                errorHandler(
+                    createError(
+                        ErrorCode.ANALYSIS_ERROR,
+                        ErrorContext.ANALYSIS,
+                        'column.type_detection_failed',
+                        {
+                            customMessage: `欄位解析失敗: ${err instanceof Error ? err.message : String(err)}`,
+                            cause: err instanceof Error ? err : undefined
+                        }
+                    ),
+                    "欄位分析"
+                );
+            }
+
             // 使用備用方案
             createFallbackColumnData(data);
         } finally {
@@ -309,27 +440,186 @@ export default function Step1Page() {
     // 備用方案：創建基本的欄位資訊
     const createFallbackColumnData = (data: any[]) => {
         if (data.length === 0) return;
-        
+
         const columns: ColumnProfile[] = Object.keys(data[0]).map(col => ({
             column: col,
-            missing_pct: "0.0%", // 字串格式
+            missing_pct: "0.0%",
             suggested_type: "不明"
         }));
-        
+
         setColumnsPreview(columns);
         setShowPreview(true);
     };
 
+    // ==========================================
+    // 分析處理函數
+    const handleAnalyze = async () => {
+        if (!file) {
+            errorHandler(CommonErrors.fileNotSelected(), "分析按鈕點擊");
+            return;
+        }
+
+        clearError();
+
+        try {
+            if (autoMode) {
+                await handleAutoAnalyze();
+            } else {
+                await handleManualAnalyze();
+            }
+        } catch (err: unknown) {
+            if (err instanceof Error && err.message.includes('timeout')) {
+                errorHandler(CommonErrors.analysisTimeout(), "分析處理超時");
+            } else if (err instanceof Error && err.message.includes('unauthorized')) {
+                errorHandler(CommonErrors.analysisAuthFailed(), "分析授權失敗");
+            } else {
+                errorHandler(err, "分析處理");
+            }
+        }
+    };
+
+    const handleManualAnalyze = async () => {
+        setLoading(true);
+        setCtxFile(file);
+        setAutoAnalysisResult(null);
+
+        try {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            setLoading(false);
+            router.push("/step2");
+        } catch (err: unknown) {
+            errorHandler(
+                createError(
+                    ErrorCode.ANALYSIS_ERROR,
+                    ErrorContext.ANALYSIS,
+                    undefined,
+                    {
+                        customMessage: "半自動分析初始化失敗，請重試",
+                        cause: err instanceof Error ? err : undefined
+                    }
+                ),
+                "半自動分析"
+            );
+            setLoading(false);
+        }
+    };
+
+    const handleAutoAnalyze = async () => {
+        if (!file || parsedData.length === 0) {
+            errorHandler(CommonErrors.fileNotSelected(), "自動分析");
+            return;
+        }
+
+        setLoading(true);
+        setCtxFile(file);
+
+        try {
+            const token = await getToken();
+            if (!token) {
+                throw CommonErrors.analysisAuthFailed();
+            }
+
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/ai_automation/auto-analyze`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    parsedData: parsedData,
+                    fillNA: fillNA
+                }),
+            });
+
+            if (!response.ok) {
+                if (response.status === 401 || response.status === 403) {
+                    throw CommonErrors.analysisAuthFailed();
+                } else if (response.status >= 500) {
+                    throw CommonErrors.serverError(ErrorContext.ANALYSIS);
+                } else {
+                    const errorData = await response.json();
+                    throw createError(
+                        ErrorCode.ANALYSIS_ERROR,
+                        ErrorContext.ANALYSIS,
+                        'analysis.auto_failed',
+                        { customMessage: errorData.detail || `API 錯誤: ${response.status}` }
+                    );
+                }
+            }
+
+            const result = await response.json();
+
+            if (!result.success) {
+                throw createError(
+                    ErrorCode.ANALYSIS_ERROR,
+                    ErrorContext.ANALYSIS,
+                    'analysis.auto_failed',
+                    { customMessage: result.message || "自動分析失敗" }
+                );
+            }
+
+            // 更新 context 狀態
+            setCtxGroupVar(result.group_var || "");
+            setCtxCatVars(result.cat_vars || []);
+            setCtxContVars(result.cont_vars || []);
+            setAutoAnalysisResult(result);
+
+            if (result.analysis?.table) {
+                setResultTable(result.analysis.table);
+            }
+
+            if (result.analysis?.groupCounts) {
+                setGroupCounts(result.analysis.groupCounts);
+            }
+
+            router.push("/step3");
+
+        } catch (err: unknown) {
+            console.error("❌ 自動分析失敗:", err);
+
+            if (err instanceof isAppError) {
+                errorHandler(err, "AI 自動分析");
+            } else {
+                errorHandler(
+                    createError(
+                        ErrorCode.ANALYSIS_ERROR,
+                        ErrorContext.ANALYSIS,
+                        'analysis.auto_failed',
+                        {
+                            customMessage: `自動分析失敗: ${err instanceof Error ? err.message : String(err)}`,
+                            cause: err instanceof Error ? err : undefined
+                        }
+                    ),
+                    "AI 自動分析"
+                );
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // ==========================================
+    // 重試函數
+    const handleRetryColumnAnalysis = async () => {
+        if (parsedData.length > 0) {
+            clearError();
+            console.log(`🔄 重試欄位分析`);
+            await fetchColumnProfile(parsedData);
+        }
+    };
+
+    // ==========================================
+    // 事件處理
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) handleFile(file);
+        const selectedFile = e.target.files?.[0];
+        if (selectedFile) handleFileSelection(selectedFile);
     };
 
     const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
         setDragOver(false);
-        const file = e.dataTransfer.files?.[0];
-        if (file) handleFile(file);
+        const selectedFile = e.dataTransfer.files?.[0];
+        if (selectedFile) handleFileSelection(selectedFile);
     };
 
     const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
@@ -339,6 +629,65 @@ export default function Step1Page() {
 
     const handleDragLeave = () => setDragOver(false);
 
+    // ==========================================
+    // 取得用戶限制資訊 (已由 hook 提供，移除此函數)
+
+    // ==========================================
+    // 錯誤顯示元件
+    const ErrorDisplay = () => {
+        if (!error) return null;
+
+        const getSeverityColor = () => {
+            switch (error.code) {
+                case ErrorCode.PRIVACY_ERROR:
+                    return "bg-red-50 border-red-200 text-red-800";
+                case ErrorCode.AUTH_ERROR:
+                    return "bg-blue-50 border-blue-200 text-blue-800";
+                case ErrorCode.NETWORK_ERROR:
+                case ErrorCode.RATE_LIMIT_ERROR:
+                    return "bg-yellow-50 border-yellow-200 text-yellow-800";
+                default:
+                    return "bg-red-50 border-red-200 text-red-800";
+            }
+        };
+
+        return (
+            <div className={`mb-4 p-4 rounded-lg border ${getSeverityColor()}`}>
+                <div className="flex items-center gap-2 mb-2">
+                    {error.code === ErrorCode.PRIVACY_ERROR && <Shield className="w-5 h-5" />}
+                    {error.code === ErrorCode.AUTH_ERROR && <Shield className="w-5 h-5" />}
+                    {(error.code === ErrorCode.NETWORK_ERROR || error.code === ErrorCode.RATE_LIMIT_ERROR) && <AlertTriangle className="w-5 h-5" />}
+                    <span className="font-medium">發生錯誤</span>
+                    {error.correlationId && (
+                        <span className="text-xs opacity-60">#{error.correlationId.slice(-8)}</span>
+                    )}
+                </div>
+                <p className="text-sm mb-3">{error.userMessage}</p>
+                <p className="text-xs mb-3 opacity-80">建議動作：{error.action}</p>
+                <div className="flex gap-2">
+                    <button
+                        onClick={clearError}
+                        className="px-3 py-1 bg-white/20 hover:bg-white/30 rounded text-sm transition-colors"
+                    >
+                        關閉
+                    </button>
+                    {error.context === ErrorContext.ANALYSIS && (
+                        <button
+                            onClick={handleRetryColumnAnalysis}
+                            className="px-3 py-1 bg-white/20 hover:bg-white/30 rounded text-sm transition-colors"
+                        >
+                            重試
+                        </button>
+                    )}
+                </div>
+            </div>
+        );
+    };
+
+    const isLoading = loading || sensitiveDetectionLoading;
+
+    // ==========================================
+    // 主要渲染
     return (
         <div className="bg-white">
             <Header />
@@ -358,47 +707,51 @@ export default function Step1Page() {
                     Step1：上傳資料檔案
                 </h2>
 
-                {/* 提醒文字 */}
-                <div className="flex items-start gap-2 mb-8 text-[18px] lg:text-[20px]">
-                    <Image
-                        src="/step1/alert_icon@2x.png"
-                        alt="alert"
-                        width={21.6}
-                        height={24}
-                        className="w-[18px] h-[20px] mt-[8px] lg:w-[21.6px] lg:h-[24px] lg:mt-[5px]"
-                    />
-                    <p
-                        style={{
-                            letterSpacing: "2px",
-                            lineHeight: "32px",
-                            fontFamily: '"Noto Sans TC", "思源黑體", sans-serif',
-                            color: "#0F2844",
-                        }}
-                    >
-                        請注意：請務必移除所有個資欄位(如姓名、病歷號等)，避免違反資料安全規範！
-                    </p>
+                {/* 檔案限制警語 */}
+                <div className="mb-4 text-center">
+                    <span className="inline-flex items-center px-3 py-1 bg-gray-100 text-sm text-gray-700 rounded-full">
+                        {limitsInfo.formattedLimits.userTypeName}: {limitsInfo.formattedLimits.maxSize} • {limitsInfo.formattedLimits.maxRows} 筆 • {limitsInfo.formattedLimits.maxColumns} 欄位
+                        {limitsInfo.canUpgradeFile && <span className="ml-2 text-blue-600">↗ 升級</span>}
+                    </span>
                 </div>
+
+                {/* 隱私提醒 */}
+                <div className="flex items-start gap-2 mb-8 text-[18px] lg:text-[20px]">
+                    <Shield className="w-6 h-6 text-[#0F2844] mt-1" />
+                    <div>
+                        <p
+                            style={{
+                                letterSpacing: "2px",
+                                lineHeight: "32px",
+                                fontFamily: '"Noto Sans TC", "思源黑體", sans-serif',
+                                color: "#0F2844",
+                            }}
+                            className="mb-2"
+                        >
+                            <strong>隱私保護提醒：</strong>請務必移除所有個資欄位(如姓名、病歷號、生日等)，避免違反資料安全規範！<br></br>系統將自動檢測敏感資料並提醒您進行處理。
+                        </p>
+                    </div>
+                </div>
+
+                {/* 錯誤訊息顯示 */}
+                <ErrorDisplay />
 
                 {/* 上傳區 */}
                 <div
-                    className={`w-full max-w-[1366px] h-[154px] border rounded-xl flex flex-col items-center justify-center space-y-4 ${dragOver ? "bg-[#dce3f1]" : "bg-[#EEF2F9]"
+                    className={`w-full max-w-[1366px] h-[154px] border rounded-xl flex flex-col items-center justify-center space-y-4 transition-colors duration-200 ${dragOver ? "bg-[#dce3f1] border-blue-300" : "bg-[#EEF2F9] border-[#C4C8D0]"
                         }`}
-                    style={{
-                        borderColor: "#C4C8D0",
-                        borderWidth: "1px",
-                    }}
                     onDrop={handleDrop}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                 >
-                    {/* 檔案選擇框 + Tooltip */}
+                    {/* 檔案選擇框 */}
                     <div className="max-w-[549px] max-h-[50px] flex items-center justify-between px-4 border border-[#C4C8D0] bg-white rounded-md relative group">
                         <div className="-mt-1 cursor-pointer">
                             <Tooltip>
                                 <TooltipTrigger className="cursor-pointer text-[#0F2844] text-xl relative">
                                     <label
                                         htmlFor="file-upload"
-                                        className="text-[#0F2844] text-[16px] lg:text-[20px] cursor-pointer"
+                                        className="text-[#0F2844] text-[16px] lg:text-[20px] cursor-pointer hover:text-blue-600 transition-colors"
                                         style={{
                                             fontFamily: '"Noto Sans TC", "思源黑體", sans-serif',
                                             letterSpacing: "2px",
@@ -409,7 +762,9 @@ export default function Step1Page() {
                                     </label>
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                    支援Excel檔案(.xlsx、.xls)和CSV檔案(.csv)
+                                    支援Excel檔案(.xlsx、.xls)和CSV檔案(.csv)<br />
+                                    {limitsInfo.formattedLimits.userTypeName} 限制：{limitsInfo.formattedLimits.maxSize}，{limitsInfo.formattedLimits.maxRows} 筆資料，{limitsInfo.formattedLimits.maxColumns} 欄位<br />
+                                    系統將自動檢測敏感資料並進行隱私保護
                                 </TooltipContent>
                             </Tooltip>
                         </div>
@@ -421,7 +776,7 @@ export default function Step1Page() {
                                 fontSize: "18px",
                                 letterSpacing: "1.8px",
                                 lineHeight: "30px",
-                                color: "#9CA3AF",
+                                color: fileName ? "#0F2844" : "#9CA3AF",
                                 maxWidth: "320px",
                             }}
                         >
@@ -434,6 +789,7 @@ export default function Step1Page() {
                             className="hidden"
                             accept=".csv,.xls,.xlsx"
                             onChange={handleFileChange}
+                            disabled={isLoading}
                         />
                     </div>
 
@@ -445,11 +801,17 @@ export default function Step1Page() {
                             color: "#5B6D81",
                         }}
                     >
-                        拖曳檔案至此或點擊選取
+                        拖曳檔案至此或點擊選取（限制：{limitsInfo.formattedLimits.maxSize}）
                     </p>
-                </div>
 
-                {error && <p className="text-sm text-red-500 mt-2">{error}</p>}
+                    {/* 敏感資料檢測載入指示 */}
+                    {sensitiveDetectionLoading && (
+                        <div className="flex items-center gap-2 text-sm text-blue-600">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                            🔍 正在檢測敏感資料...
+                        </div>
+                    )}
+                </div>
 
                 {/* 資料預覽表格 */}
                 {parsedData.length > 0 && (
@@ -463,7 +825,7 @@ export default function Step1Page() {
                                 className="-mt-10 -mr-2 lg:-mt-6 lg-mr-0"
                             />
                             <p className="text-xs text-[#0F2844] -mt-4 mb-2">
-                                已上傳檔案，以下為預覽資料（最多顯示前五列）：
+                                以下為預覽資料（最多顯示前五列）：
                             </p>
                         </div>
                         <div className="overflow-auto border rounded-lg text-sm max-h-64 text-[#0F2844]">
@@ -480,19 +842,11 @@ export default function Step1Page() {
                                         <tr key={i} className="hover:bg-gray-50">
                                             {Object.keys(parsedData[0] as ParsedDataRow).map((col: string, j: number) => {
                                                 const value: any = row[col];
-                                                let displayValue: any = value;
-
-                                                // 轉換Excel數字日期為JavaScript日期
-                                                if (typeof value === "number" && value > 20000 && value < 60000) {
-                                                    const date: Date = excelDateToJSDate(value);
-                                                    displayValue = date.toLocaleDateString();
-                                                } else if (value instanceof Date) {
-                                                    displayValue = value.toLocaleDateString();
-                                                }
+                                                const displayValue = FileProcessor.formatDisplayValue(value);
 
                                                 return (
                                                     <td key={j} className="px-3 py-2 border-b whitespace-nowrap">
-                                                        {displayValue ?? ""}
+                                                        {displayValue}
                                                     </td>
                                                 );
                                             })}
@@ -511,7 +865,8 @@ export default function Step1Page() {
                         {columnAnalysisLoading && (
                             <div className="text-center p-6 bg-gray-50 rounded-lg">
                                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-3"></div>
-                                <p className="text-gray-600">正在分析欄位特性...</p>
+                                <p className="text-gray-600">🔍 正在分析欄位特性...</p>
+                                <p className="text-gray-500 text-sm mt-1">系統正在自動識別資料類型和統計特徵</p>
                             </div>
                         )}
 
@@ -566,23 +921,6 @@ export default function Step1Page() {
                                 </AccordionItem>
                             </Accordion>
                         )}
-
-                        {/* 錯誤狀態 */}
-                        {!columnAnalysisLoading && !showPreview && error.includes("欄位解析") && (
-                            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <span className="text-red-600">⚠️</span>
-                                    <span className="font-medium text-red-800">欄位解析失敗</span>
-                                </div>
-                                <p className="text-red-700 text-sm mb-3">{error}</p>
-                                <button 
-                                    onClick={() => fetchColumnProfile(parsedData)}
-                                    className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm transition-colors"
-                                >
-                                    重新分析
-                                </button>
-                            </div>
-                        )}
                     </div>
                 )}
 
@@ -592,13 +930,28 @@ export default function Step1Page() {
                         <input
                             type="checkbox"
                             id="fillna"
-                            className="w-[25px] h-[25px] rounded-md border border-gray-400 bg-white checked:bg-[#0F2844] checked:border-[#0F2844] cursor-pointer"
+                            className="w-[25px] h-[25px] rounded-md border border-gray-400 bg-white checked:bg-[#0F2844] checked:border-[#0F2844] cursor-pointer disabled:opacity-50"
                             checked={fillNA}
                             onChange={(e) => setFillNA(e.target.checked)}
+                            disabled={isLoading}
                         />
-                        <label htmlFor="fillna" className="text-[20px] text-[#555555] tracking-[2px] leading-[32px] font-bold cursor-pointer">
+                        <label
+                            htmlFor="fillna"
+                            className={`text-[20px] text-[#555555] tracking-[2px] leading-[32px] font-bold cursor-pointer transition-opacity ${isLoading ? 'opacity-50' : ''
+                                }`}
+                        >
                             填補缺值
                         </label>
+                        <Tooltip>
+                            <TooltipTrigger className="ml-0 text-gray-400 hover:text-gray-600">
+                                <CircleQuestionMark className="mt-0.5" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                自動填補資料中的缺失值<br />
+                                數值型：使用中位數/平均數<br />
+                                類別型：使用眾數
+                            </TooltipContent>
+                        </Tooltip>
                     </div>
                 )}
 
@@ -621,8 +974,8 @@ export default function Step1Page() {
                                 <div className={`text-sm font-medium transition-all duration-300 ${autoMode ? 'text-blue-600' : 'text-gray-600'
                                     }`}>
                                     {autoMode
-                                        ? "🤖 AI 將自動完成所有分析步驟"
-                                        : "👨‍💻 手動控制每個分析步驟"
+                                        ? "AI 將自動完成所有分析步驟"
+                                        : "手動控制每個分析步驟"
                                     }
                                 </div>
                                 <div className="text-xs text-gray-500 mt-1 max-w-md">
@@ -637,23 +990,49 @@ export default function Step1Page() {
                         {/* 統一的開始分析按鈕 */}
                         <div className="flex justify-center">
                             <ActionButton
-                                text={loading ? "分析中..." : `開始${autoMode ? 'AI 全自動' : '半自動'}分析`}
-                                loading={loading}
-                                disabled={!file || loading}
+                                text={isLoading ? "處理中..." : `開始${autoMode ? ' AI 全自動' : ' 半自動'}分析`}
+                                loading={isLoading}
+                                disabled={!file || isLoading}
                                 onClick={handleAnalyze}
-                                iconSrc={autoMode ? "/step1/Group_50@2x.png" : "/step1/upload_white.png"}
+                                iconSrc={autoMode ? "/step1/upload_white.png" : "/step1/upload_white.png"}
                                 iconGraySrc="/step1/upload_gray.png"
                                 iconHoverSrc={autoMode ? "/step1/upload_white.png" : "/step1/Group_50@2x.png"}
                                 className={`min-w-[240px] w-auto transition-all duration-300 ${autoMode
-                                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 hover:text-white'
-                                    : ''
+                                        ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 hover:text-white'
+                                        : ''
+                                    } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''
                                     }`}
                             />
                         </div>
+
+                        {/* 載入狀態下的額外提示 */}
+                        {isLoading && (
+                            <div className="text-center text-sm text-gray-500">
+                                <p>⏱️ 預估時間：{autoMode ? '30-60' : '5-10'} 秒</p>
+                                <p className="mt-1">
+                                    {sensitiveDetectionLoading
+                                        ? "正在進行隱私檢測，請稍候..."
+                                        : "請耐心等候，系統正在處理您的資料..."
+                                    }
+                                </p>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
+
             <Footer />
+
+            {/* 隱私對話框 */}
+            <DataPrivacyDialog
+                open={showPrivacyDialog}
+                onConfirm={handlePrivacyConfirm}
+                onCancel={handlePrivacyCancel}
+                sensitiveColumns={sensitiveColumns}
+                suggestions={privacySuggestions}
+                fileInfo={fileBasicInfo}
+                warnings={fileValidationWarnings}
+            />
         </div>
     );
 }

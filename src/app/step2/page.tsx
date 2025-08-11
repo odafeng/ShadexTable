@@ -8,7 +8,7 @@ import Image from "next/image";
 import { MultiSelect } from "@/components/ui/custom/multiselect";
 import GroupSelect from "@/components/ui/custom/GroupSelect";
 import { useRouter } from "next/navigation";
-import { useAnalysis } from "@/context/AnalysisContext";
+import { useAnalysisStore } from "@/stores/analysisStore"; // ✅ 直接使用 Zustand store
 import { useAuth } from "@clerk/nextjs";
 import AnalysisErrorDialog from "@/components/AnalysisErrorDialog";
 import ConfirmTypeMismatchDialog from "@/components/ConfirmTypeMismatchDialog";
@@ -25,9 +25,6 @@ import ActionButton from "@/components/ActionButton";
 
 export default function Step2Page() {
     const [isHover, setIsHover] = useState(false);
-    const [catVars, setCatVars] = useState<string[]>([]);
-    const [contVars, setContVars] = useState<string[]>([]);
-    const [groupVar, setGroupVar] = useState<string>("");
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [confirmedWarnings, setConfirmedWarnings] = useState<Set<string>>(new Set());
@@ -36,17 +33,22 @@ export default function Step2Page() {
 
     const router = useRouter();
     const { getToken } = useAuth();
+    
+    // ✅ 直接從 Zustand store 取得所需的狀態和方法
     const {
         parsedData,
-        setGroupVar: setCtxGroupVar,
-        setCatVars: setCtxCatVars,
-        setContVars: setCtxContVars,
-        setGroupCounts,
+        groupVar,
+        catVars,
+        contVars,
         fillNA,
-        setFillNA,
-        setResultTable,
         columnTypes: columnsPreview,
-    } = useAnalysis();
+        setGroupVar,
+        setCatVars,
+        setContVars,
+        setFillNA,
+        setGroupCounts,
+        setResultTable,
+    } = useAnalysisStore();
 
     const allColumns = parsedData.length > 0 ? Object.keys(parsedData[0]) : [];
     const getTypeOf = (col: string) => columnsPreview.find((c) => c.column === col)?.suggested_type ?? "不明";
@@ -77,7 +79,7 @@ export default function Step2Page() {
 
     const catOptions = sortByType(
         allColumns
-            .filter((c) => !contVars.includes(c) && c !== groupVar) // 排除已選為連續變項和分組變項的欄位
+            .filter((c) => !contVars.includes(c) && c !== groupVar)
             .map((col) => ({
                 label: col,
                 value: col,
@@ -89,7 +91,7 @@ export default function Step2Page() {
 
     const contOptions = sortByType(
         allColumns
-            .filter((c) => !catVars.includes(c) && c !== groupVar) // 排除已選為類別變項和分組變項的欄位
+            .filter((c) => !catVars.includes(c) && c !== groupVar)
             .map((col) => ({
                 label: col,
                 value: col,
@@ -110,7 +112,6 @@ export default function Step2Page() {
     };
 
     const handleGroupChange = (val: string) => {
-        // 如果選擇了新的分組變項，需要清除該變項在類別/連續變項中的選擇
         const prevGroupVar = groupVar;
         setGroupVar(val);
 
@@ -194,10 +195,6 @@ export default function Step2Page() {
     };
 
     const runAnalysis = async () => {
-        // 更新 context 狀態
-        setCtxGroupVar(groupVar);
-        setCtxCatVars(catVars);
-        setCtxContVars(contVars);
         setLoading(true);
         setErrorMsg(null);
 
@@ -209,7 +206,7 @@ export default function Step2Page() {
 
             const requestBody = {
                 data: parsedData,
-                group_col: groupVar, // 注意：後端使用 group_col，不是 groupVar
+                group_col: groupVar,
                 cat_vars: catVars,
                 cont_vars: contVars,
                 fillNA,
@@ -257,14 +254,11 @@ export default function Step2Page() {
                 setGroupCounts(result.data.groupCounts);
             }
 
-            // 注意：跳轉邏輯現在由 AnalysisLoadingModal 的 onComplete 處理
-            // router.push("/step3");
-
         } catch (err: any) {
             console.error("❌ 分析失敗：", err);
             const errorMessage = err?.message || err?.toString() || "未知錯誤";
             setErrorMsg(`分析失敗: ${errorMessage}`);
-            setLoading(false); // 發生錯誤時關閉載入狀態
+            setLoading(false);
         }
     };
 

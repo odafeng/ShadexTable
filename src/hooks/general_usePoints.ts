@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useAuth } from "@clerk/nextjs";
 
-// ✅ Module-level 快取（僅存在於 memory）
+// Module-level 快取（僅存在於 memory）
 let cachedPoints: number | null = null;
 let cachedIsPro = false;
 let cachedAiUsed = 0;
@@ -31,12 +31,12 @@ export const usePoints = () => {
       if (!res.ok) throw new Error("點數查詢失敗");
       const data = await res.json();
 
-      // ✅ 存入 state
+      // 存入 state
       setPoints(data.points ?? 0);
       setIsPro(data.is_pro ?? false);
       setAiTodayUsed(data.ai_today_used ?? 0);
 
-      // ✅ 存入快取
+      // 存入快取
       cachedPoints = data.points ?? 0;
       cachedIsPro = data.is_pro ?? false;
       cachedAiUsed = data.ai_today_used ?? 0;
@@ -57,7 +57,7 @@ export const usePoints = () => {
     const shouldUseCache = cachedPoints !== null && now - cacheTime < CACHE_DURATION_MS;
 
     if (shouldUseCache) {
-      // ✅ 直接從快取讀取，不發 API
+      // 直接從快取讀取，不發 API
       setPoints(cachedPoints);
       setIsPro(cachedIsPro);
       setAiTodayUsed(cachedAiUsed);
@@ -77,4 +77,3 @@ export const usePoints = () => {
     refetch: fetchPoints,
   };
 };
-      

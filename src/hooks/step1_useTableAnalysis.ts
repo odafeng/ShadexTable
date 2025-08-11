@@ -11,14 +11,10 @@ import {
 } from '@/utils/error';
 import { apiClient, reportError } from '@/lib/apiClient';
 import { AppError } from '@/types/errors';
+import { useAnalysisStore } from '@/stores/analysisStore';
 
 interface UseTableAnalysisProps {
     getToken: () => Promise<string | null>;
-    setCtxGroupVar: (groupVar: string) => void;
-    setCtxCatVars: (catVars: string[]) => void;
-    setCtxContVars: (contVars: string[]) => void;
-    setResultTable: (table: any[]) => void;
-    setGroupCounts: (counts: Record<string, number>) => void;
     onSuccess?: () => void;
     onError?: (error: AppError) => void;
 }
@@ -28,6 +24,15 @@ export const useTableAnalysis = (props: UseTableAnalysisProps) => {
     const [error, setError] = useState<AppError | null>(null);
     const router = useRouter();
     const tableAnalysisService = new TableAnalysisService();
+    
+    // 使用 Zustand store
+    const {
+        setGroupVar,
+        setCatVars,
+        setContVars,
+        setResultTable,
+        setGroupCounts
+    } = useAnalysisStore();
 
     // 統一的錯誤處理器
     const handleError = createErrorHandler((appError: AppError) => {
@@ -37,11 +42,11 @@ export const useTableAnalysis = (props: UseTableAnalysisProps) => {
         }
     });
 
-    // 更新 context 狀態
-    const updateContextState = (groupVar: string, catVars: string[], contVars: string[]) => {
-        props.setCtxGroupVar(groupVar);
-        props.setCtxCatVars(catVars);
-        props.setCtxContVars(contVars);
+    // 更新 store 狀態
+    const updateStoreState = (groupVar: string, catVars: string[], contVars: string[]) => {
+        setGroupVar(groupVar);
+        setCatVars(catVars);
+        setContVars(contVars);
     };
 
     // 獲取認證令牌
@@ -81,10 +86,10 @@ export const useTableAnalysis = (props: UseTableAnalysisProps) => {
 
     // 處理成功結果
     const handleSuccess = (result: any) => {
-        props.setResultTable(result.data.table);
+        setResultTable(result.data.table);
 
         if (result.data.groupCounts) {
-            props.setGroupCounts(result.data.groupCounts);
+            setGroupCounts(result.data.groupCounts);
         }
 
         if (props.onSuccess) {
@@ -103,7 +108,7 @@ export const useTableAnalysis = (props: UseTableAnalysisProps) => {
         fillNA: boolean
     ) => {
         setError(null);
-        updateContextState(groupVar, catVars, contVars);
+        updateStoreState(groupVar, catVars, contVars);
         setLoading(true);
 
         const correlationId = `table-analysis-${Date.now()}`;

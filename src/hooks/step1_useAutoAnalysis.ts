@@ -10,16 +10,10 @@ import {
 } from "@/utils/error";
 import { apiClient, reportError } from "@/lib/apiClient";
 import { AppError } from '@/types/errors';
+import { useAnalysisStore } from '@/stores/analysisStore';
 
 interface UseAutoAnalysisProps {
     getToken: () => Promise<string | null>;
-    setCtxFile: (file: File) => void;
-    setCtxGroupVar: (groupVar: string) => void;
-    setCtxCatVars: (catVars: string[]) => void;
-    setCtxContVars: (contVars: string[]) => void;
-    setAutoAnalysisResult: (result: any) => void;
-    setResultTable: (table: any) => void;
-    setGroupCounts: (counts: any) => void;
     onSuccess?: () => void;
 }
 
@@ -27,6 +21,17 @@ export const useAutoAnalysis = (props: UseAutoAnalysisProps) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<AppError | null>(null);
     const autoAnalysisService = new AutoAnalysisService();
+    
+    // 使用 Zustand store
+    const {
+        setFile,
+        setGroupVar,
+        setCatVars,
+        setContVars,
+        setAutoAnalysisResult,
+        setResultTable,
+        setGroupCounts
+    } = useAnalysisStore();
 
     // 清除錯誤
     const clearError = () => setError(null);
@@ -79,21 +84,21 @@ export const useAutoAnalysis = (props: UseAutoAnalysisProps) => {
         }
     };
 
-    const updateContextState = (result: any, file: File) => {
-        props.setCtxFile(file);
-        props.setCtxGroupVar(result.group_var || "");
-        props.setCtxCatVars(result.cat_vars || []);
-        props.setCtxContVars(result.cont_vars || []);
-        props.setAutoAnalysisResult(result);
+    const updateStoreState = (result: any, file: File) => {
+        setFile(file);
+        setGroupVar(result.group_var || "");
+        setCatVars(result.cat_vars || []);
+        setContVars(result.cont_vars || []);
+        setAutoAnalysisResult(result);
     };
 
     const updateAnalysisResults = (result: any) => {
         if (result.analysis?.table) {
-            props.setResultTable(result.analysis.table);
+            setResultTable(result.analysis.table);
         }
 
         if (result.analysis?.groupCounts) {
-            props.setGroupCounts(result.analysis.groupCounts);
+            setGroupCounts(result.analysis.groupCounts);
         }
     };
 
@@ -125,7 +130,7 @@ export const useAutoAnalysis = (props: UseAutoAnalysisProps) => {
                 timeout: 60000 // 分析需要較長時間
             });
 
-            updateContextState(result, file!);
+            updateStoreState(result, file!);
             updateAnalysisResults(result);
 
             // 調用成功回調

@@ -1,4 +1,3 @@
-// hooks/step1/usePrivacyDetection.ts
 import { useState, useCallback } from 'react';
 import { FileAnalysisService } from '@/services/step1_fileAnalysisService';
 import { useUserLimits } from '@/hooks/general_useUserLimits';

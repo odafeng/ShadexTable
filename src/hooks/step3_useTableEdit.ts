@@ -1,8 +1,7 @@
-// app/step3/hooks/useTableEdit.ts
 import { useState, useEffect } from "react";
 import { arrayMove } from "@dnd-kit/sortable";
 import { DragEndEvent } from "@dnd-kit/core";
-import type { TableRow, BinaryMapping, EditState } from "@/app/step3/types";
+import type { TableRow, BinaryMapping } from "@/app/step3/types";
 import { formatVariableName } from "@/services/step3_dataTransformService";
 
 export function useTableEdit(
@@ -130,4 +129,5 @@ export function useTableEdit(
     handleEditGroupLabel,
     handleEditBinaryMapping,
     handleDragEnd,
-  }};
+  };
+}

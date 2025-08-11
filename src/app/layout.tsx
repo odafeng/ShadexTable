@@ -4,7 +4,6 @@ import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { zhTW } from '@clerk/localizations';
 import ClientProviders from './clientProvider';
-import { AnalysisProvider } from "@/context/AnalysisContext";  // 引入 AnalysisProvider
 import { AppErrorBoundary } from "@/components/AppErrorBoundary";
 
 const geistSans = Geist({
@@ -56,11 +55,9 @@ export default function RootLayout({
       <html lang="zhTW">
         <body className={`${geistSans.variable} ${geistMono.variable}`}>
           <AppErrorBoundary>
-            <AnalysisProvider>
-              <ClientProviders>
-                {children}
-              </ClientProviders>
-            </AnalysisProvider>
+            <ClientProviders>
+              {children}
+            </ClientProviders>
           </AppErrorBoundary>
         </body>
       </html>

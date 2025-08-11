@@ -3,7 +3,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAnalysis } from "@/context/AnalysisContext";
+import { useAnalysisStore } from "@/stores/analysisStore";
 import Header from "@/components/ui/layout/Header_ui2";
 import Footer from "@/components/Footer";
 import StepNavigator from "@/components/stepNavigator";
@@ -14,12 +14,11 @@ import { useExport } from "@/hooks/step3_useExport";
 import type { TableRow } from "./types";
 
 export default function Step3Summary() {
-  const {
-    resultTable,
-    groupVar,
-    groupCounts,
-    autoAnalysisResult
-  } = useAnalysis();
+  // 使用選擇器只訂閱需要的狀態
+  const resultTable = useAnalysisStore((state) => state.resultTable);
+  const groupVar = useAnalysisStore((state) => state.groupVar);
+  const groupCounts = useAnalysisStore((state) => state.groupCounts);
+  const autoAnalysisResult = useAnalysisStore((state) => state.autoAnalysisResult);
 
   const router = useRouter();
 

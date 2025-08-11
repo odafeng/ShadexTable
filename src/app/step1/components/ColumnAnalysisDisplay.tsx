@@ -1,3 +1,4 @@
+// step1/components/ColumnAnalysisDisplay.tsx
 import React from 'react';
 import { ChevronDown, TableProperties } from 'lucide-react';
 import {
@@ -7,24 +8,14 @@ import {
     AccordionContent
 } from "@/components/ui/accordion";
 import { typeColorClass } from "@/lib/constants";
+import { useAnalysisStore } from '@/stores/analysisStore';
 
-interface ColumnProfile {
-    column: string;
-    missing_pct: string;
-    suggested_type: string;
-}
-
-interface ColumnAnalysisDisplayProps {
-    columnAnalysisLoading: boolean;
-    showPreview: boolean;
-    columnsPreview: ColumnProfile[];
-}
-
-export default function ColumnAnalysisDisplay({
-    columnAnalysisLoading,
-    showPreview,
-    columnsPreview
-}: ColumnAnalysisDisplayProps) {
+export default function ColumnAnalysisDisplay() {
+    // 直接從 Zustand 獲取所有需要的狀態
+    const columnsPreview = useAnalysisStore(state => state.columnsPreview);
+    const showPreview = useAnalysisStore(state => state.showPreview);
+    const columnAnalysisLoading = useAnalysisStore(state => state.columnAnalysisLoading);
+    
     return (
         <div className="mt-8 lg:mt-10">
             {/* 載入狀態 */}
@@ -64,7 +55,7 @@ export default function ColumnAnalysisDisplay({
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {columnsPreview.map((col, i) => (
+                                        {columnsPreview.map((col: any, i: number) => (
                                             <tr key={i} className="hover:bg-gray-50 border-b border-gray-200">
                                                 <td className="px-3 py-2 whitespace-nowrap text-[#0F2844]">
                                                     {col.column || `欄位 ${i + 1}`}

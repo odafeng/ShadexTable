@@ -1,25 +1,24 @@
-// hooks/step1/useColumnAnalysis.ts
+// step1_useColumnAnalysis.ts
 import { useState, useCallback } from 'react';
 import { FileAnalysisService, ColumnProfile } from '@/services/step1_fileAnalysisService';
 import { CommonErrors } from '@/utils/error';
+import { useAnalysisStore } from '@/stores/analysisStore';
 
-interface UseColumnAnalysisReturn {
-    columnsPreview: ColumnProfile[];
-    showPreview: boolean;
-    columnAnalysisLoading: boolean;
-    analyzeColumns: (data: any[], token?: string) => Promise<void>;
-    retryAnalysis: (data: any[]) => Promise<void>;
-    resetColumnAnalysis: () => void;
-}
+export function useColumnAnalysis() {
+    // 從 Zustand store 獲取狀態和方法
+    const columnsPreview = useAnalysisStore(state => state.columnsPreview);
+    const showPreview = useAnalysisStore(state => state.showPreview);
+    const columnAnalysisLoading = useAnalysisStore(state => state.columnAnalysisLoading);
+    const setColumnsPreview = useAnalysisStore(state => state.setColumnsPreview);
+    const setShowPreview = useAnalysisStore(state => state.setShowPreview);
+    const setColumnAnalysisLoading = useAnalysisStore(state => state.setColumnAnalysisLoading);
+    const setColumnProfile = useAnalysisStore(state => state.setColumnProfile);
 
-export function useColumnAnalysis(
-    setColumnTypes?: (columns: ColumnProfile[]) => void
-): UseColumnAnalysisReturn {
-    const [columnsPreview, setColumnsPreview] = useState<ColumnProfile[]>([]);
-    const [showPreview, setShowPreview] = useState(false);
-    const [columnAnalysisLoading, setColumnAnalysisLoading] = useState(false);
-
-    const analyzeColumns = useCallback(async (data: any[], token?: string) => {
+    const analyzeColumns = useCallback(async (
+        data: any[], 
+        token?: string,
+        setColumnTypes?: (types: { column: string; suggested_type: string }[]) => void
+    ) => {
         setColumnAnalysisLoading(true);
         
         try {
@@ -30,30 +29,49 @@ export function useColumnAnalysis(
             
             if (result.success && result.columns) {
                 setColumnsPreview(result.columns);
+                setColumnProfile(result.columns); // 同時更新 columnProfile
+                
                 if (setColumnTypes) {
-                    setColumnTypes(result.columns);
+                    const columnTypesData = result.columns.map(col => ({
+                        column: col.column,
+                        suggested_type: col.suggested_type
+                    }));
+                    setColumnTypes(columnTypesData);
                 }
                 setShowPreview(true);
             } else {
                 // 使用備用方案
                 const fallbackColumns = FileAnalysisService.createFallbackColumnData(data);
                 setColumnsPreview(fallbackColumns);
+                setColumnProfile(fallbackColumns);
+                
+                if (setColumnTypes) {
+                    const fallbackTypesData = fallbackColumns.map(col => ({
+                        column: col.column,
+                        suggested_type: col.suggested_type
+                    }));
+                    setColumnTypes(fallbackTypesData);
+                }
                 setShowPreview(true);
             }
         } catch (err) {
             // 使用備用方案，但不拋出錯誤
             const fallbackColumns = FileAnalysisService.createFallbackColumnData(data);
             setColumnsPreview(fallbackColumns);
+            setColumnProfile(fallbackColumns);
             setShowPreview(true);
-            throw err; // 重新拋出供上層處理
+            throw err;
         } finally {
             setColumnAnalysisLoading(false);
         }
-    }, [setColumnTypes]);
+    }, [setColumnsPreview, setShowPreview, setColumnAnalysisLoading, setColumnProfile]);
 
-    const retryAnalysis = useCallback(async (data: any[]) => {
+    const retryAnalysis = useCallback(async (
+        data: any[],
+        setColumnTypes?: (types: { column: string; suggested_type: string }[]) => void
+    ) => {
         if (data.length > 0) {
-            await analyzeColumns(data);
+            await analyzeColumns(data, undefined, setColumnTypes);
         }
     }, [analyzeColumns]);
 
@@ -61,7 +79,7 @@ export function useColumnAnalysis(
         setColumnsPreview([]);
         setShowPreview(false);
         setColumnAnalysisLoading(false);
-    }, []);
+    }, [setColumnsPreview, setShowPreview, setColumnAnalysisLoading]);
 
     return {
         columnsPreview,

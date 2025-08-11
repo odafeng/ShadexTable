@@ -1,8 +1,8 @@
-// hooks/step1/useStep1Logic.ts
+// step1_useStep1Logic.ts
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
-import { useAnalysis } from '@/context/AnalysisContext';
+import { useAnalysisStore } from '@/stores/analysisStore';
 import { useUserLimits } from '@/hooks/general_useUserLimits';
 import { FileAnalysisService } from '@/services/step1_fileAnalysisService';
 import { createErrorHandler, CommonErrors } from '@/utils/error';
@@ -16,24 +16,25 @@ import { useAnalysisTrigger } from './step1_useAnalysisTrigger';
 export function useStep1Logic() {
     const router = useRouter();
     const { getToken, isSignedIn } = useAuth();
-    const {
-        parsedData,
-        setParsedData,
-        fillNA,
-        setFillNA,
-        setColumnTypes,
-    } = useAnalysis();
+    
+    // 🔥 優化：只訂閱需要的狀態，並加入 setFile
+    const parsedData = useAnalysisStore(state => state.parsedData);
+    const setParsedData = useAnalysisStore(state => state.setParsedData);
+    const fillNA = useAnalysisStore(state => state.fillNA);
+    const setFillNA = useAnalysisStore(state => state.setFillNA);
+    const setColumnTypes = useAnalysisStore(state => state.setColumnTypes);
+    const setFile: (file: File | null) => void = useAnalysisStore(state => state.setFile); // ✅ 加入 setFile
 
-    // 基本狀態
+    // 基本狀態 - local state 只用於 UI 顯示
     const [fileName, setFileName] = useState<string | null>(null);
-    const [file, setFile] = useState<File | null>(null);
+    const [file, setLocalFile] = useState<File | null>(null); // 改名為 setLocalFile 避免混淆
     const [error, setError] = useState<AppError | null>(null);
     const [dragOver, setDragOver] = useState(false);
 
     // 使用拆分後的 hooks
     const fileValidation = useFileValidation();
     const privacyDetection = usePrivacyDetection();
-    const columnAnalysis = useColumnAnalysis(setColumnTypes);
+    const columnAnalysis = useColumnAnalysis();
     const analysisTrigger = useAnalysisTrigger();
     const limitsInfo = useUserLimits();
 
@@ -112,12 +113,14 @@ export function useStep1Logic() {
             );
             
             if (result.success && result.data) {
-                setFile(privacyDetection.pendingFile);
+                // ✅ 關鍵修正：同時設定到 local state 和 Zustand store
+                setLocalFile(privacyDetection.pendingFile);
+                setFile(privacyDetection.pendingFile); // 設定到 Zustand store
                 setFileName(privacyDetection.pendingFile.name);
                 setParsedData(result.data);
                 
-                // 進行欄位分析
-                await columnAnalysis.analyzeColumns(result.data);
+                // 進行欄位分析 - 傳入 setColumnTypes
+                await columnAnalysis.analyzeColumns(result.data, undefined, setColumnTypes);
             }
             
             privacyDetection.resetPrivacyState();
@@ -131,32 +134,42 @@ export function useStep1Logic() {
         limitsInfo.userType, 
         columnAnalysis, 
         setParsedData,
+        setColumnTypes,
+        setFile, // ✅ 加入依賴
         fileValidation,
         errorHandler
     ]);
 
-    // 分析處理
+    // 分析處理 - 使用 Zustand store 中的 file
     const handleAnalyze = useCallback(async () => {
         setError(null);
         
+        // 從 Zustand store 取得 file
+        const storeFile = useAnalysisStore.getState().file;
+        
+        if (!storeFile) {
+            errorHandler(CommonErrors.fileNotSelected(), "分析處理 - 無檔案");
+            return;
+        }
+        
         try {
-            await analysisTrigger.triggerAnalysis(file);
+            await analysisTrigger.triggerAnalysis(storeFile);
         } catch (err: unknown) {
             errorHandler(err, "分析處理");
         }
-    }, [file, analysisTrigger, errorHandler]);
+    }, [analysisTrigger, errorHandler]);
 
     // 重試欄位分析
     const retryColumnAnalysis = useCallback(async () => {
         if (parsedData.length > 0) {
             setError(null);
             try {
-                await columnAnalysis.retryAnalysis(parsedData);
+                await columnAnalysis.retryAnalysis(parsedData, setColumnTypes);
             } catch (err: unknown) {
                 errorHandler(err, "重試欄位分析");
             }
         }
-    }, [parsedData, columnAnalysis, errorHandler]);
+    }, [parsedData, columnAnalysis, setColumnTypes, errorHandler]);
 
     // 事件處理
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {

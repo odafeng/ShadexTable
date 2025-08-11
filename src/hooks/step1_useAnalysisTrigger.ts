@@ -1,8 +1,7 @@
-// hooks/step1/useAnalysisTrigger.ts
 import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
-import { useAnalysis } from '@/context/AnalysisContext';
+import { useAnalysisStore } from '@/stores/analysisStore';
 import { FileAnalysisService } from '@/services/step1_fileAnalysisService';
 import { CommonErrors } from '@/utils/error';
 
@@ -19,32 +18,31 @@ export function useAnalysisTrigger(): UseAnalysisTriggerReturn {
     const [loading, setLoading] = useState(false);
     const [autoMode, setAutoMode] = useState(false);
     
-    const {
-        parsedData,
-        setFile: setCtxFile,
-        setGroupVar: setCtxGroupVar,
-        setCatVars: setCtxCatVars,
-        setContVars: setCtxContVars,
-        fillNA,
-        setAutoAnalysisResult,
-        setResultTable,
-        setGroupCounts,
-    } = useAnalysis();
+    // 🔥 優化：局部訂閱需要的狀態和方法
+    const parsedData = useAnalysisStore(state => state.parsedData);
+    const fillNA = useAnalysisStore(state => state.fillNA);
+    const setFile = useAnalysisStore(state => state.setFile);
+    const setGroupVar = useAnalysisStore(state => state.setGroupVar);
+    const setCatVars = useAnalysisStore(state => state.setCatVars);
+    const setContVars = useAnalysisStore(state => state.setContVars);
+    const setAutoAnalysisResult = useAnalysisStore(state => state.setAutoAnalysisResult);
+    const setResultTable = useAnalysisStore(state => state.setResultTable);
+    const setGroupCounts = useAnalysisStore(state => state.setGroupCounts);
 
     const handleManualAnalyze = useCallback(async (file: File) => {
-        setCtxFile(file);
+        setFile(file);
         setAutoAnalysisResult(null);
         // 給一點時間讓 UI 更新
         await new Promise(resolve => setTimeout(resolve, 1000));
         router.push("/step2");
-    }, [setCtxFile, setAutoAnalysisResult, router]);
+    }, [setFile, setAutoAnalysisResult, router]);
 
     const handleAutoAnalyze = useCallback(async (file: File) => {
         if (parsedData.length === 0) {
             throw CommonErrors.fileNotSelected();
         }
 
-        setCtxFile(file);
+        setFile(file);
         const token = await getToken();
         if (!token) throw CommonErrors.analysisAuthFailed();
 
@@ -58,10 +56,10 @@ export function useAnalysisTrigger(): UseAnalysisTriggerReturn {
             throw result.error;
         }
 
-        // 更新 context 狀態
-        setCtxGroupVar(result.result?.group_var || "");
-        setCtxCatVars(result.result?.cat_vars || []);
-        setCtxContVars(result.result?.cont_vars || []);
+        // 更新 store 狀態
+        setGroupVar(result.result?.group_var || "");
+        setCatVars(result.result?.cat_vars || []);
+        setContVars(result.result?.cont_vars || []);
         setAutoAnalysisResult(result.result);
 
         if (result.result?.analysis?.table) {
@@ -77,10 +75,10 @@ export function useAnalysisTrigger(): UseAnalysisTriggerReturn {
         parsedData, 
         fillNA, 
         getToken, 
-        setCtxFile,
-        setCtxGroupVar,
-        setCtxCatVars, 
-        setCtxContVars,
+        setFile,
+        setGroupVar,
+        setCatVars, 
+        setContVars,
         setAutoAnalysisResult,
         setResultTable,
         setGroupCounts,

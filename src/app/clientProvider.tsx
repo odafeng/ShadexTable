@@ -2,13 +2,13 @@
 'use client';
 
 import { Toaster } from 'sonner';
-import { AnalysisProvider } from '@/context/AnalysisContext';
+// 不再需要 import AnalysisProvider
 
 export default function ClientProviders({ children }: { children: React.ReactNode }) {
   return (
     <>
       <Toaster position="top-center" richColors />
-      <AnalysisProvider>{children}</AnalysisProvider>
+      {children}
     </>
   );
 }

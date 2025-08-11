@@ -1,6 +1,5 @@
-// app/step3/hooks/useExport.ts
 import { createErrorHandler } from "@/utils/error";
-import { reportError } from "@/lib/apiClient";  // ← 從 apiClient 引入 reportError
+import { reportError } from "@/lib/apiClient";
 import { exportToExcel, exportToWord } from "@/services/step3_exportService";
 import { prepareExportData, isCategorySubItem } from "@/services/step3_dataTransformService";
 import type { TableRow, GroupCounts, BinaryMapping } from "@/app/step3/types";
@@ -23,7 +22,7 @@ export function useExport({
   groupVar
 }: UseExportParams) {
   const handleError = createErrorHandler((appError) => {
-    reportError(appError);  // 使用從 apiClient 引入的 reportError
+    reportError(appError);
     alert(appError.userMessage);
   });
 

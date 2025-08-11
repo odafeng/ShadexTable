@@ -27,17 +27,14 @@ interface UserMetadata {
 }
 
 export function useUserLimits(): UserLimitsInfo {
-    // 使用 useUser 來獲取用戶資料
     const { isLoaded: authLoaded } = useAuth();
     const { user, isLoaded: userLoaded } = useUser();
     const [userType, setUserType] = useState<UserType>('GENERAL');
     const [plan, setPlan] = useState<SubscriptionPlan>('free');
     const [isLoading, setIsLoading] = useState(true);
 
-    // 檢查是否完全載入
     const isFullyLoaded = authLoaded && userLoaded;
 
-    // 根據訂閱計畫決定用戶類型
     const getUserTypeFromPlan = (subscriptionPlan: SubscriptionPlan): UserType => {
         switch (subscriptionPlan) {
             case 'professional':
@@ -50,21 +47,17 @@ export function useUserLimits(): UserLimitsInfo {
         }
     };
 
-    // 從 Clerk 用戶資料中提取訂閱資訊
     useEffect(() => {
         if (isFullyLoaded) {
             if (user) {
-                // 安全的類型斷言
                 const metadata = (user.publicMetadata || {}) as UserMetadata;
                 
-                // 從用戶 metadata 取得訂閱計畫
                 const userPlan = metadata.subscription_plan || 'free';
                 const userTypeFromPlan = metadata.user_type || getUserTypeFromPlan(userPlan);
                 
                 setPlan(userPlan);
                 setUserType(userTypeFromPlan);
             } else {
-                // 未登入用戶使用預設值
                 setPlan('free');
                 setUserType('GENERAL');
             }
@@ -72,7 +65,6 @@ export function useUserLimits(): UserLimitsInfo {
         }
     }, [isFullyLoaded, user]);
 
-    // 計算限制資訊
     const limitsInfo = useMemo((): UserLimitsInfo => {
         const limits = FileProcessor.getUserLimits(userType);
         
@@ -103,7 +95,6 @@ export function useUserLimits(): UserLimitsInfo {
     return limitsInfo;
 }
 
-// 訂閱計畫顯示名稱
 function getPlanDisplayName(plan: SubscriptionPlan): string {
     switch (plan) {
         case 'free':
@@ -119,7 +110,6 @@ function getPlanDisplayName(plan: SubscriptionPlan): string {
     }
 }
 
-// 檢查檔案是否超出用戶限制
 export function useFileValidation() {
     const { limits, userType } = useUserLimits();
 
@@ -134,7 +124,7 @@ export function useFileValidation() {
     const getFileSizeWarning = (file: File): string | null => {
         const fileSize = file.size;
         const maxSize = limits.maxSizeBytes;
-        const warningThreshold = maxSize * 0.8; // 80% 警告閾值
+        const warningThreshold = maxSize * 0.8;
 
         if (fileSize > warningThreshold && fileSize <= maxSize) {
             const percentage = Math.round((fileSize / maxSize) * 100);

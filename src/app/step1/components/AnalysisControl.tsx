@@ -1,30 +1,38 @@
+// step1/components/AnalysisControl.tsx
 import React from 'react';
 import { CircleQuestionMark } from 'lucide-react';
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import ToggleSwitch from "@/components/ToggleSwitch";
 import ActionButton from "@/components/ActionButton";
+import { useAnalysisStore } from '@/stores/analysisStore';
+import { useAnalysisTrigger } from '@/hooks/step1_useAnalysisTrigger';
 
-interface AnalysisControlsProps {
-    fillNA: boolean;
-    autoMode: boolean;
-    isLoading: boolean;
-    hasFile: boolean;
-    sensitiveDetectionLoading: boolean;
-    onFillNAChange: (checked: boolean) => void;
-    onAutoModeChange: (checked: boolean) => void;
-    onAnalyze: () => void;
-}
-
-export default function AnalysisControls({
-    fillNA,
-    autoMode,
-    isLoading,
-    hasFile,
-    sensitiveDetectionLoading,
-    onFillNAChange,
-    onAutoModeChange,
-    onAnalyze
-}: AnalysisControlsProps) {
+export default function AnalysisControls() {
+    // 從 Zustand 獲取需要的狀態
+    const file = useAnalysisStore(state => state.file);
+    const fillNA = useAnalysisStore(state => state.fillNA);
+    const setFillNA = useAnalysisStore(state => state.setFillNA);
+    
+    // 使用 Analysis Trigger Hook
+    const {
+        autoMode,
+        setAutoMode,
+        loading,
+        triggerAnalysis
+    } = useAnalysisTrigger();
+    
+    // 處理分析
+    const handleAnalyze = async () => {
+        try {
+            await triggerAnalysis(file);
+        } catch (err) {
+            console.error('分析錯誤:', err);
+        }
+    };
+    
+    // 從其他地方可能需要的狀態（如果需要可以加入）
+    const sensitiveDetectionLoading = false; // 可以從 usePrivacyDetection 取得
+    
     return (
         <>
             {/* 填補缺值選項 */}
@@ -34,13 +42,13 @@ export default function AnalysisControls({
                     id="fillna"
                     className="w-[25px] h-[25px] rounded-md border border-gray-400 bg-white checked:bg-[#0F2844] checked:border-[#0F2844] cursor-pointer disabled:opacity-50"
                     checked={fillNA}
-                    onChange={(e) => onFillNAChange(e.target.checked)}
-                    disabled={isLoading}
+                    onChange={(e) => setFillNA(e.target.checked)}
+                    disabled={loading}
                 />
                 <label
                     htmlFor="fillna"
                     className={`text-[20px] text-[#555555] tracking-[2px] leading-[32px] font-bold cursor-pointer transition-opacity ${
-                        isLoading ? 'opacity-50' : ''
+                        loading ? 'opacity-50' : ''
                     }`}
                 >
                     填補缺值
@@ -63,7 +71,7 @@ export default function AnalysisControls({
                 <div className="flex flex-col items-center gap-4">
                     <ToggleSwitch
                         checked={autoMode}
-                        onCheckedChange={onAutoModeChange}
+                        onCheckedChange={setAutoMode}
                         label="AI 全自動分析模式"
                         size="sm"
                         className="justify-center"
@@ -92,10 +100,10 @@ export default function AnalysisControls({
                 {/* 統一的開始分析按鈕 */}
                 <div className="flex justify-center">
                     <ActionButton
-                        text={isLoading ? "處理中..." : `開始${autoMode ? ' AI 全自動' : ' 半自動'}分析`}
-                        loading={isLoading}
-                        disabled={!hasFile || isLoading}
-                        onClick={onAnalyze}
+                        text={loading ? "處理中..." : `開始${autoMode ? ' AI 全自動' : ' 半自動'}分析`}
+                        loading={loading}
+                        disabled={!file || loading}
+                        onClick={handleAnalyze}
                         iconSrc={autoMode ? "/step1/upload_white.png" : "/step1/upload_white.png"}
                         iconGraySrc="/step1/upload_gray.png"
                         iconHoverSrc={autoMode ? "/step1/upload_white.png" : "/step1/Group_50@2x.png"}
@@ -104,13 +112,13 @@ export default function AnalysisControls({
                                 ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 hover:text-white'
                                 : ''
                         } ${
-                            isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                            loading ? 'opacity-50 cursor-not-allowed' : ''
                         }`}
                     />
                 </div>
 
                 {/* 載入狀態下的額外提示 */}
-                {isLoading && (
+                {loading && (
                     <div className="text-center text-sm text-gray-500">
                         <p>⏱️ 預估時間：{autoMode ? '30-60' : '5-10'} 秒</p>
                         <p className="mt-1">

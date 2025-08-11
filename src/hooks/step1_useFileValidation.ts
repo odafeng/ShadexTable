@@ -1,4 +1,3 @@
-// hooks/step1/useFileValidation.ts
 import { useState } from 'react';
 import { useFileValidation as useFileValidationLib } from '@/hooks/general_useUserLimits';
 import { AppError } from '@/types/errors';

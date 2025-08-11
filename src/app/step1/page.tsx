@@ -1,3 +1,4 @@
+// step1/page.tsx
 "use client";
 
 import React from "react";
@@ -20,10 +21,6 @@ export default function Step1Page() {
         file,
         error,
         dragOver,
-        columnsPreview,
-        showPreview,
-        autoMode,
-        columnAnalysisLoading,
         showPrivacyDialog,
         sensitiveColumns,
         privacySuggestions,
@@ -32,13 +29,8 @@ export default function Step1Page() {
         sensitiveDetectionLoading,
         limitsInfo,
         parsedData,
-        fillNA,
         isLoading,
         isSignedIn,
-
-        // 設置函數
-        setAutoMode,
-        setFillNA,
 
         // 事件處理
         handleFileChange,
@@ -47,7 +39,6 @@ export default function Step1Page() {
         handleDragLeave,
         handlePrivacyConfirm,
         handlePrivacyCancel,
-        handleAnalyze,
         clearError,
         retryColumnAnalysis
     } = useStep1Logic();
@@ -102,14 +93,14 @@ export default function Step1Page() {
                     </div>
                 </div>
 
-                {/* 錯誤訊息顯示 */}
+                {/* 錯誤訊息顯示 - 保持使用 props */}
                 <ErrorDisplay
                     error={error}
                     onClearError={clearError}
                     onRetry={retryColumnAnalysis}
                 />
 
-                {/* 檔案上傳區 */}
+                {/* 檔案上傳區 - 保持使用 props */}
                 <FileUploadArea
                     fileName={fileName}
                     dragOver={dragOver}
@@ -122,38 +113,25 @@ export default function Step1Page() {
                     onDragLeave={handleDragLeave}
                 />
 
-                {/* 資料預覽表格 */}
+                {/* 資料預覽表格 - 保持使用 props */}
                 {parsedData.length > 0 && (
                     <DataPreviewTable parsedData={parsedData} />
                 )}
 
-                {/* 自動欄位解析結果 */}
+                {/* 自動欄位解析結果 - 改用 Zustand，不需要傳 props */}
                 {parsedData.length > 0 && (
-                    <ColumnAnalysisDisplay
-                        columnAnalysisLoading={columnAnalysisLoading}
-                        showPreview={showPreview}
-                        columnsPreview={columnsPreview}
-                    />
+                    <ColumnAnalysisDisplay />
                 )}
 
-                {/* 分析控制區 */}
+                {/* 分析控制區 - 改用 Zustand，不需要傳 props */}
                 {parsedData.length > 0 && (
-                    <AnalysisControls
-                        fillNA={fillNA}
-                        autoMode={autoMode}
-                        isLoading={isLoading}
-                        hasFile={!!file}
-                        sensitiveDetectionLoading={sensitiveDetectionLoading}
-                        onFillNAChange={setFillNA}
-                        onAutoModeChange={setAutoMode}
-                        onAnalyze={handleAnalyze}
-                    />
+                    <AnalysisControls />
                 )}
             </div>
 
             <Footer />
 
-            {/* 隱私對話框 */}
+            {/* 隱私對話框 - 保持使用 props */}
             <DataPrivacyDialog
                 open={showPrivacyDialog}
                 onConfirm={handlePrivacyConfirm}

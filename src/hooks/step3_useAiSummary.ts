@@ -1,7 +1,7 @@
-// app/step3/hooks/useAISummary.ts
 import { useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { createErrorHandler } from "@/utils/error";
+import { reportError } from "@/lib/apiClient";
 import { generateAISummary } from "@/services/step3_aiSummaryService";
 import { createCoreSummaryData } from "@/services/step3_dataTransformService";
 import type { TableRow } from "@/app/step3/types";

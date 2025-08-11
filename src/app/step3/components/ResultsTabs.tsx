@@ -11,7 +11,7 @@ import ActionButton2 from "@/components/ActionButton2";
 import ActionButton from "@/components/ActionButton";
 import { CheckCircle2, ClipboardCopy } from "lucide-react";
 import { motion } from "framer-motion";
-import { useAnalysis } from "@/context/AnalysisContext";
+import { useAnalysisStore } from "@/stores/analysisStore";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import SortableRow from "./SortableRow";
@@ -74,7 +74,9 @@ export default function Step3Tabs({
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [showCompleted, setShowCompleted] = useState(false);
 
-  const { groupVar, catVars, contVars, autoAnalysisResult } = useAnalysis();
+  // 只訂閱需要的狀態 - 使用選擇器
+  const groupVar = useAnalysisStore((state) => state.groupVar);
+  const autoAnalysisResult = useAnalysisStore((state) => state.autoAnalysisResult);
 
   const rowsPerPage = 10;
   const pageCount = Math.ceil(tableEditState.sortedRows.length / rowsPerPage);
@@ -485,10 +487,9 @@ export default function Step3Tabs({
           </TooltipProvider>
         </>
       ) : (
-        // AI Summary tab - 使用 <pre> 標籤來安全顯示純文字
+        // AI Summary tab
         <div className="border rounded-lg p-4 bg-gray-50 text-sm text-gray-800 relative">
           <strong className="block text-primary mb-2">AI 產出摘要：</strong>
-          {/* 使用 pre 標籤確保內容以純文字方式呈現，避免 XSS 攻擊 */}
           <pre className="whitespace-pre-wrap font-sans overflow-x-auto">
             {renderSummaryText(summaryText)}
           </pre>

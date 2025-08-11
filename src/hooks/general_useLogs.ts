@@ -28,7 +28,7 @@ export function useLogs() {
   };
 
   const { data, error, isLoading, mutate } = useSWR(
-    isLoaded ? "/user/me/logs" : null, // ✅ 等 token 準備好再送出
+    isLoaded ? "/user/me/logs" : null,
     fetcher
   );
 
@@ -36,6 +36,6 @@ export function useLogs() {
     logs: data || [],
     loading: isLoading,
     error,
-    refetch: mutate, // ✅ 可手動重新拉資料
+    refetch: mutate,
   };
 }

@@ -1,24 +1,26 @@
+// app/step3/components/ResultsTabs.tsx
 "use client";
 
-import { JSX, useState, useEffect } from "react";
+import { useState, useEffect, JSX } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Sparkles, Bot, CheckCircle } from "lucide-react";
+import { Sparkles, CheckCircle, Info, Edit2, Check, X } from "lucide-react";
 import ActionButton2 from "@/components/ActionButton2";
 import ActionButton from "@/components/ActionButton";
 import { CheckCircle2, ClipboardCopy } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAnalysis } from "@/context/AnalysisContext";
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import SortableRow from "./SortableRow";
+import type { TableRow, TabConfig } from "../types";
 
 interface Props {
   columns: string[];
-  filteredRows: any[];
+  filteredRows: TableRow[];
   groupCounts: Record<string, number>;
-  currentPage: number;
-  setCurrentPage: (page: number) => void;
-  pageCount: number;
   summaryText: string | null;
   loading: boolean;
   canExport: () => boolean;
@@ -26,11 +28,11 @@ interface Props {
   exportToWord: () => void;
   handleGenerateAIResult: () => void;
   handleCopySummary: () => void;
-  renderCell: (val: any) => JSX.Element;
   autoMode?: boolean;
+  tableEditState: any;
 }
 
-const tabs = [
+const tabs: TabConfig[] = [
   {
     key: "table",
     label: "統計表",
@@ -55,9 +57,6 @@ export default function Step3Tabs({
   columns,
   filteredRows,
   groupCounts,
-  currentPage,
-  setCurrentPage,
-  pageCount,
   summaryText,
   loading,
   canExport,
@@ -65,168 +64,95 @@ export default function Step3Tabs({
   exportToWord,
   handleGenerateAIResult,
   handleCopySummary,
-  renderCell,
   autoMode = false,
+  tableEditState
 }: Props) {
   const [currentTab, setCurrentTab] = useState("table");
+  const [currentPage, setCurrentPage] = useState(0);
   const [copied, setCopied] = useState(false);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [showCompleted, setShowCompleted] = useState(false);
-  
-  // 获取 AI 分析结果
+
   const { groupVar, catVars, contVars, autoAnalysisResult } = useAnalysis();
 
-  // 处理加载状态的动画效果
+  const rowsPerPage = 10;
+  const pageCount = Math.ceil(tableEditState.sortedRows.length / rowsPerPage);
+
+  // DnD sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // Loading animation
   useEffect(() => {
     if (loading) {
       setCurrentStepIndex(0);
       setShowCompleted(false);
-      
-      // 第一步：解析結果表格 (顯示2秒)
+
       const timer1 = setTimeout(() => {
-        if (loading) { // 確保還在loading狀態才切換
+        if (loading) {
           setCurrentStepIndex(1);
         }
       }, 2000);
-      
-      return () => {
-        clearTimeout(timer1);
-      };
+
+      return () => clearTimeout(timer1);
     }
   }, [loading]);
 
-  // 單獨處理完成狀態
   useEffect(() => {
     if (!loading && currentStepIndex > 0) {
-      // loading 結束時，顯示完成狀態
       setCurrentStepIndex(2);
       setShowCompleted(true);
-      
-      // 完成狀態顯示1.5秒後隱藏
+
       const hideTimer = setTimeout(() => {
         setShowCompleted(false);
         setCurrentStepIndex(0);
       }, 1500);
-      
+
       return () => clearTimeout(hideTimer);
     }
   }, [loading, currentStepIndex]);
 
-  // 安全渲染函數
-  const renderSafeText = (value: any): string => {
-    if (value === null || value === undefined) return "";
-    if (typeof value === 'string') return value;
-    if (typeof value === 'number' || typeof value === 'boolean') return String(value);
-    return String(value);
-  };
-
-  // 安全渲染陣列
-  const renderSafeArray = (arr: any): string[] => {
-    if (!Array.isArray(arr)) {
-      console.warn("⚠️ 預期陣列但收到:", typeof arr, arr);
-      return [];
-    }
-    return arr.map(item => renderSafeText(item));
-  };
-
-  // 安全渲染摘要文本的函數
-  const renderSummaryText = (text: any): string => {
-    if (text === null || text === undefined) {
-      return "尚未產生摘要，請點擊按鈕產出。";
-    }
-    
-    if (typeof text === 'string') {
-      return text;
-    }
-    
-    if (typeof text === 'object') {
-      if (text.msg) {
-        return `錯誤：${text.msg}`;
-      }
-      if (text.message) {
-        return `錯誤：${text.message}`;
-      }
-      if (text.detail) {
-        return `錯誤：${text.detail}`;
-      }
-      try {
-        return `物件內容：\n${JSON.stringify(text, null, 2)}`;
-      } catch (e) {
-        return "無法顯示摘要內容（物件轉換失敗）";
-      }
-    }
-    
-    return String(text);
-  };
-
-  const handleClick = () => {
+  const handleCopyClick = () => {
     handleCopySummary();
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   };
 
-  const exportToWordHandler = async () => {
-    try {
-      // 創建一個自訂的請求來處理二進制響應
-      const controller = new AbortController();
-      const timeout = 30000; // 30秒超時
-      const timeoutId = setTimeout(() => controller.abort(), timeout);
-
-      const response = await fetch("/api/export-word", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Correlation-Id": crypto.randomUUID(),
-        },
-        body: JSON.stringify({ resultTable: filteredRows, groupVar, groupCounts }),
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        console.error(`❌ API 回應錯誤: ${response.status} ${response.statusText}`);
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      // 檢查 Content-Type
-      const contentType = response.headers.get('content-type');
-            
-      if (!contentType?.includes('application/vnd.openxmlformats-officedocument.wordprocessingml.document')) {
-        console.warn('⚠️ 回應的 Content-Type 不是 DOCX，但繼續處理');
-      }
-
-      // 獲取二進制數據
-      const blob = await response.blob();
-        
-      if (!blob || blob.size === 0) {
-        throw new Error("收到空的檔案");
-      }
-
-      // 創建下載鏈接
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "ai-analysis-summary.docx";
-      a.style.display = "none";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-
-      } catch (error) {
-      if (error instanceof Error && error.name === 'AbortError') {
-        console.error("❌ 匯出超時");
-      } else {
-        console.error("❌ 匯出 Word 失敗:", error);
-      }
-      // 根據錯誤類型提供不同的用戶提示
+  const renderCell = (val: any): JSX.Element => {
+    if (val === undefined || val === null || val === "nan" || val === "undefined" || val?.toString().trim() === "—") {
+      return <span className="text-gray-400 italic">&mdash;</span>;
     }
+    return <>{val}</>;
   };
+
+  const renderSummaryText = (text: any): string => {
+    if (text === null || text === undefined) {
+      return "尚未產生摘要，請點擊按鈕產出。";
+    }
+    if (typeof text === 'string') {
+      return text;
+    }
+    return String(text);
+  };
+
+  const currentPageRows = tableEditState.sortedRows.slice(currentPage * rowsPerPage, (currentPage + 1) * rowsPerPage);
+
+  const sortableItems = currentPageRows.map((row: TableRow, idx: number) => {
+    const cleanVar = row.Variable?.replace(/\*+/g, '');
+    return `sortable-${currentPage * rowsPerPage + idx}-${cleanVar}`;
+  });
 
   return (
     <div>
-      {/* 🔧 只在自動模式且有自動分析結果時顯示 */}
+      {/* Auto mode indicator */}
       {autoMode && autoAnalysisResult?.success && (
         <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
           <div className="flex items-start gap-3">
@@ -238,39 +164,12 @@ export default function Step3Tabs({
                 <div>
                   <strong>分組變項：</strong>
                   <span className="ml-2 px-2 py-1 bg-slate-100 text-slate-800 rounded text-xs">
-                    {renderSafeText(groupVar) || "無"}
-                  </span>
-                </div>
-                <div>
-                  <strong>類別變項：</strong>
-                  <span className="ml-2">
-                    {renderSafeArray(catVars).length > 0 ? (
-                      renderSafeArray(catVars).map((catVar, idx) => (
-                        <span key={idx} className="inline-block px-2 py-1 bg-red-100 text-red-800 rounded text-xs mr-1 mb-1">
-                          {catVar}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="text-gray-500">無</span>
-                    )}
-                  </span>
-                </div>
-                <div>
-                  <strong>連續變項：</strong>
-                  <span className="ml-2">
-                    {renderSafeArray(contVars).length > 0 ? (
-                      renderSafeArray(contVars).map((contVar, idx) => (
-                        <span key={idx} className="inline-block px-2 py-1 bg-emerald-100 text-emerald-800 rounded text-xs mr-1 mb-1">
-                          {contVar}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="text-gray-500">無</span>
-                    )}
+                    {groupVar || "無"}
                   </span>
                 </div>
                 <p className="text-xs mt-2">
-                  💡 以上分類由 AI 自動識別完成，已直接應用於統計分析中
+                  💡 以上分類由 AI 自動識別完成<br />
+                  📝 類別變項的選項可透過拖曳重新排序
                 </p>
               </div>
             </div>
@@ -278,7 +177,7 @@ export default function Step3Tabs({
         </div>
       )}
 
-      {/* Tabs 切換區 */}
+      {/* Tabs */}
       <div className="w-full max-h-[60px] flex border-b border-[#D9D9D9] mb-6 overflow-x-auto no-scrollbar whitespace-nowrap cursor-pointer">
         {tabs.map((tab) => {
           const isActive = currentTab === tab.key;
@@ -308,60 +207,169 @@ export default function Step3Tabs({
         })}
       </div>
 
-      {/* Tab 內容區 */}
+      {/* Tab content */}
       {currentTab === "table" ? (
         <>
-          {/* 統計表 Table */}
-          <div className="overflow-x-auto w-full rounded-md border border-[#CED6E0]">
-            <table className="min-w-[700px] w-full text-[18px] text-[#0F2844] table-auto">
-              <thead className="bg-[#F0F4F8] sticky top-0 z-10 border-b border-[#CED6E0] text-[#5B6D81] leading-[32px] tracking-[2px]">
-                <tr>
-                  {columns.map((key) => (
-                    <th key={key} className="px-6 py-3 font-semibold text-left whitespace-nowrap">
-                      {key === "Variable" ? (
-                        <HoverCard>
-                          <HoverCardTrigger>變項</HoverCardTrigger>
-                          <HoverCardContent className="text-sm">本列為各項變數名稱與描述統計</HoverCardContent>
-                        </HoverCard>
-                      ) : key === "Normal"
-                        ? "Normality"
-                        : key === "P"
-                          ? "P"
-                          : key === "Method"
-                            ? "Method"
-                            : key === "Missing"
-                              ? "Missing"
-                              : `${key} (n = ${groupCounts?.[key] ?? "?"})`}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {filteredRows
-                  .slice(currentPage * 10, (currentPage + 1) * 10)
-                  .map((row, idx) => (
-                    <tr key={idx} className="border-b border-[#E5EAF0] hover:bg-[#F8FAFC]">
-                      {columns.map((key, i) => (
-                        <td
-                          key={key}
-                          className={`whitespace-nowrap px-6 py-3 ${i === 0 ? "text-left font-medium" : "text-right"}`}
-                        >
-                          {key === "P" && typeof row[key] === "string" && row[key].includes("*") ? (
-                            <span className="text-[#155EEF] font-medium">{row[key]}</span>
-                          ) : i === 0 && typeof row[key] === "string" && row[key].startsWith("**") ? (
-                            <strong>{row[key].replace(/\*\*/g, "")}</strong>
-                          ) : (
-                            renderCell(row[key])
-                          )}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
+          {/* 編輯提示訊息 - 新增的低調提醒 */}
+          <div className="mb-3 px-2">
+            <div className="flex items-center gap-2 text-xs text-gray-500">
+              <Info className="w-3.5 h-3.5" />
+              <span>提示：將滑鼠移至變項名稱可編輯名稱，類別選項可拖曳重新排序</span>
+            </div>
           </div>
 
-          {/* 分頁控制 */}
+          {/* Table with DnD */}
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={tableEditState.handleDragEnd}
+          >
+            <div className="overflow-x-auto w-full rounded-md border border-[#CED6E0]">
+              <table className="min-w-[700px] w-full text-[18px] text-[#0F2844] table-auto">
+                <thead className="bg-[#F0F4F8] sticky top-0 z-10 border-b border-[#CED6E0] text-[#5B6D81] leading-[32px] tracking-[2px]">
+                  <tr>
+                    {columns.map((key) => {
+                      const isGroupColumn = !["Variable", "Normal", "P", "Method", "Missing"].includes(key);
+                      const isEditingHeader = tableEditState.editingCell === `header-${key}`;
+
+                      return (
+                        <th
+                          key={key}
+                          className="px-6 py-3 font-semibold whitespace-nowrap text-center" // ← 改成置中
+                        >
+                          {key === "Variable" ? (
+                            <HoverCard>
+                              {/* 加 justify-center 讓內容置中 */}
+                              <HoverCardTrigger className="flex items-center justify-center gap-1 cursor-help">
+                                <span>變項</span>
+                                <Info className="w-3.5 h-3.5 opacity-50" />
+                              </HoverCardTrigger>
+                              <HoverCardContent className="text-sm w-80">
+                                <div className="space-y-2">
+                                  <p className="font-semibold">互動功能說明：</p>
+                                  <ul className="space-y-1 text-xs">
+                                    <li className="flex items-start gap-1">
+                                      <span className="text-gray-400">•</span>
+                                      <span>滑鼠移至變項名稱，點擊編輯圖示可修改顯示名稱</span>
+                                    </li>
+                                    <li className="flex items-start gap-1">
+                                      <span className="text-gray-400">•</span>
+                                      <span>類別變項的選項可透過拖曳手柄 ⋮⋮ 重新排序</span>
+                                    </li>
+                                    <li className="flex items-start gap-1">
+                                      <span className="text-gray-400">•</span>
+                                      <span>類別變項可點擊編輯自訂標籤</span>
+                                    </li>
+                                  </ul>
+                                </div>
+                              </HoverCardContent>
+                            </HoverCard>
+                          ) : key === "Normal" ? "Normality"
+                            : key === "P" ? "P"
+                              : key === "Method" ? "Method"
+                                : key === "Missing" ? "Missing"
+                                  : isEditingHeader ? (
+                                    // 編輯模式
+                                    <div className="flex items-center justify-center gap-2">
+                                      <input
+                                        type="text"
+                                        value={tableEditState.tempValue}
+                                        onChange={(e) => tableEditState.setTempValue(e.target.value)}
+                                        onKeyDown={(e) => {
+                                          if (e.key === 'Enter') {
+                                            tableEditState.handleEditGroupLabel(key, tableEditState.tempValue);
+                                            tableEditState.setEditingCell(null);
+                                          } else if (e.key === 'Escape') {
+                                            tableEditState.setEditingCell(null);
+                                            tableEditState.setTempValue('');
+                                          }
+                                        }}
+                                        className="px-2 py-1 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-[#0F2844] max-w-[150px] text-center"
+                                        autoFocus
+                                      />
+                                      <button
+                                        onClick={() => {
+                                          tableEditState.handleEditGroupLabel(key, tableEditState.tempValue);
+                                          tableEditState.setEditingCell(null);
+                                        }}
+                                        className="text-green-600 hover:text-green-700"
+                                      >
+                                        <Check className="w-4 h-4" />
+                                      </button>
+                                      <button
+                                        onClick={() => {
+                                          tableEditState.setEditingCell(null);
+                                          tableEditState.setTempValue('');
+                                        }}
+                                        className="text-red-600 hover:text-red-700"
+                                      >
+                                        <X className="w-4 h-4" />
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    // 顯示模式 - 包含組別標籤和樣本數
+                                    <div className="flex items-center justify-center gap-2 group">
+                                      <span>
+                                        {isGroupColumn ? (
+                                          <>
+                                            {tableEditState.groupLabels[key] || key}
+                                            <span className="ml-1 text-xs opacity-75">
+                                              (n={groupCounts?.[key] ?? "?"})
+                                            </span>
+                                          </>
+                                        ) : (
+                                          key
+                                        )}
+                                      </span>
+                                      {isGroupColumn && (
+                                        <button
+                                          onClick={() => {
+                                            tableEditState.setEditingCell(`header-${key}`);
+                                            tableEditState.setTempValue(tableEditState.groupLabels[key] || key);
+                                          }}
+                                          className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                        >
+                                          <Edit2 className="w-3 h-3 text-gray-500" />
+                                        </button>
+                                      )}
+                                    </div>
+                                  )}
+                        </th>
+                      );
+                    })}
+                  </tr>
+                </thead>
+                <tbody>
+                  <SortableContext
+                    items={sortableItems}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    {currentPageRows.map((row: TableRow, idx: number) => (
+                      <SortableRow
+                        key={`${row.Variable}-${currentPage}-${idx}`}
+                        row={row}
+                        rowIndex={currentPage * rowsPerPage + idx}
+                        columns={columns}
+                        renderCell={renderCell}
+                        displayNames={tableEditState.displayNames}
+                        binaryMappings={tableEditState.binaryMappings}
+                        onEditName={tableEditState.handleEditName}
+                        onEditBinaryMapping={tableEditState.handleEditBinaryMapping}
+                        editingCell={tableEditState.editingCell}
+                        setEditingCell={tableEditState.setEditingCell}
+                        tempValue={tableEditState.tempValue}
+                        setTempValue={tableEditState.setTempValue}
+                        groupCounts={groupCounts}
+                        allRows={tableEditState.sortedRows}
+                      />
+                    ))}
+                  </SortableContext>
+                </tbody>
+              </table>
+            </div>
+          </DndContext>
+
+          {/* Pagination */}
           <div className="flex justify-center items-center gap-4 mt-4 text-sm text-[#637381] whitespace-nowrap">
             <Button
               variant="ghost"
@@ -371,14 +379,12 @@ export default function Step3Tabs({
             >
               ◀ 上一頁
             </Button>
-
             <span>
               Page {currentPage + 1} / {pageCount}
             </span>
-
             <Button
               variant="ghost"
-              disabled={(currentPage + 1) * 10 >= filteredRows.length}
+              disabled={(currentPage + 1) * rowsPerPage >= tableEditState.sortedRows.length}
               onClick={() => setCurrentPage(currentPage + 1)}
               className="bg-transparent hover:bg-transparent hover:text-[#008587] cursor-pointer"
             >
@@ -386,10 +392,9 @@ export default function Step3Tabs({
             </Button>
           </div>
 
-          {/* 匯出與 AI 按鈕 */}
+          {/* Export buttons */}
           <TooltipProvider>
             <div className="flex flex-col items-center sm:flex-row sm:justify-end gap-3 mt-6">
-              {/* 导出按鈕區塊 */}
               <div className="flex gap-3">
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -417,7 +422,7 @@ export default function Step3Tabs({
                     <span>
                       <ActionButton2
                         text="導出 Word"
-                        onClick={exportToWordHandler}
+                        onClick={exportToWord}
                         disabled={!canExport()}
                         className="rounded-2xl px-6 w-[160px]"
                         iconSrc="/step3/export_icon@2x.png"
@@ -434,7 +439,6 @@ export default function Step3Tabs({
                 </Tooltip>
               </div>
 
-              {/* AI 按鈕區塊 */}
               <div className="w-full sm:w-auto flex justify-center sm:justify-start relative">
                 <ActionButton
                   text="AI 產生結果摘要"
@@ -446,7 +450,6 @@ export default function Step3Tabs({
                   className="mt-2 sm:mt-0 w-full sm:w-auto px-6"
                 />
 
-                {/* 動態狀態提示文字 - 絕對定位在按鈕上方 */}
                 {(loading || showCompleted) && (
                   <motion.div
                     key={`${loading}-${showCompleted}-${currentStepIndex}`}
@@ -472,13 +475,13 @@ export default function Step3Tabs({
           </TooltipProvider>
         </>
       ) : (
-        // AI摘要區塊
+        // AI Summary tab
         <div className="border rounded-lg p-4 bg-gray-50 text-sm text-gray-800 whitespace-pre-wrap relative">
-          <strong className="block text-primary mb-2"> AI 產出摘要：</strong>
+          <strong className="block text-primary mb-2">AI 產出摘要：</strong>
           <div>{renderSummaryText(summaryText)}</div>
           <motion.button
             whileTap={{ scale: 0.92 }}
-            onClick={handleClick}
+            onClick={handleCopyClick}
             disabled={!summaryText}
             className={`absolute top-2 right-2 flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-150 border
               ${copied

@@ -336,7 +336,7 @@ export default function Step2Page() {
                                                 <span className="ml-1 text-gray-400 cursor-default">&#9432;</span>
                                             </TooltipTrigger>
                                             <TooltipContent side="top">
-                                                <p>請指定所有的類別變項欄位（如性別、分期等）</p>
+                                                <p>請指定要納入結果表中的類別變項欄位（如性別、分期等）</p>
                                             </TooltipContent>
                                         </Tooltip>
                                     </TooltipProvider>
@@ -358,7 +358,7 @@ export default function Step2Page() {
                                                 <span className="ml-1 text-gray-400 cursor-default">&#9432;</span>
                                             </TooltipTrigger>
                                             <TooltipContent side="top">
-                                                <p>請指定所有的連續變項欄位（如年齡、檢驗值等）</p>
+                                                <p>請指定要納入結果表中的連續變項欄位（如年齡、檢驗值等）</p>
                                             </TooltipContent>
                                         </Tooltip>
                                     </TooltipProvider>

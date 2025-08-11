@@ -13,10 +13,13 @@ import { AlignmentType, WidthType } from "docx";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { resultTable, groupVar, groupCounts } = body;
+    const { resultTable, groupVar, groupCounts, groupLabels } = body;
 
     const baseCols = ["Variable", "P", "Method", "Missing", "Normal"];
-    const allKeys = Object.keys(resultTable?.[0] || {});
+    // 從第一筆資料取得所有欄位，但排除內部欄位
+    const allKeys = Object.keys(resultTable?.[0] || {}).filter(
+      key => !key.startsWith('_') // 排除所有以 _ 開頭的內部欄位
+    );
     const groupKeys = allKeys.filter((k) => !baseCols.includes(k));
     const exportCols = ["Variable", ...groupKeys, "P"];
 
@@ -26,12 +29,14 @@ export async function POST(req: NextRequest) {
     tableRows.push(
       new TableRow({
         children: exportCols.map((col) => {
+          // 使用編輯後的分組標籤
+          const displayLabel = groupLabels?.[col] || col;
           const label =
             col === "Variable"
               ? ""
               : col === "P"
-              ? "p value"
-              : `${col} (n = ${groupCounts[col] || "?"})`;
+                ? "p value"
+                : `${displayLabel} (n = ${groupCounts[displayLabel] || groupCounts[col] || "?"})`;
 
           return new TableCell({
             children: [
@@ -60,41 +65,42 @@ export async function POST(req: NextRequest) {
     );
 
     // 資料列
-    const dataRows = resultTable.filter((row: any) => row.Variable?.replace(/\*/g, "") !== groupVar);
-    
-    
+    const dataRows = resultTable.filter((row: any) => {
+      const originalVar = row._originalVariable || row.Variable;
+      return originalVar?.replace(/\*/g, "") !== groupVar;
+    });
+
     dataRows.forEach((row: any, index: number) => {
-      const isMainVariable = row.Variable?.startsWith("**");
-      const isLastRow = index === dataRows.length - 1; // 檢查是否為最後一列
-      
-      
+      const originalVariable = row._originalVariable || row.Variable;
+      const isMainVariable = originalVariable?.startsWith("**");
+      const isSubItem = row._isSubItem === true; // 使用傳入的標記
+      const isLastRow = index === dataRows.length - 1;
 
       const rowCells = exportCols.map((col) => {
         const raw = row[col];
 
-        // ✅ 強制過濾空值符號
+        // 強制過濾空值符號
         const cleanRaw =
           raw === null || raw === "nan" || raw === "undefined" || raw === "—"
             ? ""
             : String(raw);
 
-        // ✅ 主變項名稱處理與粗體邏輯
+        // 主變項名稱處理
         const isVariableCol = col === "Variable";
-        const displayText = isVariableCol
-          ? cleanRaw.replace(/\*/g, "")
-          : cleanRaw;
+        let displayText = cleanRaw;
+
+        // 如果是變項欄位，已經在前端處理過顯示名稱了
+        if (isVariableCol) {
+          displayText = cleanRaw;
+        }
 
         const cellBorders = isLastRow ? {
           bottom: {
             style: "single" as const,
-            size: 6, // 增加線條寬度
+            size: 6,
             color: "000000",
           },
         } : undefined;
-
-        if (isLastRow) {
-          
-        }
 
         return new TableCell({
           children: [
@@ -108,7 +114,10 @@ export async function POST(req: NextRequest) {
                 }),
               ],
               spacing: { line: 360 },
-              indent: isVariableCol && !isMainVariable ? { left: 500 } : undefined, // ✅ 子變項縮排
+              // 子變項縮排（類別變項的子項目）
+              indent: isVariableCol && isSubItem ? { left: 720 } : // 增加縮排量（約0.5英寸）
+                isVariableCol && !isMainVariable && !isSubItem ? { left: 360 } : // 一般子變項較小縮排
+                  undefined,
             }),
           ],
           borders: cellBorders,
@@ -167,7 +176,7 @@ export async function POST(req: NextRequest) {
       ],
     });
 
-    // 🔧 修復：將 Buffer 轉換為 Uint8Array
+    // 將 Buffer 轉換為 Uint8Array
     const buffer = await Packer.toBuffer(doc);
     const uint8Array = new Uint8Array(buffer);
 

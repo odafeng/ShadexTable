@@ -16,6 +16,7 @@ import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, us
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import SortableRow from "./SortableRow";
 import type { TableRow, TabConfig } from "../types";
+import DOMPurify from 'isomorphic-dompurify';
 
 interface Props {
   columns: string[];
@@ -130,17 +131,27 @@ export default function Step3Tabs({
     if (val === undefined || val === null || val === "nan" || val === "undefined" || val?.toString().trim() === "—") {
       return <span className="text-gray-400 italic">&mdash;</span>;
     }
-    return <>{val}</>;
+    // 對表格單元格內容也進行清理
+    const cleanValue = DOMPurify.sanitize(String(val), { 
+      ALLOWED_TAGS: [], // 不允許任何 HTML 標籤
+      ALLOWED_ATTR: []
+    });
+    return <>{cleanValue}</>;
   };
 
+  // 安全地處理 AI 摘要文本
   const renderSummaryText = (text: any): string => {
     if (text === null || text === undefined) {
       return "尚未產生摘要，請點擊按鈕產出。";
     }
-    if (typeof text === 'string') {
-      return text;
-    }
-    return String(text);
+    // 將任何類型轉換為字串，並進行 HTML 清理
+    const textStr = typeof text === 'string' ? text : String(text);
+    // 使用 DOMPurify 清理內容，移除所有 HTML 標籤和潛在的 XSS 攻擊向量
+    return DOMPurify.sanitize(textStr, {
+      ALLOWED_TAGS: [], // 不允許任何 HTML 標籤，只保留純文字
+      ALLOWED_ATTR: [], // 不允許任何屬性
+      KEEP_CONTENT: true // 保留文字內容
+    });
   };
 
   const currentPageRows = tableEditState.sortedRows.slice(currentPage * rowsPerPage, (currentPage + 1) * rowsPerPage);
@@ -235,11 +246,10 @@ export default function Step3Tabs({
                       return (
                         <th
                           key={key}
-                          className="px-6 py-3 font-semibold whitespace-nowrap text-center" // ← 改成置中
+                          className="px-6 py-3 font-semibold whitespace-nowrap text-center"
                         >
                           {key === "Variable" ? (
                             <HoverCard>
-                              {/* 加 justify-center 讓內容置中 */}
                               <HoverCardTrigger className="flex items-center justify-center gap-1 cursor-help">
                                 <span>變項</span>
                                 <Info className="w-3.5 h-3.5 opacity-50" />
@@ -475,10 +485,13 @@ export default function Step3Tabs({
           </TooltipProvider>
         </>
       ) : (
-        // AI Summary tab
-        <div className="border rounded-lg p-4 bg-gray-50 text-sm text-gray-800 whitespace-pre-wrap relative">
+        // AI Summary tab - 使用 <pre> 標籤來安全顯示純文字
+        <div className="border rounded-lg p-4 bg-gray-50 text-sm text-gray-800 relative">
           <strong className="block text-primary mb-2">AI 產出摘要：</strong>
-          <div>{renderSummaryText(summaryText)}</div>
+          {/* 使用 pre 標籤確保內容以純文字方式呈現，避免 XSS 攻擊 */}
+          <pre className="whitespace-pre-wrap font-sans overflow-x-auto">
+            {renderSummaryText(summaryText)}
+          </pre>
           <motion.button
             whileTap={{ scale: 0.92 }}
             onClick={handleCopyClick}

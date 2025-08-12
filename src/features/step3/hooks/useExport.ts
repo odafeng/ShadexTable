@@ -2,7 +2,7 @@ import { createErrorHandler } from "@/utils/error";
 import { reportError } from "@/lib/reportError";
 import { exportToExcel, exportToWord } from "@/features/step3/services/exportService";
 import { prepareExportData, isCategorySubItem } from "@/features/step3/services/dataTransformService";
-import type { TableRow, GroupCounts, BinaryMapping } from "@/features/step3/types";
+import type { TableRow, GroupCounts, BinaryMapping, CellValue } from "@/features/step3/types";
 
 interface UseExportParams {
   sortedRows: TableRow[];
@@ -12,9 +12,6 @@ interface UseExportParams {
   groupCounts: GroupCounts;
   groupVar?: string;
 }
-
-// 定義更具體的類型
-type CellValue = string | number | boolean | null | undefined;
 
 interface ExportRow extends Record<string, CellValue> {
   Variable?: string;

@@ -4,7 +4,7 @@ import { createError } from "@/utils/error";
 import type { TableRow, GroupCounts, BinaryMapping } from "@/features/step3/types";
 
 // 定義導出資料的類型
-type ExportValue = string | number | boolean | null | undefined;
+type ExportValue = string | number | boolean | Date | null | undefined;
 
 export interface ExportDataRow {
   Variable?: string;

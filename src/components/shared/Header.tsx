@@ -1,6 +1,7 @@
 "use client";
 
-import Link, { Image } from "next/link";
+import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import { useClerk } from "@clerk/nextjs";
 import { Menu, X, Settings, LogOut } from "lucide-react";

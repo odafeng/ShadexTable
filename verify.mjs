@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// verify.mjs - 跨模組驗證腳本
+// verify.mjs - 跨模組驗證腳本（避免掃 node_modules 版）
 import { execSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
@@ -9,19 +9,28 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname);
 const FAST = process.env.VERIFY_FAST === '1';
 
-function hasAny(files) {
-  return files.some((p) => existsSync(resolve(root, p)));
+// 統一忽略路徑
+const IGNORE_DIRS = ['node_modules', 'dist', 'build', 'coverage', '.next', '.turbo'];
+
+// 實際存在的常見專案目錄（用來限制掃描範圍）
+const CANDIDATE_DIRS = ['src', 'app', 'pages', 'tests', '__tests__', 'packages'];
+
+function rel(p) {
+  return resolve(root, p);
+}
+function hasFile(p) {
+  return existsSync(rel(p));
 }
 function hasDir(dir) {
   try {
-    return readdirSync(resolve(root, dir)).length >= 0;
+    return readdirSync(rel(dir)).length >= 0;
   } catch {
     return false;
   }
 }
 function readPkg() {
   try {
-    return JSON.parse(readFileSync(resolve(root, 'package.json'), 'utf8'));
+    return JSON.parse(readFileSync(rel('package.json'), 'utf8'));
   } catch {
     return {};
   }
@@ -30,7 +39,7 @@ function run(name, cmd, opts = {}) {
   const start = Date.now();
   process.stdout.write(`\n▶ ${name} ...\n`);
   try {
-    execSync(cmd, { stdio: 'inherit', env: process.env, ...opts });
+    execSync(cmd, { stdio: 'inherit', env: process.env, cwd: root, ...opts });
     const ms = Date.now() - start;
     console.log(`✓ ${name} passed in ${ms}ms`);
     return { name, ok: true, ms };
@@ -44,32 +53,50 @@ function run(name, cmd, opts = {}) {
 const pkg = readPkg();
 
 // Heuristics
-const isTS = hasAny(['tsconfig.json']) || hasAny(['src/**/*.ts', 'src/**/*.tsx']);
+const isTS = hasFile('tsconfig.json');
 const hasESLint =
-  hasAny(['.eslintrc', '.eslintrc.js', '.eslintrc.cjs', '.eslintrc.json']) ||
+  hasFile('.eslintrc') ||
+  hasFile('.eslintrc.js') ||
+  hasFile('.eslintrc.cjs') ||
+  hasFile('.eslintrc.json') ||
   (pkg.devDependencies && pkg.devDependencies.eslint);
 const hasPrettier =
-  hasAny(['.prettierrc', '.prettierrc.js', '.prettierrc.cjs', '.prettierrc.json', 'prettier.config.js']) ||
+  hasFile('.prettierrc') ||
+  hasFile('.prettierrc.js') ||
+  hasFile('.prettierrc.cjs') ||
+  hasFile('.prettierrc.json') ||
+  hasFile('prettier.config.js') ||
   (pkg.devDependencies && pkg.devDependencies.prettier);
 const hasTypeCoverage = pkg.devDependencies && pkg.devDependencies['type-coverage'];
 const hasVitest = pkg.devDependencies && pkg.devDependencies.vitest;
 const hasJest = pkg.devDependencies && pkg.devDependencies.jest;
-const hasTestsDir = hasDir('tests') || hasDir('__tests__');
-const hasSrc = hasDir('src');
 
-// Globs
-const tsGlob = hasSrc ? 'src/**/*.{ts,tsx}' : '**/*.{ts,tsx}';
-const jsGlob = hasSrc ? 'src/**/*.{js,jsx,cjs,mjs}' : '**/*.{js,jsx,cjs,mjs}';
+// 依實際存在的資料夾產生掃描目標（避免使用 **/* 造成誤掃）
+const scanDirs = CANDIDATE_DIRS.filter((d) => hasDir(d));
 
+/** 將要掃描的資料夾攤平成空白分隔字串，若不存在就預設用當前專案根目錄（但用 ignore-path 避免誤掃） */
+const targetDirs = scanDirs.length > 0 ? scanDirs.map((d) => `"${d}"`).join(' ') : '"."';
+
+// 建議的副檔名集合
+const TS_EXTS = '"**/*.{ts,tsx}"';
+const JS_EXTS = '"**/*.{js,jsx,cjs,mjs}"';
+
+// Cmd 組裝輔助：加上忽略參數（ESLint/Prettier 會自動讀 .gitignore/.eslintignore/.prettierignore，這裡再保險）
+const IGNORE_FLAGS_ESLINT = IGNORE_DIRS.map((d) => `--ignore-pattern "${d}/**"`).join(' ');
+const IGNORE_FLAGS_PRETTIER = `--ignore-path .prettierignore`;
+
+// Steps
 const steps = [];
 
 // 1) ESLint
 if (hasESLint) {
-  // 若是 TS 專案優先掃 TS，否則掃 JS
-  const target = isTS ? tsGlob : jsGlob;
+  // 只掃描我們偵測到的 dirs；避免全域 **/*
+  // 若是 TS 專案，優先掃 TS，並允許 JS/JSX 一併檢查
+  const exts = isTS ? `${TS_EXTS} ${JS_EXTS}` : JS_EXTS;
+  // 使用 --cache 加速，也確保不會讀到 node_modules
   steps.push({
     name: 'ESLint',
-    cmd: `npx -y eslint "${target}"`,
+    cmd: `npx -y eslint ${targetDirs} -c .eslintrc.cjs -f stylish --cache --cache-location "node_modules/.cache/eslint" --max-warnings=0 ${IGNORE_FLAGS_ESLINT}`,
   });
 } else {
   console.log('• Skip ESLint (no config or dependency)');
@@ -77,20 +104,21 @@ if (hasESLint) {
 
 // 2) TypeScript
 if (isTS) {
+  // 強制指定 tsconfig，避免抓到其他子包設定
   steps.push({
     name: 'TypeScript (tsc)',
-    cmd: `npx -y tsc --noEmit`,
+    cmd: `npx -y tsc -p tsconfig.json --noEmit`,
   });
 } else {
   console.log('• Skip tsc (no tsconfig / not TS project)');
 }
 
-// 3) Prettier (format check)
+// 3) Prettier（format check）
 if (hasPrettier) {
-  // 只檢查常見類型；若有 .prettierignore 會自動套用
+  // 只檢查我們偵測到的資料夾；沒有就檢查根目錄，但依賴 ignore 檔案
   steps.push({
     name: 'Prettier check',
-    cmd: `npx -y prettier --check .`,
+    cmd: `npx -y prettier --check ${targetDirs} ${IGNORE_FLAGS_PRETTIER}`,
   });
 } else {
   console.log('• Skip Prettier (no config or dependency)');
@@ -109,8 +137,8 @@ if (isTS && hasTypeCoverage && !FAST) {
   console.log('• Skip type-coverage (VERIFY_FAST=1)');
 }
 
-// 5) Tests（Vitest/Jest 擇一；可跳過）
-if (!FAST && (hasVitest || hasJest || hasTestsDir)) {
+// 5) 測試（Vitest/Jest 擇一；可跳過）
+if (!FAST && (hasVitest || hasJest)) {
   if (hasVitest) {
     steps.push({
       name: 'Vitest',
@@ -121,8 +149,6 @@ if (!FAST && (hasVitest || hasJest || hasTestsDir)) {
       name: 'Jest',
       cmd: `npx -y jest --runInBand --passWithNoTests`,
     });
-  } else {
-    console.log('• Tests folder found but no runner detected (install vitest or jest to enable)');
   }
 } else if (FAST) {
   console.log('• Skip tests (VERIFY_FAST=1)');

@@ -4,17 +4,14 @@ import { useAuth } from '@clerk/nextjs';
 import { FileAnalysisService } from '@/features/step1/services/fileAnalysisService';
 import { CommonErrors } from '@/utils/error';
 import { useAnalysisStore } from '@/stores/analysisStore';
-import type { ColumnProfile } from '@/stores/analysisStore';
-
-// 定義資料列的類型（與 FileProcessor 保持一致）
-export type DataRow = Record<string, string | number | boolean | Date | null>;
+import type { ColumnProfile, DataRow } from '@/stores/analysisStore';  // 從 store 匯入
 
 // 定義欄位資訊的類型（從 API 返回的格式）
 export interface ColumnInfo {
     column: string;
     suggested_type: string;
     missing_pct?: string | number;
-    outlier_pct?: string | number;  // 新增
+    outlier_pct?: string | number;
     unique_count?: number;
     missing_count?: number;
     sample_values?: (string | number | null)[];
@@ -36,11 +33,13 @@ export interface AnalysisResult {
 export function useColumnAnalysis() {
     const { getToken } = useAuth();
 
-    // 從 Zustand store 獲取狀態和方法 - 使用 columnProfile
+    // 從 Zustand store 獲取狀態和方法
     const columnProfile = useAnalysisStore(state => state.columnProfile);
+    const columnsPreview = useAnalysisStore(state => state.columnsPreview);  // 加入 columnsPreview
     const showPreview = useAnalysisStore(state => state.showPreview);
     const columnAnalysisLoading = useAnalysisStore(state => state.columnAnalysisLoading);
     const setColumnProfile = useAnalysisStore(state => state.setColumnProfile);
+    const setColumnsPreview = useAnalysisStore(state => state.setColumnsPreview);  // 加入 setter
     const setShowPreview = useAnalysisStore(state => state.setShowPreview);
     const setColumnAnalysisLoading = useAnalysisStore(state => state.setColumnAnalysisLoading);
 
@@ -131,19 +130,22 @@ export function useColumnAnalysis() {
 
     const resetColumnAnalysis = useCallback(() => {
         setColumnProfile([]);
+        setColumnsPreview([]);  // 重置 columnsPreview
         setShowPreview(false);
         setColumnAnalysisLoading(false);
-    }, [setColumnProfile, setShowPreview, setColumnAnalysisLoading]);
+    }, [setColumnProfile, setColumnsPreview, setShowPreview, setColumnAnalysisLoading]);
 
-    // 返回 columnProfile 相關方法
+    // 返回所有必要的值和方法
     return {
-        columnProfile,         // 改為 columnProfile
+        columnProfile,
+        columnsPreview,        // 加入 columnsPreview
         showPreview,
         columnAnalysisLoading,
         analyzeColumns,
         retryAnalysis,
         resetColumnAnalysis,
-        setColumnProfile,      // 改為 setColumnProfile
+        setColumnProfile,
+        setColumnsPreview,     // 加入 setter
         setShowPreview
     };
 }

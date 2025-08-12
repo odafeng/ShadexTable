@@ -1,3 +1,5 @@
+// src/features/step1/components/DataPreviewTable.tsx
+
 import React from 'react';
 import Image from 'next/image';
 import { FileProcessor } from '@/utils/fileProcessor';
@@ -16,6 +18,14 @@ export default function DataPreviewTable({
 
     // 取得第一列的欄位名稱
     const columns = Object.keys(parsedData[0]);
+
+    // 格式化顯示值的輔助函數
+    const formatCellValue = (value: DataValue): string => {
+        if (value === null || value === undefined) return '';
+        if (value instanceof Date) return value.toLocaleDateString();
+        if (typeof value === 'boolean') return value ? 'true' : 'false';
+        return String(value);
+    };
 
     return (
         <div className="mt-10 lg:mt-16 space-y-2">
@@ -47,7 +57,7 @@ export default function DataPreviewTable({
                             <tr key={i} className="hover:bg-gray-50">
                                 {columns.map((col: string, j: number) => {
                                     const value: DataValue = row[col];
-                                    const displayValue = FileProcessor.formatDisplayValue(value);
+                                    const displayValue = formatCellValue(value);
 
                                     return (
                                         <td key={j} className="px-3 py-2 border-b whitespace-nowrap">

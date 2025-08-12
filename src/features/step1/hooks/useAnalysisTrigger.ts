@@ -2,8 +2,31 @@ import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
 import { useAnalysisStore } from '@/stores/analysisStore';
+import type { DataRow } from '@/stores/analysisStore';
 import { FileAnalysisService } from '@/features/step1/services/fileAnalysisService';
 import { CommonErrors } from '@/utils/error';
+
+// 定義自動分析響應的完整類型
+interface AutoAnalysisResponse {
+    success: boolean;
+    error?: Error;
+    result?: {
+        classification?: Record<string, string>;
+        success?: boolean;
+        message?: string;
+        group_var?: string;
+        cat_vars?: string[];
+        cont_vars?: string[];
+        analysis?: {
+            summary?: string;
+            details?: Record<string, unknown>;
+            table?: DataRow[];
+            groupCounts?: Record<string, number>;
+        };
+        confidence?: number;
+        suggestions?: string[];
+    };
+}
 
 interface UseAnalysisTriggerReturn {
     loading: boolean;
@@ -46,26 +69,34 @@ export function useAnalysisTrigger(): UseAnalysisTriggerReturn {
         const token = await getToken();
         if (!token) throw CommonErrors.analysisAuthFailed();
 
-        const result = await FileAnalysisService.performAutoAnalysis(
+        const result: AutoAnalysisResponse = await FileAnalysisService.performAutoAnalysis(
             parsedData, 
             fillNA, 
             token
         );
         
         if (!result.success) {
-            throw result.error;
+            throw result.error || new Error('Auto analysis failed');
         }
 
         // 更新 store 狀態
         setGroupVar(result.result?.group_var || "");
         setCatVars(result.result?.cat_vars || []);
         setContVars(result.result?.cont_vars || []);
-        setAutoAnalysisResult(result.result);
+        
+        // 安全地設置 autoAnalysisResult
+        if (result.result) {
+            setAutoAnalysisResult(result.result);
+        } else {
+            setAutoAnalysisResult(null);
+        }
 
+        // 檢查並設置 table
         if (result.result?.analysis?.table) {
             setResultTable(result.result.analysis.table);
         }
 
+        // 檢查並設置 groupCounts
         if (result.result?.analysis?.groupCounts) {
             setGroupCounts(result.result.analysis.groupCounts);
         }

@@ -114,6 +114,3 @@ export const usePoints = () => {
   }
   return context;
 };
-
-// 需要在檔案頂部 import useContext
-import { createContext, useContext, useEffect, useRef, useState } from "react";

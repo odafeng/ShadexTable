@@ -82,6 +82,8 @@ interface AutoAnalysisResult {
     analysis?: {
         summary?: string;
         details?: Record<string, unknown>;
+        table?: DataRow[];           // 新增
+        groupCounts?: Record<string, number>;  // 新增
     };
     confidence?: number;
     suggestions?: string[];
@@ -201,7 +203,7 @@ export interface AnalysisStore
     ResultState,
     AutoAnalysisState,
     UIState,
-    GlobalActions {}
+    GlobalActions { }
 
 // ========== Store 實現 ==========
 export const useAnalysisStore = create<AnalysisStore>()(
@@ -279,7 +281,7 @@ export const useAnalysisStore = create<AnalysisStore>()(
                         state.catVars = state.catVars.filter(v => v !== varName);
                         state.contVars = state.contVars.filter(v => v !== varName);
                         state.excludedVars = state.excludedVars.filter(v => v !== varName);
-                        
+
                         // 添加到指定列表
                         if (type === 'cat') {
                             state.catVars.push(varName);
@@ -288,7 +290,7 @@ export const useAnalysisStore = create<AnalysisStore>()(
                         } else if (type === 'excluded') {
                             state.excludedVars.push(varName);
                         }
-                        
+
                         state.isDirty = true;
                     }),
 
@@ -725,12 +727,12 @@ export const batchUpdateAnalysis = (updates: Partial<AnalysisStore>) => {
 };
 
 // 匯出新增的類型定義，供其他文件使用
-export type { 
-    DataRow, 
-    DataValue, 
-    Statistics, 
-    ColumnProfile, 
-    ColumnPreview, 
+export type {
+    DataRow,
+    DataValue,
+    Statistics,
+    ColumnProfile,
+    ColumnPreview,
     AiDiagnosis,
-    AutoAnalysisResult 
+    AutoAnalysisResult
 };

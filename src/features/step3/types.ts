@@ -3,7 +3,7 @@
 import { DragEndEvent } from '@dnd-kit/core';
 
 // Define a union type for possible cell values
-export type CellValue = string | number | boolean | null | undefined;
+export type CellValue = string | number | boolean | Date | null | undefined;
 
 export interface TableRow {
     Variable: string;

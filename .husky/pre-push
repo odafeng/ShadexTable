@@ -1,5 +1,3 @@
-#!/usr/bin/env sh
-. "$(dirname "$0")/_/husky.sh"
 
 VERIFY_FAST=1 node ./verify.mjs
 

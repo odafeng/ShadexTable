@@ -17,28 +17,24 @@ export function useStep1Logic() {
     const router = useRouter();
     const { getToken, isSignedIn } = useAuth();
     
-    // 🔥 優化：只訂閱需要的狀態，並加入 setFile
     const parsedData = useAnalysisStore(state => state.parsedData);
     const setParsedData = useAnalysisStore(state => state.setParsedData);
     const fillNA = useAnalysisStore(state => state.fillNA);
     const setFillNA = useAnalysisStore(state => state.setFillNA);
     const setColumnTypes = useAnalysisStore(state => state.setColumnTypes);
-    const setFile: (file: File | null) => void = useAnalysisStore(state => state.setFile); // ✅ 加入 setFile
+    const setFile: (file: File | null) => void = useAnalysisStore(state => state.setFile);
 
-    // 基本狀態 - local state 只用於 UI 顯示
     const [fileName, setFileName] = useState<string | null>(null);
-    const [file, setLocalFile] = useState<File | null>(null); // 改名為 setLocalFile 避免混淆
+    const [file, setLocalFile] = useState<File | null>(null);
     const [error, setError] = useState<AppError | null>(null);
     const [dragOver, setDragOver] = useState(false);
 
-    // 使用拆分後的 hooks
     const fileValidation = useFileValidation();
     const privacyDetection = usePrivacyDetection();
     const columnAnalysis = useColumnAnalysis();
     const analysisTrigger = useAnalysisTrigger();
     const limitsInfo = useUserLimits();
 
-    // 錯誤處理器
     const errorHandler = createErrorHandler((appError: AppError) => {
         setError(appError);
         
@@ -52,14 +48,13 @@ export function useStep1Logic() {
         }).catch(console.warn);
     });
 
-    // 初始化
     useEffect(() => {
         getToken()
             .then((token) => {
                 if (token) localStorage.setItem("__session", token);
             })
             .catch((err) => {
-                errorHandler(CommonErrors.authTokenMissing(), "獲取認證令牌");
+                console.warn("無法取得初始 token:", err);
             });
     }, [getToken]);
 
@@ -69,7 +64,7 @@ export function useStep1Logic() {
         }
     }, [isSignedIn, router]);
 
-    // 檔案選擇處理
+    // 🔥 修正：確保取得 token 後再進行欄位分析
     const handleFileSelection = useCallback(async (selectedFile: File) => {
         setError(null);
         
@@ -81,7 +76,7 @@ export function useStep1Logic() {
                 return;
             }
 
-            // 步驟 2: 隱私檢測
+            // 步驟 2: 隱私檢測和檔案處理
             const privacyResult = await privacyDetection.detectSensitiveData(selectedFile);
             
             if (!privacyResult.success) {
@@ -89,14 +84,60 @@ export function useStep1Logic() {
                 return;
             }
 
+            // 檢查是否有敏感資料
+            if (privacyResult.sensitiveColumns && privacyResult.sensitiveColumns.length > 0) {
+                // 有敏感資料，對話框會自動顯示
+                console.log("🔍 偵測到敏感資料，等待使用者確認");
+                return;
+            }
+
+            // 沒有敏感資料，直接處理檔案
+            if (privacyResult.data) {
+                setLocalFile(selectedFile);
+                setFile(selectedFile);
+                setFileName(selectedFile.name);
+                setParsedData(privacyResult.data);
+                
+                // 🔥 修正：確保取得 token 後再進行欄位分析
+                try {
+                    const token = await getToken();
+                    if (token) {
+                        localStorage.setItem("__session", token);
+                        await columnAnalysis.analyzeColumns(privacyResult.data, token, setColumnTypes);
+                    } else {
+                        console.warn("⚠️ 無法取得 token，跳過欄位分析");
+                        // 使用備用欄位資料
+                        const fallbackColumns = FileAnalysisService.createFallbackColumnData(privacyResult.data);
+                        if (setColumnTypes) {
+                            const fallbackTypesData = fallbackColumns.map(col => ({
+                                column: col.column,
+                                suggested_type: col.suggested_type
+                            }));
+                            setColumnTypes(fallbackTypesData);
+                        }
+                    }
+                } catch (columnError) {
+                    console.error("⚠️ 欄位分析失敗:", columnError);
+                    // 不中斷流程，使用備用方案
+                    const fallbackColumns = FileAnalysisService.createFallbackColumnData(privacyResult.data);
+                    if (setColumnTypes) {
+                        const fallbackTypesData = fallbackColumns.map(col => ({
+                            column: col.column,
+                            suggested_type: col.suggested_type
+                        }));
+                        setColumnTypes(fallbackTypesData);
+                    }
+                }
+            }
+
         } catch (err: unknown) {
             console.error("❌ 檔案處理失敗:", err);
             errorHandler(err, "檔案選擇處理");
             privacyDetection.resetPrivacyState();
         }
-    }, [fileValidation, privacyDetection, errorHandler]);
+    }, [fileValidation, privacyDetection, columnAnalysis, setParsedData, setColumnTypes, setFile, errorHandler, getToken]);
 
-    // 隱私確認處理
+    // 🔥 修正：隱私確認處理也要確保 token
     const handlePrivacyConfirm = useCallback(async () => {
         try {
             privacyDetection.confirmPrivacy();
@@ -113,14 +154,40 @@ export function useStep1Logic() {
             );
             
             if (result.success && result.data) {
-                // ✅ 關鍵修正：同時設定到 local state 和 Zustand store
                 setLocalFile(privacyDetection.pendingFile);
-                setFile(privacyDetection.pendingFile); // 設定到 Zustand store
+                setFile(privacyDetection.pendingFile);
                 setFileName(privacyDetection.pendingFile.name);
                 setParsedData(result.data);
                 
-                // 進行欄位分析 - 傳入 setColumnTypes
-                await columnAnalysis.analyzeColumns(result.data, undefined, setColumnTypes);
+                // 🔥 修正：確保取得 token 後再進行欄位分析
+                try {
+                    const token = await getToken();
+                    if (token) {
+                        localStorage.setItem("__session", token);
+                        await columnAnalysis.analyzeColumns(result.data, token, setColumnTypes);
+                    } else {
+                        console.warn("⚠️ 無法取得 token，使用備用欄位資料");
+                        const fallbackColumns = FileAnalysisService.createFallbackColumnData(result.data);
+                        if (setColumnTypes) {
+                            const fallbackTypesData = fallbackColumns.map(col => ({
+                                column: col.column,
+                                suggested_type: col.suggested_type
+                            }));
+                            setColumnTypes(fallbackTypesData);
+                        }
+                    }
+                } catch (columnError) {
+                    console.error("⚠️ 欄位分析失敗:", columnError);
+                    // 使用備用方案
+                    const fallbackColumns = FileAnalysisService.createFallbackColumnData(result.data);
+                    if (setColumnTypes) {
+                        const fallbackTypesData = fallbackColumns.map(col => ({
+                            column: col.column,
+                            suggested_type: col.suggested_type
+                        }));
+                        setColumnTypes(fallbackTypesData);
+                    }
+                }
             }
             
             privacyDetection.resetPrivacyState();
@@ -135,16 +202,16 @@ export function useStep1Logic() {
         columnAnalysis, 
         setParsedData,
         setColumnTypes,
-        setFile, // ✅ 加入依賴
+        setFile,
         fileValidation,
-        errorHandler
+        errorHandler,
+        getToken
     ]);
 
-    // 分析處理 - 使用 Zustand store 中的 file
+    // 分析處理
     const handleAnalyze = useCallback(async () => {
         setError(null);
         
-        // 從 Zustand store 取得 file
         const storeFile = useAnalysisStore.getState().file;
         
         if (!storeFile) {
@@ -164,12 +231,18 @@ export function useStep1Logic() {
         if (parsedData.length > 0) {
             setError(null);
             try {
-                await columnAnalysis.retryAnalysis(parsedData, setColumnTypes);
+                // 🔥 修正：重試時也要取得 token
+                const token = await getToken();
+                if (token) {
+                    await columnAnalysis.retryAnalysis(parsedData, setColumnTypes);
+                } else {
+                    errorHandler(CommonErrors.authTokenMissing(), "重試欄位分析");
+                }
             } catch (err: unknown) {
                 errorHandler(err, "重試欄位分析");
             }
         }
-    }, [parsedData, columnAnalysis, setColumnTypes, errorHandler]);
+    }, [parsedData, columnAnalysis, setColumnTypes, errorHandler, getToken]);
 
     // 事件處理
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -193,13 +266,11 @@ export function useStep1Logic() {
 
     const clearError = () => setError(null);
 
-    // 計算總體載入狀態
     const isLoading = analysisTrigger.loading || 
                      privacyDetection.sensitiveDetectionLoading ||
                      columnAnalysis.columnAnalysisLoading;
 
     return {
-        // 基本狀態
         fileName,
         file,
         error,
@@ -209,8 +280,6 @@ export function useStep1Logic() {
         isLoading,
         isSignedIn,
         limitsInfo,
-        
-        // 從其他 hooks 的狀態
         loading: analysisTrigger.loading,
         autoMode: analysisTrigger.autoMode,
         columnsPreview: columnAnalysis.columnsPreview,
@@ -222,12 +291,8 @@ export function useStep1Logic() {
         fileValidationWarnings: fileValidation.fileValidationWarnings,
         fileBasicInfo: privacyDetection.fileBasicInfo,
         sensitiveDetectionLoading: privacyDetection.sensitiveDetectionLoading,
-        
-        // 設置函數
         setAutoMode: analysisTrigger.setAutoMode,
         setFillNA,
-        
-        // 事件處理
         handleFileChange,
         handleDrop,
         handleDragOver,

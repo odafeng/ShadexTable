@@ -5,26 +5,46 @@ import {
   ErrorSeverity,
   ERROR_MESSAGES,
   ErrorHandler,
-  ErrorHandlerOptions
+  ErrorHandlerOptions,
+  Json,
+  ErrorDetails,
+  ErrorMetadata,
+  ErrorMessageConfig
 } from '@/types/errors';
 
-// 創建應用程式錯誤
+/**
+ * 創建錯誤選項介面
+ * 用於 createError 函數的選項參數
+ */
+interface CreateErrorOptions {
+  customMessage?: string;
+  details?: ErrorDetails;
+  cause?: Error;
+  correlationId?: string;
+  metadata?: ErrorMetadata;
+}
+
+/**
+ * 創建應用程式錯誤
+ * @param code - 錯誤代碼
+ * @param context - 錯誤上下文
+ * @param messageKey - 錯誤訊息的 key（對應 ERROR_MESSAGES）
+ * @param options - 額外的錯誤選項
+ * @returns AppError 物件
+ */
 export function createError(
   code: ErrorCode,
   context?: ErrorContext,
   messageKey?: string,
-  options?: {
-    customMessage?: string;
-    details?: Record<string, any>;
-    cause?: Error;
-    correlationId?: string;
-    metadata?: Record<string, any>;
-  }
+  options?: CreateErrorOptions
 ): AppError {
   const correlationId = options?.correlationId || crypto.randomUUID();
   const timestamp = new Date();
-  // 將 ERROR_MESSAGES 轉為 any 以允許以字串索引，避免 ts7053 錯誤
-  const errorInfo = messageKey ? (ERROR_MESSAGES as any)[messageKey] : undefined;
+  
+  // 安全地取得錯誤訊息配置
+  const errorInfo: ErrorMessageConfig | undefined = messageKey 
+    ? ERROR_MESSAGES[messageKey] 
+    : undefined;
 
   // 決定錯誤訊息
   const message = options?.customMessage || errorInfo?.userMessage || getDefaultMessage(code);
@@ -50,13 +70,21 @@ export function createError(
   };
 }
 
+/**
+ * 從 HTTP 狀態碼創建錯誤
+ * @param status - HTTP 狀態碼
+ * @param context - 錯誤上下文
+ * @param correlationId - 關聯 ID
+ * @param responseData - 回應資料
+ * @returns AppError 物件
+ */
 export function createErrorFromHttp(
   status: number,
   context?: ErrorContext,
   correlationId?: string,
-  responseData?: any
+  responseData?: Json
 ): AppError {
-  const baseOptions = {
+  const baseOptions: CreateErrorOptions = {
     correlationId,
     details: { status, responseData }
   };
@@ -160,7 +188,10 @@ export function createErrorFromHttp(
   }
 }
 
-// 常見錯誤的快速創建函數
+/**
+ * 常見錯誤的快速創建函數集合
+ * 提供預設錯誤創建的便利方法
+ */
 export const CommonErrors = {
   // 檔案相關錯誤
   fileNotSelected: (): AppError => createError(
@@ -206,13 +237,13 @@ export const CommonErrors = {
   ),
 
   privacyAgreementRequired: (): AppError => createError(
-  ErrorCode.PRIVACY_ERROR,
-  ErrorContext.PRIVACY_CHECK,
-  undefined,
-  {
-    customMessage: '請先同意隱私聲明才能繼續上傳檔案'
-  }
-),
+    ErrorCode.PRIVACY_ERROR,
+    ErrorContext.PRIVACY_CHECK,
+    undefined,
+    {
+      customMessage: '請先同意隱私聲明才能繼續上傳檔案'
+    }
+  ),
 
   // 認證相關錯誤
   authTokenMissing: (): AppError => createError(
@@ -251,9 +282,8 @@ export const CommonErrors = {
     ErrorCode.ANALYSIS_ERROR,
     ErrorContext.ANALYSIS,
     'analysis.novariables',
-    { customMessage: '未選擇任何變項' }
+    { customMessage: customMessage || '未選擇任何變項' }
   ),
-
 
   // 資料驗證錯誤
   insufficientData: (): AppError => createError(
@@ -314,7 +344,12 @@ export const CommonErrors = {
   )
 };
 
-// 創建錯誤處理器
+/**
+ * 創建錯誤處理器
+ * @param onError - 錯誤處理回調函數
+ * @param options - 錯誤處理選項
+ * @returns 錯誤處理函數
+ */
 export function createErrorHandler(
   onError: ErrorHandler,
   options?: ErrorHandlerOptions
@@ -348,7 +383,7 @@ export function createErrorHandler(
     // 添加上下文到元數據
     if (context) {
       if (!appError.metadata) {
-        appError.metadata = {};
+        appError.metadata = {} as ErrorMetadata;
       }
       appError.metadata.handlerContext = context;
     }
@@ -367,7 +402,12 @@ export function createErrorHandler(
   };
 }
 
-// 檢查是否為應用程式錯誤
+/**
+ * 檢查是否為應用程式錯誤
+ * 使用型別守衛確保型別安全
+ * @param error - 要檢查的錯誤物件
+ * @returns 是否為 AppError 型別
+ */
 export function isAppError(error: unknown): error is AppError {
   return (
     typeof error === 'object' &&
@@ -378,7 +418,11 @@ export function isAppError(error: unknown): error is AppError {
   );
 }
 
-// 提取錯誤訊息
+/**
+ * 提取錯誤訊息
+ * @param error - 錯誤物件
+ * @returns 用戶友好的錯誤訊息
+ */
 export function extractErrorMessage(error: unknown): string {
   if (isAppError(error)) {
     return error.userMessage;
@@ -389,7 +433,11 @@ export function extractErrorMessage(error: unknown): string {
   return String(error);
 }
 
-// 檔案大小格式化
+/**
+ * 檔案大小格式化
+ * @param bytes - 檔案大小（位元組）
+ * @returns 格式化的檔案大小字串
+ */
 export function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 Bytes';
   const k = 1024;
@@ -398,7 +446,11 @@ export function formatFileSize(bytes: number): string {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
-// 預設錯誤訊息
+/**
+ * 取得預設錯誤訊息
+ * @param code - 錯誤代碼
+ * @returns 預設訊息
+ */
 function getDefaultMessage(code: ErrorCode): string {
   switch (code) {
     case ErrorCode.FILE_ERROR:
@@ -420,6 +472,11 @@ function getDefaultMessage(code: ErrorCode): string {
   }
 }
 
+/**
+ * 取得預設用戶訊息
+ * @param code - 錯誤代碼
+ * @returns 用戶友好的訊息
+ */
 function getDefaultUserMessage(code: ErrorCode): string {
   switch (code) {
     case ErrorCode.FILE_ERROR:
@@ -441,6 +498,11 @@ function getDefaultUserMessage(code: ErrorCode): string {
   }
 }
 
+/**
+ * 取得預設操作建議
+ * @param code - 錯誤代碼
+ * @returns 建議的操作
+ */
 function getDefaultAction(code: ErrorCode): string {
   switch (code) {
     case ErrorCode.FILE_ERROR:
@@ -462,6 +524,11 @@ function getDefaultAction(code: ErrorCode): string {
   }
 }
 
+/**
+ * 取得預設嚴重程度
+ * @param code - 錯誤代碼
+ * @returns 錯誤嚴重程度
+ */
 function getDefaultSeverity(code: ErrorCode): ErrorSeverity {
   switch (code) {
     case ErrorCode.PRIVACY_ERROR:
@@ -480,6 +547,11 @@ function getDefaultSeverity(code: ErrorCode): ErrorSeverity {
   }
 }
 
+/**
+ * 取得預設重試設定
+ * @param code - 錯誤代碼
+ * @returns 是否可重試
+ */
 function getDefaultCanRetry(code: ErrorCode): boolean {
   switch (code) {
     case ErrorCode.FILE_FORMAT_UNSUPPORTED:

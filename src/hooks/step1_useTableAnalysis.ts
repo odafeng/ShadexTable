@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { TableAnalysisService, TableAnalysisRequest } from '../services/step1_tableAnalysisService';
+import { TableAnalysisRequest } from '../services/step1_tableAnalysisService';
 import { 
   isAppError, 
   ErrorCode, 
@@ -19,11 +19,17 @@ interface UseTableAnalysisProps {
     onError?: (error: AppError) => void;
 }
 
+interface TableAnalysisParams {
+    parsedData: any[];
+    groupVar: string;
+    catVars: string[];
+    contVars: string[];
+    fillNA: boolean;
+}
+
 export const useTableAnalysis = (props: UseTableAnalysisProps) => {
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<AppError | null>(null);
     const router = useRouter();
-    const tableAnalysisService = new TableAnalysisService();
+    const queryClient = useQueryClient();
     
     // 使用 Zustand store
     const {
@@ -33,14 +39,6 @@ export const useTableAnalysis = (props: UseTableAnalysisProps) => {
         setResultTable,
         setGroupCounts
     } = useAnalysisStore();
-
-    // 統一的錯誤處理器
-    const handleError = createErrorHandler((appError: AppError) => {
-        setError(appError);
-        if (props.onError) {
-            props.onError(appError);
-        }
-    });
 
     // 更新 store 狀態
     const updateStoreState = (groupVar: string, catVars: string[], contVars: string[]) => {
@@ -100,22 +98,16 @@ export const useTableAnalysis = (props: UseTableAnalysisProps) => {
     };
 
     // 主要的分析函數
-    const runAnalysis = async (
-        parsedData: any[],
-        groupVar: string,
-        catVars: string[],
-        contVars: string[],
-        fillNA: boolean
-    ) => {
-        setError(null);
-        updateStoreState(groupVar, catVars, contVars);
-        setLoading(true);
-
+    const performTableAnalysis = async (params: TableAnalysisParams) => {
+        const { parsedData, groupVar, catVars, contVars, fillNA } = params;
         const correlationId = `table-analysis-${Date.now()}`;
 
         try {
             // 驗證輸入
             validateInput(parsedData, groupVar, catVars, contVars);
+
+            // 更新 Store（先更新，即使失敗也能保留使用者選擇）
+            updateStoreState(groupVar, catVars, contVars);
 
             const token = await getAuthToken();
             
@@ -137,13 +129,10 @@ export const useTableAnalysis = (props: UseTableAnalysisProps) => {
                 timeout: 60000 // 分析需要較長時間
             });
 
-            handleSuccess(result);
+            return result;
 
         } catch (err: unknown) {
             console.error("❌ 表格分析失敗:", err);
-            
-            // 使用統一錯誤處理器
-            handleError(err);
             
             // 回報錯誤
             const errorToReport = isAppError(err) ? err : createError(
@@ -163,15 +152,63 @@ export const useTableAnalysis = (props: UseTableAnalysisProps) => {
                 catVars,
                 contVars
             });
-        } finally {
-            setLoading(false);
+
+            throw errorToReport;
         }
     };
 
+    // 使用 React Query 的 useMutation
+    const mutation = useMutation({
+        mutationKey: ['tableAnalysis'],
+        mutationFn: performTableAnalysis,
+        onSuccess: (data) => {
+            // 處理成功結果
+            handleSuccess(data);
+            
+            // 使快取失效（如果有相關的 query）
+            queryClient.invalidateQueries({ queryKey: ['analysisResults'] });
+            queryClient.invalidateQueries({ queryKey: ['tableData'] });
+        },
+        onError: (error: unknown) => {
+            const appError = isAppError(error) ? error : createError(
+                ErrorCode.ANALYSIS_ERROR,
+                ErrorContext.ANALYSIS,
+                "分析失敗，請稍後再試"
+            );
+            
+            if (props.onError) {
+                props.onError(appError);
+            }
+        }
+    });
+
+    // 包裝的執行函數，保持原有的 API
+    const runAnalysis = (
+        parsedData: any[],
+        groupVar: string,
+        catVars: string[],
+        contVars: string[],
+        fillNA: boolean
+    ) => {
+        mutation.mutate({ 
+            parsedData, 
+            groupVar, 
+            catVars, 
+            contVars, 
+            fillNA 
+        });
+    };
+
     return {
-        loading,
-        error,
+        loading: mutation.isPending,
+        error: mutation.error as AppError | null,
         runAnalysis,
-        clearError: () => setError(null)
+        clearError: () => mutation.reset(),
+        // 額外暴露 mutation 物件以供進階使用
+        mutation,
+        // 暴露狀態
+        isSuccess: mutation.isSuccess,
+        isError: mutation.isError,
+        data: mutation.data
     };
 };

@@ -57,7 +57,49 @@ export enum ErrorSeverity {
     CRITICAL = 'CRITICAL'
 }
 
-// 應用程式錯誤介面
+/**
+ * JSON 序列化安全的資料型別
+ * 用於確保錯誤詳情可以安全地序列化和傳輸
+ */
+export type Json = 
+    | string 
+    | number 
+    | boolean 
+    | null 
+    | undefined
+    | { [key: string]: Json }
+    | Json[];
+
+/**
+ * 錯誤詳情介面
+ * 包含錯誤的額外資訊，如 HTTP 狀態碼、回應資料等
+ */
+export interface ErrorDetails {
+    status?: number;
+    responseData?: Json;
+    actualSize?: number;
+    maxSize?: number;
+    [key: string]: Json;
+}
+
+/**
+ * 錯誤元數據介面
+ * 包含錯誤的上下文資訊，幫助追蹤和除錯
+ */
+export interface ErrorMetadata {
+    fileName?: string;
+    fileSize?: number;
+    userType?: string;
+    step?: string;
+    component?: string;
+    handlerContext?: string;
+    [key: string]: Json;
+}
+
+/**
+ * 應用程式錯誤介面
+ * 統一的錯誤結構，用於整個應用程式的錯誤處理
+ */
 export interface AppError {
     // 基本錯誤資訊
     code: ErrorCode;
@@ -70,8 +112,8 @@ export interface AppError {
     correlationId: string;
     timestamp: Date;
     
-    // 錯誤詳情
-    details?: Record<string, any>;
+    // 錯誤詳情 - 使用具名介面替代 Record<string, any>
+    details?: ErrorDetails;
     cause?: Error;
     stack?: string;
     
@@ -79,15 +121,8 @@ export interface AppError {
     action: string;
     canRetry: boolean;
     
-    // 元數據
-    metadata?: {
-        fileName?: string;
-        fileSize?: number;
-        userType?: string;
-        step?: string;
-        component?: string;
-        [key: string]: any;
-    };
+    // 元數據 - 使用具名介面替代內聯定義
+    metadata?: ErrorMetadata;
 }
 
 // 錯誤處理選項
@@ -102,21 +137,33 @@ export interface ErrorHandlerOptions {
 // 錯誤處理函數類型
 export type ErrorHandler = (error: AppError, context?: string) => void;
 
-// 錯誤報告介面
+/**
+ * 錯誤報告介面
+ * 用於向後端報告錯誤時的資料結構
+ */
 export interface ErrorReport {
     error: AppError;
     userAgent?: string;
     url?: string;
-    additionalContext?: Record<string, any>;
+    additionalContext?: Record<string, Json>;  // 使用 Json 型別確保序列化安全
 }
 
-// 常見錯誤訊息對應
-export const ERROR_MESSAGES: Record<string, { 
-    userMessage: string; 
-    action: string; 
+/**
+ * 錯誤訊息配置型別
+ * 定義錯誤訊息的結構
+ */
+export interface ErrorMessageConfig {
+    userMessage: string;
+    action: string;
     severity: ErrorSeverity;
     canRetry: boolean;
-}> = {
+}
+
+/**
+ * 常見錯誤訊息對應表
+ * 使用具名介面替代內聯型別定義
+ */
+export const ERROR_MESSAGES: Record<string, ErrorMessageConfig> = {
     // 檔案錯誤
     'file.format_unsupported': {
         userMessage: '不支援的檔案格式，請選擇 CSV 或 Excel 檔案',
@@ -189,6 +236,12 @@ export const ERROR_MESSAGES: Record<string, {
         action: '請稍後重試，或選擇較小的資料集',
         severity: ErrorSeverity.MEDIUM,
         canRetry: true
+    },
+    'analysis.novariables': {
+        userMessage: '未選擇任何變項',
+        action: '請至少選擇一個變項進行分析',
+        severity: ErrorSeverity.MEDIUM,
+        canRetry: false
     },
     'column.type_detection_failed': {
         userMessage: '欄位類型識別失敗',

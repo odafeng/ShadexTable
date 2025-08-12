@@ -5,6 +5,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { zhTW } from '@clerk/localizations';
 import ClientProviders from './clientProvider';
 import { AppErrorBoundary } from "@/components/AppErrorBoundary";
+import { ReactQueryProvider } from "@/lib/reactQueryProvider";
 
 const geistSans = Geist({
   subsets: ["latin"],
@@ -55,9 +56,11 @@ export default function RootLayout({
       <html lang="zhTW">
         <body className={`${geistSans.variable} ${geistMono.variable}`}>
           <AppErrorBoundary>
-            <ClientProviders>
-              {children}
-            </ClientProviders>
+            <ReactQueryProvider>
+              <ClientProviders>
+                {children}
+              </ClientProviders>
+            </ReactQueryProvider>
           </AppErrorBoundary>
         </body>
       </html>

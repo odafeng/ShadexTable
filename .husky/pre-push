@@ -1,0 +1,7 @@
+cat > .husky/pre-push <<'SH'
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+npm run verify
+SH
+chmod +x .husky/pre-push

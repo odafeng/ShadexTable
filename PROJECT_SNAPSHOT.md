@@ -1,0 +1,457 @@
+# shadytable-frontend Project Snapshot
+
+This document captures the current state of the ShadexTable project. Attach this file to your AI prompts to provide essential context about the project’s structure, dependencies and conventions. The goal is to help the AI produce code that integrates seamlessly with the existing codebase without breaking established patterns.
+
+## Overview
+
+ShadexTable is a statistical analysis platform built with Next.js 14, React and TypeScript.  It provides researchers and analysts with an intuitive interface for uploading CSV/Excel files, previewing data, performing descriptive statistics and generating survival analysis plots.  The front‑end uses Tailwind CSS for styling and implements a unified error handling framework.  On the server side, the system communicates with a FastAPI backend that returns responses following a `StandardResponse` schema.  This schema contains the fields `success: bool`, `message: str`, `data: dict | list | null` and an optional `error_code: int`.  When extending the API or consuming it from the front‑end, ensure that all responses conform to this structure.
+
+## Project Structure
+
+The following tree lists the files and folders in this repository.  Build artefacts and third‑party modules are omitted for brevity.
+
+```
+- shadytable-frontend/
+  - README.md
+  - README_SINGLE_FILE.md
+  - clerk.lock
+  - components.json
+  - eslint.config.mjs
+  - generate_snapshot.py
+  - next-env.d.ts
+  - next.config.ts
+  - package-lock.json
+  - package.json
+  - postcss.config.js
+  - postcss.config.mjs
+  - tailwind.config.js
+  - tsconfig.json
+  - .vscode/
+    - settings.json
+  - docs/
+    - API_SURFACE.md
+    - ARCHITECTURE.md
+    - CODEMAP.txt
+    - DEPENDENCIES.md
+    - error-handling-reference.md
+  - public/
+    - favicon.ico
+    - file.svg
+    - globe.svg
+    - next.svg
+    - vercel.svg
+    - window.svg
+    - about/
+      - about_banner_img.svg
+      - about_icon_1.png
+      - about_icon_1@2x.png
+      - about_icon_2.png
+      - about_icon_2@2x.png
+      - about_icon_3.png
+      - about_icon_3@2x.png
+      - about_icon_4.png
+      - about_icon_4@2x.png
+      - about_icon_5.png
+      - about_icon_5@2x.png
+      - about_img_1.png
+      - about_img_1@2x.png
+      - about_img_2.png
+      - about_img_2@2x.png
+      - about_img_3.png
+      - about_img_3@2x.png
+    - alert/
+      - close_icon.png
+      - close_icon@2x.png
+      - close_icon_dark.png
+      - copy_dark.png
+      - copy_icon.svg
+      - copy_white.png
+      - exclamation_icon.png
+      - exclamation_icon@2x.png
+    - features/
+      - ai-summary.gif
+      - ai-summary.mp4
+      - drag-drop.gif
+      - drag-drop.mp4
+      - feature_banner_img.png
+      - feature_banner_img@2x.png
+      - feature_icon_1.png
+      - feature_icon_1@2x.png
+      - feature_icon_2.png
+      - feature_icon_2@2x.png
+      - feature_icon_3.png
+      - feature_icon_3@2x.png
+      - feature_icon_4.png
+      - feature_icon_4@2x.png
+      - feature_img_1.png
+      - feature_img_1@2x.png
+      - feature_img_2.png
+      - feature_img_2@2x.png
+      - feature_img_3.png
+      - feature_img_3@2x.png
+      - feature_img_4.png
+      - feature_img_4@2x.png
+      - inner_page_bg.png
+      - inner_page_bg@2x.png
+      - spss-vs-shady.png
+      - ui-simple.png
+    - header/
+      - control_icon.png
+      - control_icon@2x.png
+      - gear_17637667.png
+      - gear_17637667@2x.png
+      - icon.png
+      - icon@2x.png
+      - logout_icon.png
+      - logout_icon@2x.png
+    - icons/
+      - ThreadsIcon.svg
+      - barchart-filled.svg
+      - brain-filled.svg
+      - file-export-filled.svg
+      - google.png
+    - landing/
+      - Path 7.png
+      - Path 7@2x.png
+      - Polygon 1.png
+      - Polygon 1@2x.png
+      - Shadex_Footer_Logo.svg
+      - Shadex_Logo.png
+      - Shadex_Table.png
+      - Shadex_Table_Landing_Logo.svg
+      - arrow_1.png
+      - arrow_13147905.png
+      - arrow_13147905@2x.png
+      - arrow_1@2x.png
+      - arrow_2_white.png
+      - arrow_2_white@2x.png
+      - banner_bg.png
+      - banner_bg@2x.png
+      - dopdown_arrow_dark.png
+      - dopdown_arrow_dark@2x.png
+      - email_icon.png
+      - email_icon@2x.png
+      - fb_icon.png
+      - fb_icon@2x.png
+      - footer_logo.png
+      - footer_logo@2x.png
+      - home_icon_1.png
+      - home_icon_1@2x.png
+      - home_icon_2.png
+      - home_icon_2@2x.png
+      - home_icon_3.png
+      - home_icon_3@2x.png
+      - icon.png
+      - icon@2x.png
+      - icon_btn.png
+      - icon_btn@2x.png
+      - ig_icon.png
+      - ig_icon@2x.png
+      - line_icon.png
+      - line_icon@2x.png
+      - linkedin_icon.png
+      - linkedin_icon@2x.png
+      - logo.png
+      - logo@2x.png
+      - play_13198001.png
+      - play_13198001@2x.png
+      - video_icon.png
+      - video_icon@2x.png
+    - locationbar/
+      - step1_icon.png
+      - step1_icon@2x.png
+      - step1_icon_active.png
+      - step1_icon_active@2x.png
+      - step2_icon.png
+      - step2_icon@2x.png
+      - step2_icon_active.png
+      - step2_icon_active@2x.png
+      - step3_icon.png
+      - step3_icon@2x.png
+      - step3_icon_active.png
+      - step3_icon_active@2x.png
+    - logo/
+      - Shadex_Logo.png
+      - shady_logo_dark.svg
+      - shady_logo_light.svg
+    - pricing/
+      - price_banner_img.svg
+      - price_icon_1.svg
+      - price_icon_2.svg
+      - price_icon_3.svg
+      - price_icon_4.svg
+      - price_icon_5.svg
+      - price_unlimited_bg.jpg
+      - tick_green.svg
+    - screenshots/
+      - result_preview.png
+    - step1/
+      - Group_50.png
+      - Group_50@2x.png
+      - alert_icon.png
+      - alert_icon@2x.png
+      - auto.png
+      - checkbox_icon.png
+      - checkbox_icon@2x.png
+      - manual.png
+      - privacy_icon.png
+      - step1_icon_active.png
+      - step1_icon_active@2x.png
+      - upload_gray.png
+      - upload_white.png
+    - step2/
+      - sparkles_icon.png
+      - sparkles_icon@2x.png
+      - sparkles_icon_gray.png
+      - sparkles_icon_white.png
+    - step3/
+      - ai_icon.png
+      - ai_icon@2x.png
+      - ai_icon_dark@2x.png
+      - export_icon.png
+      - export_icon@2x.png
+      - export_icon_white.png
+      - tab_icon_1_active.png
+      - tab_icon_1_active@2x.png
+      - tab_icon_1_inactive@2x.png
+      - tab_icon_2.png
+      - tab_icon_2@2x.png
+      - tab_icon_2_active@2x.png
+  - src/
+    - app/
+      - clientProvider.tsx
+      - globals.css
+      - layout.tsx
+      - middleware.ts
+      - page.tsx
+      - admin/
+        - messages/
+          - page.tsx
+      - api/
+        - export-word/
+          - route.ts
+        - test/
+          - route.ts
+      - dashboard/
+        - page.tsx
+        - logs/
+          - page.tsx
+        - points/
+          - page.tsx
+      - demo-error/
+        - page.tsx
+      - marketing/
+        - about_v2/
+          - page.tsx
+        - contact/
+          - page.tsx
+        - faq/
+          - page.tsx
+        - features/
+          - page.tsx
+        - free_mode/
+          - page.tsx
+        - pricing/
+          - page.tsx
+        - pricing_v2/
+          - page.tsx
+        - privacy/
+          - page.tsx
+        - technical/
+          - page.tsx
+        - terms/
+          - page.tsx
+      - robots.txt/
+        - route.ts
+      - sign-in/
+        - [[...index]]/
+          - page.tsx
+      - sign-up/
+        - [[...index]]/
+          - page.tsx
+      - step1/
+        - page.tsx
+        - components/
+          - AnalysisControl.tsx
+          - ColumnAnalysisDisplay.tsx
+          - DataPreviewTable.tsx
+          - DataPrivacyDialog.tsx
+          - ErrorDisplay.tsx
+          - FileUploadArea.tsx
+      - step2/
+        - page.tsx
+      - step3/
+        - page.tsx
+        - types.ts
+        - components/
+          - ResultsTabs.tsx
+          - SortableRow.tsx
+    - components/
+      - ActionButton.tsx
+      - ActionButton2.tsx
+      - AnalysisErrorDialog.tsx
+      - AnalysisLoadingModal.tsx
+      - AppErrorBoundary.tsx
+      - ConfirmTypeMismatchDialog.tsx
+      - CopyButton.tsx
+      - DarkButton.tsx
+      - FeatureSection.tsx
+      - Footer.tsx
+      - Hero.tsx
+      - InlineNotice.tsx
+      - LightButton.tsx
+      - ModuleDropdown.tsx
+      - Navbar.tsx
+      - ToggleSwitch.tsx
+      - stepNavigator.tsx
+      - ui/
+        - accordion.tsx
+        - alert-dialog.tsx
+        - alert.tsx
+        - button.tsx
+        - card.tsx
+        - checkbox.tsx
+        - command.tsx
+        - container.tsx
+        - dialog.tsx
+        - dropdown-menu.tsx
+        - hover-card.tsx
+        - input.tsx
+        - label.tsx
+        - popover.tsx
+        - progress.tsx
+        - scroll-area.tsx
+        - select.tsx
+        - separator.tsx
+        - sheet.tsx
+        - skeleton.tsx
+        - sonner.tsx
+        - table.tsx
+        - tabs.tsx
+        - textarea.tsx
+        - tooltip.tsx
+        - use-toast.tsx
+        - custom/
+          - GroupSelect.tsx
+          - multiselect.tsx
+        - layout/
+          - DashboardLayout.tsx
+          - HeaderBanner.tsx
+          - Header_ui2.tsx
+    - context/
+      - PointsContext.tsx
+    - hooks/
+      - general_useLogs.ts
+      - general_usePoints.ts
+      - general_useUserLimits.ts
+      - step1_useAnalysisTrigger.ts
+      - step1_useAutoAnalysis.ts
+      - step1_useColumnAnalysis.ts
+      - step1_useFileValidation.ts
+      - step1_usePrivacyDetection.ts
+      - step1_useStep1Logic.ts
+      - step1_useTableAnalysis.ts
+      - step3_useAiSummary.ts
+      - step3_useExport.ts
+      - step3_useTableEdit.ts
+    - lib/
+      - apiClient.ts
+      - constants.ts
+      - utils.ts
+    - services/
+      - step1_autoAnalysisService.ts
+      - step1_columnAnalysisService.ts
+      - step1_fileAnalysisService.ts
+      - step1_sensitiveDataDetector.ts
+      - step1_tableAnalysisService.ts
+      - step3_aiSummaryService.ts
+      - step3_dataTransformService.ts
+      - step3_exportService.ts
+    - stores/
+      - analysisStore.ts
+    - types/
+      - errors.ts
+      - window.d.ts
+    - utils/
+      - error.ts
+      - fileProcessor.ts
+```
+
+## Dependencies
+
+### Runtime dependencies (package.json)
+- @clerk/localizations@^3.20.1
+- @clerk/nextjs@^6.25.4
+- @clerk/themes@^2.3.3
+- @dnd-kit/core@^6.3.1
+- @dnd-kit/sortable@^10.0.0
+- @dnd-kit/utilities@^3.2.2
+- @radix-ui/react-accordion@^1.2.11
+- @radix-ui/react-alert-dialog@^1.1.14
+- @radix-ui/react-checkbox@^1.3.2
+- @radix-ui/react-dialog@^1.1.14
+- @radix-ui/react-dropdown-menu@^2.1.15
+- @radix-ui/react-hover-card@^1.1.14
+- @radix-ui/react-label@^2.1.7
+- @radix-ui/react-popover@^1.1.14
+- @radix-ui/react-progress@^1.1.7
+- @radix-ui/react-scroll-area@^1.2.9
+- @radix-ui/react-select@^2.2.5
+- @radix-ui/react-slot@^1.2.3
+- @radix-ui/react-tabs@^1.1.12
+- @radix-ui/react-toast@^1.2.14
+- @radix-ui/react-tooltip@^1.2.7
+- @supabase/supabase-js@^2.50.5
+- antd@^5.26.7
+- class-variance-authority@^0.7.1
+- cloudinary@^2.7.0
+- clsx@^2.1.1
+- cmdk@^1.1.1
+- docx@^9.5.1
+- dompurify@^3.2.6
+- file-saver@^2.0.5
+- framer-motion@^12.23.6
+- google-auth-library@^10.1.0
+- google-spreadsheet@^4.1.5
+- isomorphic-dompurify@^2.26.0
+- lucide-react@^0.525.0
+- next@15.3.4
+- next-themes@^0.4.6
+- react@^19.0.0
+- react-dom@^19.0.0
+- react-tooltip@^5.29.1
+- resend@^4.6.0
+- skeleton@^1.0.0
+- sonner@^2.0.6
+- sortable@^2.0.0
+- swr@^2.3.4
+- tailwind-merge@^3.3.1
+- utilities@^1.0.6
+- xlsx@^0.18.5
+- zustand@^5.0.7
+
+### Development dependencies (package.json)
+- @eslint/eslintrc@^3
+- @tailwindcss/postcss@^4.1.11
+- @types/antd@^0.12.32
+- @types/dompurify@^3.0.5
+- @types/file-saver@^2.0.7
+- @types/node@^20
+- @types/react@^19.1.8
+- @types/react-dom@^19
+- autoprefixer@^10.4.21
+- cross-env@^7.0.3
+- eslint@^9
+- eslint-config-next@15.3.4
+- postcss@^8.5.6
+- tailwindcss@^4.1.11
+- tw-animate-css@^1.3.4
+- typescript@^5
+
+## Error Handling and API Conventions
+
+The front‑end consolidates all error creation and handling in `src/utils/error.ts` and type definitions in `src/types/errors.ts`.  Developers should **not** throw arbitrary `Error` objects.  Instead, create new errors via `createError(code, context, messageKey?, options?)` or use the predefined helpers in `CommonErrors`.  Each error carries a user‑friendly message, an action suggestion, severity and retry flag.  When catching exceptions, use the type guard `isAppError` to distinguish between expected application errors and unknown failures.  Always report errors using `apiClient.reportError()` so that they can be logged and tracked.
+
+For API communication, use the `ApiClient` class in `src/lib/apiClient.ts`.  It wraps the native fetch API with timeout control, automatic retries on GET requests and conversion of HTTP status codes into typed `AppError` instances via `createErrorFromHttp()`.  All network errors propagate as `AppError` so they can be handled uniformly by the caller.
+
+On the backend, implement endpoints using FastAPI.  Responses **must** conform to the `StandardResponse` schema defined in the backend’s `schemas.py` (success, message, data, error_code).  When adding new endpoints, document their request and response models explicitly and update this snapshot if the schema changes.

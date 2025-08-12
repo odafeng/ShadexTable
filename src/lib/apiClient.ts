@@ -7,7 +7,7 @@ import {
   createErrorFromHttp
 } from '@/utils/error'
 
-import { AppError } from '@/types/errors'
+import { AppError, Json } from '@/types/errors'
 
 // API 客戶端配置
 interface ApiClientConfig {
@@ -25,6 +25,10 @@ interface RequestOptions extends Omit<RequestInit, 'method'> {
   context?: ErrorContext
 }
 
+/**
+ * API 客戶端類別
+ * 提供統一的 HTTP 請求介面與錯誤處理
+ */
 class ApiClient {
   private config: Required<ApiClientConfig>
 
@@ -38,13 +42,22 @@ class ApiClient {
     }
   }
 
-  // GET 請求（支援重試）
-  async get<T>(url: string, options: RequestOptions = {}): Promise<T> {
+  /**
+   * GET 請求（支援重試）
+   * @template TResponse - 響應資料型別
+   * @param url - 請求 URL
+   * @param options - 請求選項
+   * @returns Promise<TResponse>
+   */
+  async get<TResponse = unknown>(
+    url: string, 
+    options: RequestOptions = {}
+  ): Promise<TResponse> {
     const { retries = this.config.retries, timeout, correlationId, context, ...restOptions } = options
 
     for (let attempt = 0; attempt <= retries; attempt++) {
       try {
-        return await this.request<T>(url, {
+        return await this.request<TResponse>(url, {
           method: 'GET',
           timeout,
           correlationId,
@@ -66,13 +79,25 @@ class ApiClient {
     throw createError(ErrorCode.UNKNOWN_ERROR, context)
   }
 
-  // POST 請求
-  async post<T = any>(url: string, data?: any, options: RequestOptions = {}): Promise<T> {
+  /**
+   * POST 請求
+   * @template TRequest - 請求資料型別
+   * @template TResponse - 響應資料型別
+   * @param url - 請求 URL
+   * @param data - 請求資料
+   * @param options - 請求選項
+   * @returns Promise<TResponse>
+   */
+  async post<TRequest = unknown, TResponse = unknown>(
+    url: string, 
+    data?: TRequest, 
+    options: RequestOptions = {}
+  ): Promise<TResponse> {
     const { timeout, correlationId, context, ...restOptions } = options
 
-    return this.request<T>(url, {
+    return this.request<TResponse>(url, {
       method: 'POST',
-      body: data ? JSON.stringify(data) : undefined,
+      body: data !== undefined ? JSON.stringify(data) : undefined,
       timeout,
       correlationId,
       context,
@@ -80,13 +105,25 @@ class ApiClient {
     })
   }
 
-  // PUT 請求
-  async put<T>(url: string, data?: any, options: RequestOptions = {}): Promise<T> {
+  /**
+   * PUT 請求
+   * @template TRequest - 請求資料型別
+   * @template TResponse - 響應資料型別
+   * @param url - 請求 URL
+   * @param data - 請求資料
+   * @param options - 請求選項
+   * @returns Promise<TResponse>
+   */
+  async put<TRequest = unknown, TResponse = unknown>(
+    url: string, 
+    data?: TRequest, 
+    options: RequestOptions = {}
+  ): Promise<TResponse> {
     const { timeout, correlationId, context, ...restOptions } = options
 
-    return this.request<T>(url, {
+    return this.request<TResponse>(url, {
       method: 'PUT',
-      body: data ? JSON.stringify(data) : undefined,
+      body: data !== undefined ? JSON.stringify(data) : undefined,
       timeout,
       correlationId,
       context,
@@ -94,11 +131,46 @@ class ApiClient {
     })
   }
 
-  // DELETE 請求
-  async delete<T>(url: string, options: RequestOptions = {}): Promise<T> {
+  /**
+   * PATCH 請求
+   * @template TRequest - 請求資料型別
+   * @template TResponse - 響應資料型別
+   * @param url - 請求 URL
+   * @param data - 請求資料
+   * @param options - 請求選項
+   * @returns Promise<TResponse>
+   */
+  async patch<TRequest = unknown, TResponse = unknown>(
+    url: string, 
+    data?: TRequest, 
+    options: RequestOptions = {}
+  ): Promise<TResponse> {
     const { timeout, correlationId, context, ...restOptions } = options
 
-    return this.request<T>(url, {
+    return this.request<TResponse>(url, {
+      method: 'PATCH',
+      body: data !== undefined ? JSON.stringify(data) : undefined,
+      timeout,
+      correlationId,
+      context,
+      ...restOptions
+    })
+  }
+
+  /**
+   * DELETE 請求
+   * @template TResponse - 響應資料型別
+   * @param url - 請求 URL
+   * @param options - 請求選項
+   * @returns Promise<TResponse>
+   */
+  async delete<TResponse = unknown>(
+    url: string, 
+    options: RequestOptions = {}
+  ): Promise<TResponse> {
+    const { timeout, correlationId, context, ...restOptions } = options
+
+    return this.request<TResponse>(url, {
       method: 'DELETE',
       timeout,
       correlationId,
@@ -107,7 +179,13 @@ class ApiClient {
     })
   }
 
-  // 核心請求方法
+  /**
+   * 核心請求方法
+   * @template T - 響應資料型別
+   * @param url - 請求 URL
+   * @param options - 請求選項
+   * @returns Promise<T>
+   */
   private async request<T>(
     url: string,
     options: RequestOptions & { method: string } = { method: 'GET' }
@@ -149,7 +227,7 @@ class ApiClient {
 
       // 處理非 2xx 回應
       if (!response.ok) {
-        let responseData: any = null
+        let responseData: Json | null = null
         try {
           responseData = await this.parseResponseBody(response)
         } catch (parseError) {
@@ -161,11 +239,11 @@ class ApiClient {
           response.status,
           context,
           correlationId,
-          responseData
+          responseData ?? undefined
         )
       }
 
-      return await this.parseResponseBody(response)
+      return await this.parseResponseBody(response) as T
 
     } catch (error) {
       clearTimeout(timeoutId)
@@ -223,40 +301,60 @@ class ApiClient {
     }
   }
 
-  // 建構完整 URL
+  /**
+   * 建構完整 URL
+   * @param url - 相對或絕對 URL
+   * @returns 完整 URL
+   */
   private buildURL(url: string): string {
     if (url.startsWith('http')) return url
     return `${this.config.baseURL}${url}`
   }
 
-  // 解析回應內容
-  private async parseResponseBody(response: Response): Promise<any> {
+  /**
+   * 解析回應內容
+   * @param response - Fetch Response 物件
+   * @returns 解析後的資料
+   */
+  private async parseResponseBody(response: Response): Promise<Json> {
     const contentType = response.headers.get('content-type')
 
     if (contentType?.includes('application/json')) {
-      return response.json()
+      return response.json() as Promise<Json>
     }
 
     const text = await response.text()
     return text || null
   }
 
-  // 判斷是否為可重試錯誤
+  /**
+   * 判斷是否為可重試錯誤
+   * @param error - 錯誤物件
+   * @returns 是否可重試
+   */
   private isRetryableError(error: unknown): boolean {
     if (!isAppError(error)) return false
 
     // 網路錯誤或 5xx 伺服器錯誤可重試
     return error.code === ErrorCode.NETWORK_ERROR ||
       error.code === ErrorCode.SERVER_ERROR ||
-      (error.details?.status && error.details.status >= 500)
+      (typeof error.details?.status === 'number' && error.details.status >= 500)
   }
 
-  // 類型守衛：檢查是否為 Error
+  /**
+   * 類型守衛：檢查是否為 Error
+   * @param error - 未知錯誤
+   * @returns 是否為 Error 實例
+   */
   private isError(error: unknown): error is Error {
     return error instanceof Error
   }
 
-  // 睡眠函式
+  /**
+   * 睡眠函式
+   * @param ms - 毫秒數
+   * @returns Promise<void>
+   */
   private sleep(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms))
   }
@@ -267,12 +365,35 @@ export const apiClient = new ApiClient({
   baseURL: process.env.NEXT_PUBLIC_API_URL || '',
 })
 
-// 錯誤回報函式
+/**
+ * 錯誤報告資料結構
+ */
+interface ErrorReportData {
+  code: ErrorCode
+  context?: ErrorContext
+  message: string
+  userMessage: string
+  action: string
+  correlationId: string
+  severity: string
+  stack?: string
+  timestamp: string
+  userAgent: string
+  url: string
+  details?: Json
+  [key: string]: Json
+}
+
+/**
+ * 錯誤回報函式
+ * @param error - AppError 物件
+ * @param extra - 額外資訊
+ */
 export async function reportError(
   error: AppError,
-  extra?: Record<string, any>
+  extra?: Record<string, Json>
 ): Promise<void> {
-  const errorReport = {
+  const errorReport: ErrorReportData = {
     code: error.code,
     context: error.context,
     message: error.message,
@@ -284,8 +405,8 @@ export async function reportError(
     timestamp: new Date().toISOString(),
     userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'server',
     url: typeof window !== 'undefined' ? window.location.href : 'server',
-    details: error.details,
-    ...extra
+    details: error.details as Json | undefined,
+    ...(extra || {})
   }
 
   // 開發環境：console 輸出
@@ -305,3 +426,6 @@ export async function reportError(
     console.error('Failed to report error:', reportingError)
   }
 }
+
+// 匯出型別定義供外部使用
+export type { ApiClientConfig, RequestOptions }

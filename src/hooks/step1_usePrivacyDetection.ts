@@ -1,3 +1,4 @@
+// step1_usePrivacyDetection.ts
 import { useState, useCallback } from 'react';
 import { FileAnalysisService } from '@/services/step1_fileAnalysisService';
 import { useUserLimits } from '@/hooks/general_useUserLimits';
@@ -45,6 +46,7 @@ export function usePrivacyDetection(): UsePrivacyDetectionReturn {
             const result = await FileAnalysisService.processFileComplete(file, userType);
             
             if (!result.success) {
+                setSensitiveDetectionLoading(false);
                 return {
                     success: false,
                     sensitiveColumns: [],
@@ -54,15 +56,25 @@ export function usePrivacyDetection(): UsePrivacyDetectionReturn {
                 };
             }
 
-            setSensitiveColumns(result.sensitiveColumns || []);
-            setPrivacySuggestions(result.suggestions || []);
+            // 設定檔案基本資訊
             setFileBasicInfo({
                 name: file.name,
                 size: file.size,
+                rows: result.fileInfo?.rows,
+                columns: result.fileInfo?.columns,
                 hasMultipleSheets: result.fileInfo?.hasMultipleSheets || false
             });
-            
-            setShowPrivacyDialog(true);
+
+            // 檢查是否有敏感資料
+            if (result.sensitiveColumns && result.sensitiveColumns.length > 0) {
+                setSensitiveColumns(result.sensitiveColumns);
+                setPrivacySuggestions(result.suggestions || []);
+                setShowPrivacyDialog(true);
+            } else {
+                // 沒有敏感資料，清空相關狀態
+                setSensitiveColumns([]);
+                setPrivacySuggestions([]);
+            }
             
             return {
                 success: true,
@@ -72,24 +84,28 @@ export function usePrivacyDetection(): UsePrivacyDetectionReturn {
                 data: result.data
             };
             
+        } catch (error) {
+            console.error('❌ 敏感資料檢測失敗:', error);
+            return {
+                success: false,
+                sensitiveColumns: [],
+                suggestions: [],
+                fileInfo: null,
+                error: error as AppError
+            };
         } finally {
             setSensitiveDetectionLoading(false);
         }
     }, [userType]);
 
     const confirmPrivacy = useCallback(() => {
-        if (!pendingFile) {
-            throw CommonErrors.fileNotSelected();
-        }
-        
-        if (sensitiveColumns.length > 0) {
-            throw CommonErrors.sensitiveDataDetected();
-        }
-        
+        // 使用者確認繼續，即使有敏感資料
+        // 這裡只是關閉對話框，實際處理在父元件
         setShowPrivacyDialog(false);
-    }, [pendingFile, sensitiveColumns]);
+    }, []);
 
     const cancelPrivacy = useCallback(() => {
+        // 使用者取消上傳
         setShowPrivacyDialog(false);
         resetPrivacyState();
         

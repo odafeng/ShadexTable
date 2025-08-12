@@ -6,10 +6,10 @@
     "dev": "next dev",
     "build": "next build --no-lint",
     "start": "next start",
-    "lint": "eslint . --max-warnings Infinity",
+    "lint": "next lint . --max-warnings Infinity",
     "lint:warn": "eslint . --quiet --max-warnings=-1",
     "prepare": "husky",
-    "verify": "eslint \"src/**/*.{ts,tsx}\" && tsc --noEmit && type-coverage --at-least 90"
+    "verify": "next lint \"src/**/*.{ts,tsx}\" && tsc --noEmit && type-coverage --at-least 90"
   },
   "lint-staged": {
     "src/**/*.{ts,tsx}": [

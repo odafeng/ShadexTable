@@ -2,8 +2,8 @@
 import { useState, useCallback } from 'react';
 import { FileAnalysisService } from '@/features/step1/services/fileAnalysisService';
 import { useUserLimits } from '@/features/auth/hooks/useUserLimits';
-// 移除未使用的 CommonErrors
 import { AppError } from '@/types/errors';
+import { isAppError } from '@/utils/error';
 import type { DataRow } from '@/stores/analysisStore';
 
 // 定義檔案基本資訊類型
@@ -45,7 +45,7 @@ export function usePrivacyDetection(): UsePrivacyDetectionReturn {
     const [fileBasicInfo, setFileBasicInfo] = useState<FileBasicInfo | null>(null);
     const [sensitiveDetectionLoading, setSensitiveDetectionLoading] = useState(false);
     const [pendingFile, setPendingFile] = useState<File | null>(null);
-    
+
     const { userType } = useUserLimits();
 
     const resetPrivacyState = useCallback(() => {
@@ -58,18 +58,24 @@ export function usePrivacyDetection(): UsePrivacyDetectionReturn {
     const detectSensitiveData = useCallback(async (file: File) => {
         setSensitiveDetectionLoading(true);
         setPendingFile(file);
-        
+
         try {
             const result = await FileAnalysisService.processFileComplete(file, userType);
-            
+
             if (!result.success) {
                 setSensitiveDetectionLoading(false);
+
+                // 確保 error 是 AppError 類型
+                const appError = result.error && isAppError(result.error)
+                    ? result.error
+                    : undefined;
+
                 return {
                     success: false,
                     sensitiveColumns: [],
                     suggestions: [],
                     fileInfo: null,
-                    error: result.error
+                    error: appError
                 };
             }
 
@@ -93,7 +99,7 @@ export function usePrivacyDetection(): UsePrivacyDetectionReturn {
                 setSensitiveColumns([]);
                 setPrivacySuggestions([]);
             }
-            
+
             return {
                 success: true,
                 sensitiveColumns: result.sensitiveColumns || [],
@@ -101,7 +107,7 @@ export function usePrivacyDetection(): UsePrivacyDetectionReturn {
                 fileInfo: basicInfo,
                 data: result.data
             };
-            
+
         } catch (error) {
             console.error('❌ 敏感資料檢測失敗:', error);
             return {
@@ -126,7 +132,7 @@ export function usePrivacyDetection(): UsePrivacyDetectionReturn {
         // 使用者取消上傳
         setShowPrivacyDialog(false);
         resetPrivacyState();
-        
+
         // 清除檔案輸入
         const fileInput = document.getElementById('file-upload') as HTMLInputElement;
         if (fileInput) fileInput.value = '';

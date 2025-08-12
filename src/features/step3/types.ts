@@ -1,5 +1,7 @@
 // app/step3/types.ts
 
+import { DragEndEvent } from '@dnd-kit/core';
+
 // Define a union type for possible cell values
 export type CellValue = string | number | boolean | null | undefined;
 

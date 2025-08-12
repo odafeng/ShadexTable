@@ -3,7 +3,7 @@
 import Header from "@/components/shared/Header";
 import Footer from "@/components/shared/Footer";
 import StepNavigator from "@/components/shared/stepNavigator";
-import { useState, useEffect } from "react";
+import { useState, useEffect, ReactNode } from "react";
 import { MultiSelect } from "@/components/ui/custom/MultiSelect";
 import GroupSelect from "@/components/ui/custom/GroupSelect";
 import { useRouter } from "next/navigation";
@@ -53,13 +53,14 @@ export default function Step2Page() {
     const getTypeOf = (col: string) => columnsPreview.find((c) => c.column === col)?.suggested_type ?? "不明";
 
     // 排序函數：按照 suggested_type 排序
-    interface SortOption {
+    type SelectOption = {
         label: string;
         value: string;
-        type: string;
+        type?: string;
         disabled?: boolean;
         suffix?: string;
-    }
+        [x: string]: ReactNode;
+    };
 
     interface AnalysisApiResponse {
         success: boolean;
@@ -69,18 +70,18 @@ export default function Step2Page() {
             groupCounts?: Record<string, number>;
         };
     }
-    const sortByType = (options: SortOption[]) => {
+    const sortByType = (options: SelectOption[]): SelectOption[] => {
         const typeOrder = ["類別變項", "連續變項", "日期變項", "不明"];
         return options.sort((a, b) => {
-            const aIndex = typeOrder.indexOf(a.type);
-            const bIndex = typeOrder.indexOf(b.type);
+            const aType = a.type as string || "不明";
+            const bType = b.type as string || "不明";
+            const aIndex = typeOrder.indexOf(aType);
+            const bIndex = typeOrder.indexOf(bType);
 
-            // 如果類型相同，按字母順序排列
             if (aIndex === bIndex) {
                 return a.label.localeCompare(b.label);
             }
 
-            // 如果類型不在排序列表中，放到最後
             if (aIndex === -1) return 1;
             if (bIndex === -1) return -1;
 
@@ -88,8 +89,13 @@ export default function Step2Page() {
         });
     };
 
-    const groupOptions = sortByType(
-        allColumns.map((col) => ({ label: col, value: col, type: getTypeOf(col) }))
+
+    const groupOptions: SelectOption[] = sortByType(
+        allColumns.map((col) => ({
+            label: col,
+            value: col,
+            type: getTypeOf(col)
+        } as SelectOption))
     );
 
     const catOptions = sortByType(

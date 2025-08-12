@@ -187,7 +187,7 @@ export default function SortableRow({
           if (match && (match[1] === '0' || match[1] === '1')) {
             const binaryKey = `${row.Variable}-${key}`;
             const mapping = binaryMappings[binaryKey] || { '0': 'No', '1': 'Yes' };
-            const displayValue = value.toString().replace(/^(\d)/, (m: string) => mapping[m] || m);
+            const displayValue = value != null ? value.toString().replace(/^(\d)/, (m: string) => mapping[m] || m) : '';
 
             if (isEditing) {
               return (

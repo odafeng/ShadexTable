@@ -69,11 +69,21 @@ export function useAnalysisTrigger(): UseAnalysisTriggerReturn {
         const token = await getToken();
         if (!token) throw CommonErrors.analysisAuthFailed();
 
-        const result: AutoAnalysisResponse = await FileAnalysisService.performAutoAnalysis(
+        const rawResult = await FileAnalysisService.performAutoAnalysis(
             parsedData, 
             fillNA, 
             token
         );
+
+        // Ensure error is always an instance of Error
+        const result: AutoAnalysisResponse = {
+            ...rawResult,
+            error: rawResult.error instanceof Error
+                ? rawResult.error
+                : rawResult.error
+                    ? new Error(rawResult.error.message || String(rawResult.error))
+                    : undefined,
+        };
         
         if (!result.success) {
             throw result.error || new Error('Auto analysis failed');

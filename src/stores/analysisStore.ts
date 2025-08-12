@@ -16,7 +16,7 @@ interface ColumnInfo {
 }
 
 // 定義資料行的值類型
-type DataValue = string | number | boolean | null | undefined;
+type DataValue = string | number | boolean | Date | null | undefined;
 
 // 定義資料列類型
 interface DataRow {
@@ -734,5 +734,6 @@ export type {
     ColumnProfile,
     ColumnPreview,
     AiDiagnosis,
-    AutoAnalysisResult
+    AutoAnalysisResult,
+    AnalysisResult
 };

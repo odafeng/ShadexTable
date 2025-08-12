@@ -80,7 +80,15 @@ export function useColumnAnalysis() {
 
             console.log("📊 準備分析欄位，資料筆數:", data.length);
 
-            const result: AnalysisResult = await FileAnalysisService.analyzeColumns(data, authToken);
+            const rawResult = await FileAnalysisService.analyzeColumns(data, authToken);
+            const result: AnalysisResult = {
+                ...rawResult,
+                error: typeof rawResult.error === 'string'
+                    ? rawResult.error
+                    : rawResult.error
+                        ? (rawResult.error.message || String(rawResult.error))
+                        : undefined
+            };
 
             if (result.success && result.columns) {
                 const profiles = convertToColumnProfile(result.columns);

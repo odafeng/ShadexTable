@@ -1,7 +1,8 @@
 // step1_fileAnalysisService.ts
 import { FileProcessor } from "@/utils/fileProcessor";
 import { SensitiveDataDetector } from "@/features/step1/services/sensitiveDataDetector";
-import { createError, ErrorCode, ErrorContext, CommonErrors, AppError } from "@/utils/error";
+import { createError, ErrorCode, ErrorContext, CommonErrors } from "@/utils/error";
+import { AppError } from "@/types/errors"
 // 移除未使用的 apiClient
 import { post } from "@/lib/apiClient";
 // 從 analysisStore 引入類型
@@ -39,14 +40,6 @@ export interface ColumnProfile {
     suggested_type: string;
 }
 
-// 定義 API 回應類型
-interface ColumnAnalysisResponse {
-    data: {
-        columns: ColumnProfile[];
-    };
-    [key: string]: unknown;  // 允許其他欄位但類型安全
-}
-
 interface AutoAnalysisResponse {
     success: boolean;
     message?: string;
@@ -81,7 +74,7 @@ interface HttpErrorResponse {
 }
 
 export class FileAnalysisService {
-    
+
     // 🔥 完整的檔案處理流程 - 這個方法必須存在！
     static async processFileComplete(
         file: File,
@@ -184,7 +177,7 @@ export class FileAnalysisService {
             }
 
             const correlationId = crypto.randomUUID();
-            
+
             const requestBody: ColumnAnalysisRequest = {
                 data: data
             };
@@ -194,7 +187,8 @@ export class FileAnalysisService {
             console.log("  - 資料筆數:", data.length);
             console.log("  - 欄位數:", data.length > 0 ? Object.keys(data[0]).length : 0);
 
-            const response = await post<ColumnAnalysisRequest, ColumnAnalysisResponse>(
+            // 先用 unknown 接收，再做型別檢查
+            const response = await post<ColumnAnalysisRequest, unknown>(
                 `${process.env.NEXT_PUBLIC_API_URL}/api/preprocess/columns`,
                 requestBody,
                 {
@@ -210,39 +204,54 @@ export class FileAnalysisService {
 
             console.log("📥 收到欄位分析回應:", response);
 
-            if (response?.data?.columns && Array.isArray(response.data.columns)) {
-                return {
-                    success: true,
-                    columns: response.data.columns
-                };
-            } else {
-                console.warn("⚠️ API 回應格式異常:", response);
-                return {
-                    success: false,
-                    error: createError(
-                        ErrorCode.ANALYSIS_ERROR,
-                        ErrorContext.ANALYSIS,
-                        'column.type_detection_failed',
-                        {
-                            customMessage: "API 回應格式異常",
-                            correlationId,
-                            details: { response }
-                        }
-                    )
-                };
+            // 型別守衛來檢查回應結構
+            if (response && typeof response === 'object') {
+                const res = response as Record<string, unknown>;
+
+                // 檢查 data.columns 結構
+                if (res.data && typeof res.data === 'object') {
+                    const data = res.data as Record<string, unknown>;
+                    if (data.columns && Array.isArray(data.columns)) {
+                        return {
+                            success: true,
+                            columns: data.columns as ColumnProfile[]
+                        };
+                    }
+                }
+
+                // 檢查直接 columns 結構
+                if (res.columns && Array.isArray(res.columns)) {
+                    return {
+                        success: true,
+                        columns: res.columns as ColumnProfile[]
+                    };
+                }
             }
+
+            console.warn("⚠️ API 回應格式異常:", response);
+            return {
+                success: false,
+                error: createError(
+                    ErrorCode.ANALYSIS_ERROR,
+                    ErrorContext.ANALYSIS,
+                    'column.type_detection_failed',
+                    {
+                        customMessage: "API 回應格式異常",
+                        correlationId,
+                        details: { response: JSON.stringify(response) }
+                    }
+                )
+            };
 
         } catch (err: unknown) {
             console.error("❌ 欄位解析錯誤:", err);
-            
-            // 類型安全的錯誤處理
+
             if (err && typeof err === 'object' && 'response' in err) {
                 const errorResponse = err as HttpErrorResponse;
                 console.error("❌ 錯誤回應:", errorResponse.response?.data);
                 console.error("❌ 錯誤狀態:", errorResponse.response?.status);
             }
-            
-            // 轉換錯誤類型
+
             if (err instanceof Error) {
                 return {
                     success: false,
@@ -254,7 +263,7 @@ export class FileAnalysisService {
                     )
                 };
             }
-            
+
             return {
                 success: false,
                 error: createError(
@@ -270,7 +279,7 @@ export class FileAnalysisService {
     // 創建備用欄位資料
     static createFallbackColumnData(data: DataRow[]): ColumnProfile[] {
         if (data.length === 0) return [];
-        
+
         return Object.keys(data[0]).map(col => ({
             column: col,
             missing_pct: "0.0%",
@@ -332,7 +341,7 @@ export class FileAnalysisService {
 
         } catch (err: unknown) {
             console.error("❌ 自動分析錯誤:", err);
-            
+
             // 類型安全的錯誤處理
             if (err instanceof Error) {
                 return {
@@ -345,7 +354,7 @@ export class FileAnalysisService {
                     )
                 };
             }
-            
+
             return {
                 success: false,
                 error: createError(

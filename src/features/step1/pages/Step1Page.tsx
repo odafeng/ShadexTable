@@ -135,7 +135,7 @@ export default function Step1Page() {
                 onCancel={handlePrivacyCancel}
                 sensitiveColumns={sensitiveColumns}
                 suggestions={privacySuggestions}
-                fileInfo={fileBasicInfo}
+                fileInfo={fileBasicInfo || undefined}
                 warnings={fileValidationWarnings}
             />
         </div>

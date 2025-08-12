@@ -4,23 +4,8 @@
 import { useAnalysisStore } from './analysisStore';
 import { useShallow } from 'zustand/shallow';
 import { useMemo } from 'react';
+import type { AnalysisResult, ColumnProfile } from './analysisStore';
 
-// 定義欄位配置類型（根據您的資料結構調整）
-interface ColumnProfile {
-  column: string;
-  suggested_type?: string;
-  missing_pct?: string | number;
-  unique_count?: number;
-  sample_values?: (string | number | null)[];
-}
-
-// 定義結果類型（根據您的資料結構調整）
-interface AnalysisResult {
-  id: string;
-  timestamp: Date;
-  data: unknown;
-  // 添加其他必要的屬性
-}
 
 // ========== 檔案相關 Hooks ==========
 export const useFile = () => 

@@ -26,13 +26,13 @@ export function useTableEdit(
         }
       });
       setDisplayNames(initialNames);
-      
+
       const initialGroupLabels: Record<string, string> = {};
       Object.keys(groupCounts).forEach(group => {
         initialGroupLabels[group] = formatVariableName(group);
       });
       setGroupLabels(initialGroupLabels);
-      
+
       setSortedRows(filteredRows);
       setHasInitialized(true);
     }
@@ -42,10 +42,10 @@ export function useTableEdit(
   useEffect(() => {
     const firstRow = filteredRows[0];
     const currentFirstRow = sortedRows[0];
-    
-    if (firstRow && currentFirstRow && 
-        firstRow.Variable !== currentFirstRow.Variable && 
-        Math.abs(filteredRows.length - sortedRows.length) > 5) {
+
+    if (firstRow && currentFirstRow &&
+      firstRow.Variable !== currentFirstRow.Variable &&
+      Math.abs(filteredRows.length - sortedRows.length) > 5) {
       setHasInitialized(false);
     }
   }, [filteredRows, sortedRows]);
@@ -64,10 +64,10 @@ export function useTableEdit(
     }));
   };
 
-  const handleEditBinaryMapping = (key: string, mapping: BinaryMapping) => {
+  const handleEditBinaryMapping = (variable: string, original: string, display: string) => {
     setBinaryMappings(prev => ({
       ...prev,
-      [key]: mapping
+      [variable]: { '0': original, '1': display }
     }));
   };
 
@@ -83,12 +83,12 @@ export function useTableEdit(
         const itemId = `sortable-${idx}-${item.Variable?.replace(/\*+/g, '')}`;
         return itemId === active.id;
       });
-      
+
       const newIndex = items.findIndex((item, idx) => {
         const itemId = `sortable-${idx}-${item.Variable?.replace(/\*+/g, '')}`;
         return itemId === over.id;
       });
-      
+
       if (oldIndex !== -1 && newIndex !== -1) {
         let mainVarIndex = -1;
         for (let i = Math.min(oldIndex, newIndex); i >= 0; i--) {
@@ -97,7 +97,7 @@ export function useTableEdit(
             break;
           }
         }
-        
+
         let isSameGroup = true;
         const start = Math.min(oldIndex, newIndex);
         const end = Math.max(oldIndex, newIndex);
@@ -107,7 +107,7 @@ export function useTableEdit(
             break;
           }
         }
-        
+
         if (isSameGroup) {
           return arrayMove(items, oldIndex, newIndex);
         }

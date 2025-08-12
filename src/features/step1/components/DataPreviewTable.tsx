@@ -2,7 +2,6 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { FileProcessor } from '@/utils/fileProcessor';
 import type { DataRow, DataValue } from '@/stores/analysisStore';
 
 interface DataPreviewTableProps {
@@ -10,9 +9,9 @@ interface DataPreviewTableProps {
     maxRows?: number;
 }
 
-export default function DataPreviewTable({ 
-    parsedData, 
-    maxRows = 5 
+export default function DataPreviewTable({
+    parsedData,
+    maxRows = 5
 }: DataPreviewTableProps) {
     if (parsedData.length === 0) return null;
 
@@ -22,8 +21,8 @@ export default function DataPreviewTable({
     // 格式化顯示值的輔助函數
     const formatCellValue = (value: DataValue): string => {
         if (value === null || value === undefined) return '';
-        if (value instanceof Date) return value.toLocaleDateString();
         if (typeof value === 'boolean') return value ? 'true' : 'false';
+        if (value instanceof Date) return value.toLocaleDateString('zh-TW');
         return String(value);
     };
 

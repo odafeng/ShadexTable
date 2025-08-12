@@ -58,7 +58,7 @@ import { apiClient } from '@/lib/apiClient';
 import { ErrorContext, isAppError } from '@/utils/error';
 
 try {
-  const res = await apiClient.post('/api/files/upload', formData, { context: ErrorContext.FILE_UPLOAD });
+  const res = await post('/api/files/upload', formData, { context: ErrorContext.FILE_UPLOAD });
 } catch (err) {
   if (isAppError(err)) {
     alert(err.userMessage);

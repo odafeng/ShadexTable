@@ -1,7 +1,14 @@
 "use client";
 
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { createContext, useEffect, useRef, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
+
+// 定義 API 回應類型
+interface PointsApiResponse {
+  points?: number;
+  is_pro?: boolean;
+  ai_today_used?: number;
+}
 
 interface PointsContextType {
   points: number | null;
@@ -22,7 +29,8 @@ export const PointsProvider = ({ children }: { children: React.ReactNode }) => {
   const [aiTodayUsed, setAiTodayUsed] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [version, setVersion] = useState(0); // ✅ 用來強制 re-render 的版本號
+  // 移除未使用的 version state
+  // const [version, setVersion] = useState(0);
 
   const fetchedRef = useRef(false);
   const cacheTimeRef = useRef(0);
@@ -40,15 +48,22 @@ export const PointsProvider = ({ children }: { children: React.ReactNode }) => {
       });
 
       if (!res.ok) throw new Error("點數查詢失敗");
-      const data = await res.json();
+      const data: PointsApiResponse = await res.json();
 
       setPoints(data.points ?? 0);
       setIsPro(data.is_pro ?? false);
       setAiTodayUsed(data.ai_today_used ?? 0);
       cacheTimeRef.current = Date.now();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("❌ 無法取得點數", err);
-      setError("無法取得點數資訊，請稍後再試");
+      
+      // 安全地取得錯誤訊息
+      let errorMessage = "無法取得點數資訊，請稍後再試";
+      if (err instanceof Error) {
+        errorMessage = err.message || errorMessage;
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -66,7 +81,7 @@ export const PointsProvider = ({ children }: { children: React.ReactNode }) => {
       fetchedRef.current = true;
       fetchPoints();
     }
-  }, [isLoaded]);
+  }, [isLoaded, points]); // 加入 points 到 dependencies
 
   const contextValue: PointsContextType = {
     points,
@@ -75,8 +90,12 @@ export const PointsProvider = ({ children }: { children: React.ReactNode }) => {
     loading,
     error,
     refetch: async () => {
+      // 重置狀態並重新獲取
+      fetchedRef.current = false;
+      cacheTimeRef.current = 0;
       await fetchPoints();
-      setVersion((v) => v + 1); // ✅ 重新 render 所有 consumer
+      // 如果需要強制更新，可以考慮其他方式
+      // 例如：清除快取或使用其他狀態管理方式
     },
   };
 
@@ -86,3 +105,15 @@ export const PointsProvider = ({ children }: { children: React.ReactNode }) => {
     </PointsContext.Provider>
   );
 };
+
+// 自定義 Hook 來使用 Context（如果你想要使用的話）
+export const usePoints = () => {
+  const context = useContext(PointsContext);
+  if (context === undefined) {
+    throw new Error('usePoints must be used within a PointsProvider');
+  }
+  return context;
+};
+
+// 需要在檔案頂部 import useContext
+import { createContext, useContext, useEffect, useRef, useState } from "react";

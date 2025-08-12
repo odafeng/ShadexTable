@@ -1,8 +1,5 @@
-mkdir -p .husky
-cat > .husky/pre-commit <<'SH'
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
+echo "🔥 Husky pre-commit triggered"
 npx lint-staged
-SH
-chmod +x .husky/pre-commit

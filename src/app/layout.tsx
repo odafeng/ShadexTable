@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { zhTW } from '@clerk/localizations';
 import ClientProviders from './clientProvider';
-import { AppErrorBoundary } from "@/components/AppErrorBoundary";
+import { AppErrorBoundary } from "@/components/ui/custom/AppErrorBoundary";
 import { ReactQueryProvider } from "@/lib/reactQueryProvider";
 
 const geistSans = Geist({

@@ -3,7 +3,7 @@
 import React from "react";
 import Hero from "@/components/Hero";
 import FeatureSection from "@/components/FeatureSection";
-import Footer from "@/components/Footer";
+import Footer from "@/components/shared/Footer";
 import Navbar from "@/components/Navbar";
 
 export default function HomePage() {

@@ -10,9 +10,29 @@ import {
 } from "docx";
 import { AlignmentType, WidthType } from "docx";
 
+// 定義資料列類型
+interface DataRow {
+  Variable: string;
+  P?: string | number | null;
+  Method?: string;
+  Missing?: string | number;
+  Normal?: string;
+  _originalVariable?: string;
+  _isSubItem?: boolean;
+  [key: string]: string | number | boolean | null | undefined;
+}
+
+// 定義請求 body 類型
+interface ExportRequestBody {
+  resultTable: DataRow[];
+  groupVar?: string;
+  groupCounts?: Record<string, number>;
+  groupLabels?: Record<string, string>;
+}
+
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    const body: ExportRequestBody = await req.json();
     const { resultTable, groupVar, groupCounts, groupLabels } = body;
 
     const baseCols = ["Variable", "P", "Method", "Missing", "Normal"];
@@ -36,7 +56,7 @@ export async function POST(req: NextRequest) {
               ? ""
               : col === "P"
                 ? "p value"
-                : `${displayLabel} (n = ${groupCounts[displayLabel] || groupCounts[col] || "?"})`;
+                : `${displayLabel} (n = ${groupCounts?.[displayLabel] || groupCounts?.[col] || "?"})`;
 
           return new TableCell({
             children: [
@@ -65,12 +85,12 @@ export async function POST(req: NextRequest) {
     );
 
     // 資料列
-    const dataRows = resultTable.filter((row: any) => {
+    const dataRows = resultTable.filter((row: DataRow) => {
       const originalVar = row._originalVariable || row.Variable;
       return originalVar?.replace(/\*/g, "") !== groupVar;
     });
 
-    dataRows.forEach((row: any, index: number) => {
+    dataRows.forEach((row: DataRow, index: number) => {
       const originalVariable = row._originalVariable || row.Variable;
       const isMainVariable = originalVariable?.startsWith("**");
       const isSubItem = row._isSubItem === true; // 使用傳入的標記
@@ -190,8 +210,12 @@ export async function POST(req: NextRequest) {
     });
   } catch (err) {
     console.error("❌ Word 匯出錯誤：", err);
+    
+    // 取得錯誤訊息
+    const errorMessage = err instanceof Error ? err.message : "Unknown error occurred";
+    
     return NextResponse.json(
-      { error: "Failed to generate Word document." },
+      { error: "Failed to generate Word document.", details: errorMessage },
       { status: 500 }
     );
   }

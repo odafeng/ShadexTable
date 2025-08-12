@@ -46,7 +46,8 @@ export enum ErrorContext {
     AUTHENTICATION = 'AUTHENTICATION',
     ANALYSIS = 'ANALYSIS',
     NETWORK = 'NETWORK',
-    UNKNOWN = 'UNKNOWN'
+    UNKNOWN = 'UNKNOWN',
+    DATA_FETCH = "DATA_FETCH"
 }
 
 // 錯誤嚴重程度

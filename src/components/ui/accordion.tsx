@@ -2,7 +2,6 @@
 
 import * as React from "react"
 import * as AccordionPrimitive from "@radix-ui/react-accordion"
-import { ChevronDownIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
@@ -41,7 +40,7 @@ function AccordionTrigger({
         {...props}
       >
         {children}
-        {/* 手動顯示 ChevronDownIcon 這個箭頭，並控制旋轉 */}
+      
         </AccordionPrimitive.Trigger>
     </AccordionPrimitive.Header>
   )

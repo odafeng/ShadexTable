@@ -31,10 +31,7 @@ export default function FeatureSection() {
   return (
     <section className="w-full bg-white py-6 md:py-16">
       <div className="container-custom grid grid-cols-1 md:grid-cols-3 gap-8 place-items-center">
-        {features.map((f, index) => {
-          const paddingMap = [78, 68, 83];
-          const padding = paddingMap[index];
-
+        {features.map((f) => {
           return (
             <motion.div
               key={f.title}

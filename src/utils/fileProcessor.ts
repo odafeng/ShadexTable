@@ -1,17 +1,19 @@
 import * as XLSX from "xlsx";
 import { 
-  isAppError, 
   ErrorCode, 
   ErrorContext,
   createError,
-  CommonErrors,
   extractErrorMessage
 } from "@/utils/error";
-import { reportError } from "@/lib/apiClient";
+import { reportError } from "@/lib/reportError";
 import { AppError } from "@/types/errors";
 
+// 定義資料列的類型
+export type DataRow = Record<string, string | number | boolean | Date | null>;
+
+// 定義處理後的檔案結果
 export interface ProcessedFileResult {
-    data: any[];
+    data: DataRow[];
     error?: AppError;
     fileInfo?: {
         name: string;
@@ -40,6 +42,9 @@ export interface FileBasicInfo {
     hasMultipleSheets: boolean;
     error?: AppError;
 }
+
+// 定義 Excel Cell 值的類型
+type CellValue = string | number | boolean | Date | null;
 
 export class FileProcessor {
     // 使用者等級限制 - 修正專業版為25MB
@@ -187,7 +192,7 @@ export class FileProcessor {
         return new Promise((resolve) => {
             const reader = new FileReader();
             
-            reader.onload = (e) => {
+            reader.onload = (e: ProgressEvent<FileReader>) => {
                 try {
                     const data = new Uint8Array(e.target?.result as ArrayBuffer);
                     const workbook = XLSX.read(data, { type: "array" });
@@ -323,7 +328,7 @@ export class FileProcessor {
         return new Promise((resolve) => {
             const reader = new FileReader();
             
-            reader.onload = (e) => {
+            reader.onload = (e: ProgressEvent<FileReader>) => {
                 try {
                     const data = new Uint8Array(e.target?.result as ArrayBuffer);
                     const workbook = XLSX.read(data, { type: "array" });
@@ -351,7 +356,7 @@ export class FileProcessor {
                     }
                     
                     const sheet = workbook.Sheets[sheetName];
-                    const json = XLSX.utils.sheet_to_json<Record<string, any>>(sheet);
+                    const json = XLSX.utils.sheet_to_json<DataRow>(sheet);
 
                     if (json.length === 0) {
                         const error = createError(
@@ -491,11 +496,11 @@ export class FileProcessor {
     }
 
     // 資料標準化處理
-    static normalizeData(json: Record<string, any>[]): any[] {
+    static normalizeData(json: DataRow[]): DataRow[] {
         const allKeys = Array.from(new Set(json.flatMap((row) => Object.keys(row))));
 
         return json.map((row) => {
-            const completeRow: any = {};
+            const completeRow: DataRow = {};
             allKeys.forEach((key) => {
                 completeRow[key] = key in row ? row[key] : "";
             });
@@ -504,7 +509,7 @@ export class FileProcessor {
     }
 
     // 日期值轉換處理
-    static formatDisplayValue(value: any): any {
+    static formatDisplayValue(value: CellValue): string | number | boolean | Date {
         if (typeof value === "number" && value > 20000 && value < 60000) {
             const date = this.excelDateToJSDate(value);
             return date.toLocaleDateString();

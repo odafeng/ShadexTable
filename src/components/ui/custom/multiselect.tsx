@@ -1,16 +1,16 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, ReactNode } from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Command, CommandGroup, CommandItem } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { typeColorClass } from "@/lib/constants"; // 顏色對應表
 
 type MultiSelectOption = {
-  label: string;
+  [x: string]: ReactNode;
+
   value: string;
   type?: string; // "類別變項", "連續變項", etc.
   disabled?: boolean;

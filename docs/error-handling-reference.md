@@ -44,7 +44,7 @@ import { apiClient } from '@/apiClient';
 // 正確的 API 呼叫
 async function uploadFile(formData: FormData) {
   try {
-    const res = await apiClient.post('/api/files/upload', formData, { context: ErrorContext.FILE_UPLOAD });
+    const res = await post('/api/files/upload', formData, { context: ErrorContext.FILE_UPLOAD });
     return res;
   } catch (err) {
     if (isAppError(err)) {

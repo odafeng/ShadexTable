@@ -3,3 +3,4 @@ VERIFY_FAST=1 node ./verify.mjs
 
 #如果需要詳細檢查，可以取消註解
 #npm run verify
+g

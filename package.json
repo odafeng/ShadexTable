@@ -4,28 +4,42 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build --no-lint",
+    "build": "next build",
+    "build:no-lint": "next build --no-lint",
     "start": "next start",
-    "lint": "next lint . --max-warnings Infinity",
-    "lint:warn": "eslint . --quiet --max-warnings=-1",
-    "prepare": "husky",
-    "verify": "next lint && tsc --noEmit",
+    "lint": "next lint",
+    "lint:fix": "next lint --fix",
+    "lint:strict": "next lint --strict",
+    "typecheck": "tsc --noEmit",
+    "verify": "npm run lint && npm run typecheck",
+    "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,css,md,json}\"",
+    "format:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx,css,md,json}\"",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
     "test:watch": "vitest watch",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "prepare": "husky",
+    "pre-commit": "lint-staged",
+    "pre-push": "npm run verify && npm run test:run"
   },
   "lint-staged": {
-    "src/**/*.{ts,tsx}": [
-      "eslint --fix"
-    ],
-    "src/**/*.{js,jsx}": [
-      "eslint --fix"
+    "src/**/*.{ts,tsx,js,jsx}": [
+      "eslint --fix --max-warnings 0",
+      "prettier --write"
     ],
     "src/**/*.{css,scss,md,json}": [
       "prettier --write"
+    ],
+    "*.{ts,tsx,js,jsx}": [
+      "eslint --fix --max-warnings 0"
     ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged",
+      "pre-push": "npm run verify"
+    }
   },
   "dependencies": {
     "@clerk/localizations": "^3.20.1",

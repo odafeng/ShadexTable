@@ -10,10 +10,31 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
+  // 全域忽略規則
+  {
+    ignores: [
+      "**/node_modules/**",
+      "**/.next/**",
+      "**/out/**",
+      "**/dist/**",
+      "**/build/**",
+      "**/.cache/**",
+      "**/coverage/**",
+      "**/*.min.js",
+      "**/vendor/**",
+      "**/.git/**",
+      "**/.vscode/**",
+      "**/.idea/**"
+    ]
+  },
+  // Next.js 配置
   ...compat.extends("next/core-web-vitals", "next/typescript"),
+  // 檔案特定規則
   {
     files: ["**/*.{js,jsx,ts,tsx}"],
-    ignores: ["node_modules/**", ".next/**", "out/**", "dist/**"]
+    rules: {
+      // 您的自訂規則
+    }
   }
 ];
 

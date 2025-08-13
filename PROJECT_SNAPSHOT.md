@@ -14,6 +14,7 @@ The following tree lists the files and folders in this repository.  Build artefa
 - shadytable-frontend/
   - README.md
   - README_SINGLE_FILE.md
+  - TypeScript
   - clerk.lock
   - components.json
   - eslint.config.mjs
@@ -24,8 +25,33 @@ The following tree lists the files and folders in this repository.  Build artefa
   - package.json
   - postcss.config.js
   - postcss.config.mjs
+  - sentry.edge.config.ts
+  - sentry.server.config.ts
   - tailwind.config.js
   - tsconfig.json
+  - tsconfig.tsbuildinfo
+  - verify.mjs
+  - vitest.config.ts
+  - .husky/
+    - pre-commit
+    - pre-push
+    - _/
+      - applypatch-msg
+      - commit-msg
+      - h
+      - husky.sh
+      - post-applypatch
+      - post-checkout
+      - post-commit
+      - post-merge
+      - post-rewrite
+      - pre-applypatch
+      - pre-auto-gc
+      - pre-commit
+      - pre-merge-commit
+      - pre-push
+      - pre-rebase
+      - prepare-commit-msg
   - .vscode/
     - settings.json
   - docs/
@@ -218,8 +244,11 @@ The following tree lists the files and folders in this repository.  Build artefa
       - tab_icon_2@2x.png
       - tab_icon_2_active@2x.png
   - src/
+    - instrumentation-client.ts
+    - instrumentation.ts
     - app/
       - clientProvider.tsx
+      - global-error.tsx
       - globals.css
       - layout.tsx
       - middleware.ts
@@ -230,39 +259,12 @@ The following tree lists the files and folders in this repository.  Build artefa
       - api/
         - export-word/
           - route.ts
-        - test/
+        - sentry-example-api/
           - route.ts
-      - dashboard/
-        - page.tsx
-        - logs/
-          - page.tsx
-        - points/
-          - page.tsx
-      - demo-error/
-        - page.tsx
-      - marketing/
-        - about_v2/
-          - page.tsx
-        - contact/
-          - page.tsx
-        - faq/
-          - page.tsx
-        - features/
-          - page.tsx
-        - free_mode/
-          - page.tsx
-        - pricing/
-          - page.tsx
-        - pricing_v2/
-          - page.tsx
-        - privacy/
-          - page.tsx
-        - technical/
-          - page.tsx
-        - terms/
-          - page.tsx
       - robots.txt/
         - route.ts
+      - sentry-example-page/
+        - page.tsx
       - sign-in/
         - [[...index]]/
           - page.tsx
@@ -271,39 +273,21 @@ The following tree lists the files and folders in this repository.  Build artefa
           - page.tsx
       - step1/
         - page.tsx
-        - components/
-          - AnalysisControl.tsx
-          - ColumnAnalysisDisplay.tsx
-          - DataPreviewTable.tsx
-          - DataPrivacyDialog.tsx
-          - ErrorDisplay.tsx
-          - FileUploadArea.tsx
       - step2/
         - page.tsx
       - step3/
         - page.tsx
-        - types.ts
-        - components/
-          - ResultsTabs.tsx
-          - SortableRow.tsx
+      - test-dialogs/
+        - page.tsx
     - components/
-      - ActionButton.tsx
-      - ActionButton2.tsx
-      - AnalysisErrorDialog.tsx
-      - AnalysisLoadingModal.tsx
-      - AppErrorBoundary.tsx
-      - ConfirmTypeMismatchDialog.tsx
-      - CopyButton.tsx
-      - DarkButton.tsx
       - FeatureSection.tsx
-      - Footer.tsx
       - Hero.tsx
-      - InlineNotice.tsx
-      - LightButton.tsx
       - ModuleDropdown.tsx
       - Navbar.tsx
-      - ToggleSwitch.tsx
-      - stepNavigator.tsx
+      - shared/
+        - Footer.tsx
+        - Header.tsx
+        - stepNavigator.tsx
       - ui/
         - accordion.tsx
         - alert-dialog.tsx
@@ -332,48 +316,126 @@ The following tree lists the files and folders in this repository.  Build artefa
         - tooltip.tsx
         - use-toast.tsx
         - custom/
+          - ActionButton.tsx
+          - ActionButton2.tsx
+          - AnalysisErrorDialog.tsx
+          - AnalysisLoadingModal.tsx
+          - AppErrorBoundary.tsx
+          - ConfirmTypeMismatchDialog.tsx
+          - CopyButton.tsx
+          - DarkButton.tsx
           - GroupSelect.tsx
-          - multiselect.tsx
-        - layout/
-          - DashboardLayout.tsx
-          - HeaderBanner.tsx
-          - Header_ui2.tsx
+          - InlineNotice.tsx
+          - LightButton.tsx
+          - MultiSelect.tsx
+          - ToggleSwitch.tsx
     - context/
       - PointsContext.tsx
-    - hooks/
-      - general_useLogs.ts
-      - general_usePoints.ts
-      - general_useUserLimits.ts
-      - step1_useAnalysisTrigger.ts
-      - step1_useAutoAnalysis.ts
-      - step1_useColumnAnalysis.ts
-      - step1_useFileValidation.ts
-      - step1_usePrivacyDetection.ts
-      - step1_useStep1Logic.ts
-      - step1_useTableAnalysis.ts
-      - step3_useAiSummary.ts
-      - step3_useExport.ts
-      - step3_useTableEdit.ts
+    - features/
+      - auth/
+        - components/
+        - hooks/
+          - useLogs.ts
+          - usePoints.ts
+          - useUserLimits.ts
+        - pages/
+        - services/
+        - types/
+      - dashboard/
+        - components/
+        - hooks/
+        - pages/
+          - dashboardPage.tsx
+          - logsPage.tsx
+        - services/
+        - types/
+      - marketing/
+        - components/
+        - hooks/
+        - pages/
+          - aboutPage.tsx
+          - contactPage.tsx
+          - faqPage.tsx
+          - featuresPage.tsx
+          - freeModePage.tsx
+          - pricingPage.tsx
+          - privacyPage.tsx
+          - technicalPage.tsx
+          - termsPage.tsx
+        - services/
+        - types/
+      - step1/
+        - components/
+          - AnalysisControl.tsx
+          - ColumnAnalysisDisplay.tsx
+          - DataPreviewTable.tsx
+          - DataPrivacyDialog.tsx
+          - ErrorDisplay.tsx
+          - FileUploadArea.tsx
+        - hooks/
+          - useAnalysisTrigger.ts
+          - useAutoAnalysis.ts
+          - useColumnAnalysis.ts
+          - useFileValidation.ts
+          - usePrivacyDetection.ts
+          - useStep1Logic.ts
+          - useTableAnalysis.ts
+        - pages/
+          - Step1Page.tsx
+        - services/
+          - autoAnalysisService.ts
+          - columnAnalysisService.ts
+          - fileAnalysisService.ts
+          - sensitiveDataDetector.ts
+          - tableAnalysisService.ts
+        - types/
+      - step2/
+        - components/
+        - hooks/
+        - pages/
+          - Step2Page.tsx
+        - services/
+        - types/
+      - step3/
+        - types.ts
+        - components/
+          - ResultsTabs.tsx
+          - SortableRow.tsx
+        - hooks/
+          - useAiSummary.ts
+          - useExport.ts
+          - useTableEdit.ts
+        - pages/
+          - Step3Page.tsx
+        - services/
+          - aiSummaryService.ts
+          - dataTransformService.ts
+          - exportService.ts
     - lib/
+      - apiClient.test.ts
       - apiClient.ts
       - constants.ts
+      - reactQueryProvider.tsx
+      - reportError.test.ts
+      - reportError.ts
       - utils.ts
-    - services/
-      - step1_autoAnalysisService.ts
-      - step1_columnAnalysisService.ts
-      - step1_fileAnalysisService.ts
-      - step1_sensitiveDataDetector.ts
-      - step1_tableAnalysisService.ts
-      - step3_aiSummaryService.ts
-      - step3_dataTransformService.ts
-      - step3_exportService.ts
+    - schemas/
+      - backend.ts
+      - primitives.ts
     - stores/
+      - analysisStore.hooks.test.ts
+      - analysisStore.hooks.ts
+      - analysisStore.test.ts
       - analysisStore.ts
+    - tests/
+      - setup.ts
     - types/
       - errors.ts
       - window.d.ts
     - utils/
+      - error.test.ts
       - error.ts
+      - fileProcessor.test.ts
       - fileProcessor.ts
 ```
 
@@ -401,7 +463,10 @@ The following tree lists the files and folders in this repository.  Build artefa
 - @radix-ui/react-tabs@^1.1.12
 - @radix-ui/react-toast@^1.2.14
 - @radix-ui/react-tooltip@^1.2.7
+- @sentry/nextjs@^10.5.0
 - @supabase/supabase-js@^2.50.5
+- @tanstack/react-query@^5.84.2
+- @tanstack/react-query-devtools@^5.84.2
 - antd@^5.26.7
 - class-variance-authority@^0.7.1
 - cloudinary@^2.7.0
@@ -413,6 +478,7 @@ The following tree lists the files and folders in this repository.  Build artefa
 - framer-motion@^12.23.6
 - google-auth-library@^10.1.0
 - google-spreadsheet@^4.1.5
+- immer@^10.1.1
 - isomorphic-dompurify@^2.26.0
 - lucide-react@^0.525.0
 - next@15.3.4
@@ -428,25 +494,32 @@ The following tree lists the files and folders in this repository.  Build artefa
 - tailwind-merge@^3.3.1
 - utilities@^1.0.6
 - xlsx@^0.18.5
+- zod@^4.0.17
 - zustand@^5.0.7
 
 ### Development dependencies (package.json)
 - @eslint/eslintrc@^3
 - @tailwindcss/postcss@^4.1.11
+- @testing-library/react@^16.3.0
 - @types/antd@^0.12.32
 - @types/dompurify@^3.0.5
 - @types/file-saver@^2.0.7
 - @types/node@^20
 - @types/react@^19.1.8
 - @types/react-dom@^19
+- @vitest/ui@^3.2.4
 - autoprefixer@^10.4.21
 - cross-env@^7.0.3
 - eslint@^9
 - eslint-config-next@15.3.4
+- happy-dom@^18.0.1
+- husky@^9.1.7
+- lint-staged@^16.1.5
 - postcss@^8.5.6
 - tailwindcss@^4.1.11
 - tw-animate-css@^1.3.4
 - typescript@^5
+- vitest@^3.2.4
 
 ## Error Handling and API Conventions
 

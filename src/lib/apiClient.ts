@@ -20,7 +20,7 @@ export async function apiClient<T>(
       throw createError(
         ErrorCode.SERVER_ERROR,
         ErrorContext.DATA_FETCH,
-        "errors.server_non_2xx",
+        undefined,
         {
           correlationId: crypto.randomUUID(),
           customMessage: text || `HTTP ${res.status}`,

@@ -69,17 +69,14 @@ export default function AnalysisLoadingModal({
     const progress = Math.round((currentStep / steps.length) * 100);
 
     return (
-        <div className="fixed inset-0 bg-gradient-to-br from-black/60 via-black/50 to-black/40 backdrop-blur-md z-50 flex items-center justify-center">
-            <div className="relative bg-gradient-to-b from-white to-gray-50 rounded-3xl p-10 max-w-lg mx-4 text-center shadow-2xl border border-white/20">
-                {/* 裝飾性背景圓圈 */}
-                <div className="absolute -top-4 -right-4 w-20 h-20 bg-gradient-to-br from-[#0F2844]/10 to-[#0F2844]/5 rounded-full blur-xl"></div>
-                <div className="absolute -bottom-4 -left-4 w-16 h-16 bg-gradient-to-tr from-blue-500/10 to-purple-500/5 rounded-full blur-xl"></div>
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
+            <div className="relative bg-[#EEF2F9] rounded-2xl p-10 max-w-[500px] w-[90vw] text-center shadow-lg">
                 
                 {/* 取消按鈕 */}
                 {allowCancel && !isCompleted && (
                     <button
                         onClick={onCancel}
-                        className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+                        className="absolute top-4 right-4 text-[#0F2844]/60 hover:text-[#0F2844] transition-colors"
                     >
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -88,9 +85,9 @@ export default function AnalysisLoadingModal({
                 )}
                 
                 <div className="relative mb-8">
-                    {/* 進階載入動畫 */}
+                    {/* 進階載入動畫 - 統一風格 */}
                     <div className="w-20 h-20 mx-auto mb-6 relative">
-                        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#0F2844] to-blue-600 opacity-20 animate-pulse"></div>
+                        <div className="absolute inset-0 rounded-full bg-[#0F2844]/10 animate-pulse"></div>
                         <svg className="animate-spin w-full h-full text-[#0F2844] drop-shadow-sm" fill="none" viewBox="0 0 24 24">
                             <circle className="opacity-20" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3"></circle>
                             <path className="opacity-90" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -101,21 +98,21 @@ export default function AnalysisLoadingModal({
                         </div>
                     </div>
                     
-                    {/* 主要文字 */}
-                    <h3 className="text-[#0F2844] text-2xl font-bold mb-3 tracking-wide">
+                    {/* 主要文字 - 統一風格 */}
+                    <h3 className="text-[#0F2844] text-[24px] font-bold mb-3 tracking-[2px] leading-[36px]">
                         {isCompleted ? "完成！" : currentStepData?.title || "準備中..."}
                     </h3>
                     
-                    {/* 副標題 */}
-                    <p className="text-gray-500 text-sm mb-6 font-medium">
+                    {/* 副標題 - 統一風格 */}
+                    <p className="text-[#0F2844]/70 text-[16px] mb-6 tracking-[1px] leading-[28px]">
                         {isCompleted ? "處理完成" : currentStepData?.subtitle || "正在初始化..."}
                     </p>
                     
-                    {/* 進度條容器 */}
+                    {/* 進度條容器 - 統一風格 */}
                     <div className="relative">
-                        <div className="w-full bg-gradient-to-r from-gray-200 to-gray-100 rounded-full h-3 shadow-inner">
+                        <div className="w-full bg-[#0F2844]/10 rounded-full h-3 shadow-inner">
                             <div 
-                                className="bg-gradient-to-r from-[#0F2844] via-blue-600 to-[#0F2844] h-3 rounded-full transition-all duration-700 ease-out shadow-lg relative overflow-hidden"
+                                className="bg-[#0F2844] h-3 rounded-full transition-all duration-700 ease-out shadow-sm relative overflow-hidden"
                                 style={{ width: `${progress}%` }}
                             >
                                 {/* 進度條光效 */}
@@ -123,44 +120,44 @@ export default function AnalysisLoadingModal({
                             </div>
                         </div>
                         
-                        {/* 進度百分比 */}
+                        {/* 進度百分比 - 統一風格 */}
                         <div className="flex justify-between items-center mt-3">
-                            <span className="text-xs text-gray-400 font-medium">進度</span>
-                            <span className="text-sm text-[#0F2844] font-bold">
+                            <span className="text-[14px] text-[#0F2844]/60 tracking-[0.8px]">進度</span>
+                            <span className="text-[16px] text-[#0F2844] font-bold tracking-[1px]">
                                 {progress}%
                             </span>
                         </div>
                     </div>
                     
-                    {/* 步驟指示器 */}
+                    {/* 步驟指示器 - 統一風格 */}
                     <div className="flex justify-center space-x-2 mt-6">
                         {steps.map((_, index) => (
                             <div
                                 key={index}
                                 className={`w-2 h-2 rounded-full transition-all duration-300 ${
                                     index < currentStep 
-                                        ? 'bg-[#0F2844] shadow-md' 
-                                        : 'bg-gray-300'
+                                        ? 'bg-[#0F2844] shadow-sm' 
+                                        : 'bg-[#0F2844]/20'
                                 }`}
                             />
                         ))}
                     </div>
                 </div>
                 
-                {/* 完成訊息 */}
+                {/* 完成訊息 - 統一風格 */}
                 {isCompleted && (
                     <div className="relative animate-fade-in">
-                        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-4 mb-4">
+                        <div className="bg-[#0F2844]/5 border border-[#0F2844]/20 rounded-2xl p-4 mb-4">
                             <div className="flex items-center justify-center space-x-2">
-                                <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                                <div className="w-6 h-6 bg-[#0F2844] rounded-full flex items-center justify-center">
                                     <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
                                     </svg>
                                 </div>
-                                <span className="text-green-700 font-semibold text-lg">處理完成！</span>
+                                <span className="text-[#0F2844] font-bold text-[18px] tracking-[1.5px]">處理完成！</span>
                             </div>
                         </div>
-                        <p className="text-gray-600 text-sm font-medium animate-pulse">
+                        <p className="text-[#0F2844]/70 text-[14px] tracking-[0.8px] animate-pulse">
                             即將為您跳轉...
                         </p>
                     </div>

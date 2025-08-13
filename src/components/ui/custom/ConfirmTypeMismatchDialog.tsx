@@ -1,9 +1,9 @@
 "use client";
 
 import * as AlertDialog from "@radix-ui/react-alert-dialog";
-import { useState } from "react";
+import ActionButton from "@/components/ui/custom/ActionButton";
+import ActionButton2 from "@/components/ui/custom/ActionButton2";
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
 
 interface Props {
   open: boolean;
@@ -18,18 +18,15 @@ export default function ConfirmTypeMismatchDialog({
   onConfirm,
   onCancel,
 }: Props) {
-  const [isConfirmHover, setIsConfirmHover] = useState(false);
-  const [isCancelHover, setIsCancelHover] = useState(false);
-
   return (
     <AlertDialog.Root open={open}>
       <AlertDialog.Portal>
         <AlertDialog.Overlay className="fixed inset-0 bg-black/40 z-40" />
         <AlertDialog.Content
-          className="fixed z-50 max-w-[789px] w-[90vw] h-[299px] bg-[#EEF2F9] p-10 rounded-2xl shadow-lg flex flex-col justify-start"
+          className="fixed z-50 max-w-[789px] w-[90vw] min-h-[299px] bg-[#EEF2F9] p-10 rounded-2xl shadow-lg flex flex-col"
           style={{ top: "50%", left: "50%", transform: "translate(-50%, -50%)" }}
         >
-          {/* ✅ 標題 + ICON */}
+          {/* 標題 + ICON */}
           <AlertDialog.Title asChild>
             <div className="flex items-center gap-3 text-[#0F2844] text-[24px] font-bold tracking-[2px] leading-[36px]">
               <Image
@@ -42,55 +39,30 @@ export default function ConfirmTypeMismatchDialog({
             </div>
           </AlertDialog.Title>
 
-          {/* ✅ 內文 */}
-          <p className="text-[#0F2844] text-[18px] leading-[32px] tracking-[1.2px] mt-4 whitespace-pre-wrap">
-            {message}
-          </p>
+          {/* 內文 - flex-grow 讓它佔據剩餘空間 */}
+          <div className="flex-grow mt-4">
+            <p className="text-[#0F2844] text-[18px] leading-[32px] tracking-[1.2px] whitespace-pre-wrap">
+              {message}
+            </p>
+          </div>
 
-          {/* ✅ 按鈕區 */}
-          <div className="flex justify-end gap-4 mt-10">
-            <Button
-              onMouseEnter={() => setIsCancelHover(true)}
-              onMouseLeave={() => setIsCancelHover(false)}
-              onClick={() => {
-                onCancel();
-              }}
-              variant="outline"
-              className="w-[205px] h-[50px] text-[#0F2844] border-[#0F2844] hover:bg-[#0F2844] hover:text-white text-[20px] tracking-[2px] leading-[32px] px-6 py-2 rounded-full flex items-center gap-2 cursor-pointer"
-            >
-              <Image
-                src={
-                  isCancelHover
-                    ? "/alert/close_icon@2x.png"
-                    : "/alert/close_icon_dark.png"
-                }
-                alt="edit"
-                width={20}
-                height={20}
-              />
-              修改變項指定
-            </Button>
+          {/* 按鈕區 - 確保在底部 */}
+          <div className="flex justify-end gap-4 mt-6">
+            <ActionButton2
+              text="修改變項指定"
+              onClick={onCancel}
+              iconSrc="/alert/close_icon_dark.png"
+              iconHoverSrc="/alert/close_icon@2x.png"
+              className="min-w-[180px] whitespace-nowrap cursor-pointer"
+            />
 
-            <Button
-              onMouseEnter={() => setIsConfirmHover(true)}
-              onMouseLeave={() => setIsConfirmHover(false)}
-              onClick={() => {                
-                onConfirm();
-              }}
-              className="w-[160px] h-[50px] bg-[#0F2844] text-white hover:bg-white hover:text-[#0F2844] text-[20px] tracking-[2px] leading-[32px] px-6 py-2 rounded-full flex items-center gap-2 border border-[#0F2844] cursor-pointer"
-            >
-              <Image
-                src={
-                  isConfirmHover
-                    ? "/landing/arrow_13147905@2x.png"
-                    : "/landing/arrow_2_white@2x.png"
-                }
-                alt="arrow"
-                width={20}
-                height={20}
-              />
-              繼續分析
-            </Button>
+            <ActionButton
+              text="繼續分析"
+              onClick={onConfirm}
+              iconSrc="/landing/arrow_2_white@2x.png"
+              iconHoverSrc="/landing/arrow_13147905@2x.png"
+              className="min-w-[140px] whitespace-nowrap cursor-pointer"
+            />
           </div>
         </AlertDialog.Content>
       </AlertDialog.Portal>

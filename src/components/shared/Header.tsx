@@ -20,6 +20,8 @@ export default function Header() {
           <Image
             src="/landing/Shadex_Table.png"
             alt="ShadexTable Logo"
+            width="270"
+            height="50"
             className="cursor-pointer w-[180px] sm:w-[270px] h-auto"
           />
         </Link>

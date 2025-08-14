@@ -1,5 +1,5 @@
 import { post } from "@/lib/apiClient";
-import { reportError} from "@/lib/reportError";
+import { reportError } from "@/lib/reportError";
 import {
     isAppError,
     ErrorCode,
@@ -33,20 +33,65 @@ export class TableAnalysisService {
         const correlationId = `table-analysis-${Date.now()}`;
 
         try {
-            // 驗證輸入參數
-            if (!token) {
-                throw CommonErrors.analysisAuthFailed();
+            // 驗證 token
+            if (!token || token.trim() === '') {
+                throw createError(
+                    ErrorCode.AUTH_ERROR,
+                    ErrorContext.ANALYSIS,
+                    undefined,
+                    {
+                        correlationId,
+                        customMessage: "缺少授權令牌"
+                    }
+                );
             }
 
-            if (!request.data || request.data.length === 0) {
-                throw CommonErrors.insufficientData();
+            // 驗證 API URL
+            if (!process.env.NEXT_PUBLIC_API_URL) {
+                throw createError(
+                    ErrorCode.SERVER_ERROR,
+                    ErrorContext.ANALYSIS,
+                    undefined,
+                    {
+                        correlationId,
+                        customMessage: "API URL 未配置"
+                    }
+                );
+            }
+
+            // 驗證資料
+            if (!request.data || request.data === null) {
+                throw createError(
+                    ErrorCode.VALIDATION_ERROR,
+                    ErrorContext.DATA_VALIDATION,
+                    undefined,
+                    {
+                        correlationId,
+                        customMessage: "資料不足，無法進行分析"
+                    }
+                );
+            }
+
+            // 檢查是否為空資料（但不拋錯，允許空資料分析）
+            if (request.data.length === 0) {
+                // 空資料是允許的，繼續處理
             }
 
             // 驗證變項選擇
-            if (!request.group_col &&
-                (!request.cat_vars || request.cat_vars.length === 0) &&
-                (!request.cont_vars || request.cont_vars.length === 0)) {
-                throw CommonErrors.noVariablesSelected();
+            const hasGroupVar = request.group_col && request.group_col.trim().length > 0;
+            const hasCatVars = request.cat_vars && request.cat_vars.length > 0;
+            const hasContVars = request.cont_vars && request.cont_vars.length > 0;
+
+            if (!hasGroupVar && !hasCatVars && !hasContVars) {
+                throw createError(
+                    ErrorCode.ANALYSIS_ERROR,
+                    ErrorContext.ANALYSIS,
+                    undefined,
+                    {
+                        correlationId,
+                        customMessage: "未選擇任何分析變項"
+                    }
+                );
             }
 
             // 使用統一的 apiClient 進行 API 呼叫
@@ -63,7 +108,26 @@ export class TableAnalysisService {
                 }
             );
 
-            // 檢查回應基本格式
+            // 檢查回應基本格式 - 檢查是否有 success 屬性
+            if (result === undefined || result === null || !('success' in result)) {
+                const error = createError(
+                    ErrorCode.ANALYSIS_ERROR,
+                    ErrorContext.ANALYSIS,
+                    undefined,
+                    {
+                        correlationId,
+                        customMessage: "表格分析處理失敗"
+                    }
+                );
+                await reportError(error, {
+                    action: "table_analysis",
+                    dataRows: request.data.length,
+                    response: result
+                });
+                throw error;
+            }
+
+            // 檢查 success 狀態
             if (!result.success) {
                 const error = createError(
                     ErrorCode.ANALYSIS_ERROR,
@@ -71,7 +135,7 @@ export class TableAnalysisService {
                     undefined,
                     {
                         correlationId,
-                        customMessage: result.message || "表格分析處理失敗"
+                        customMessage: result.message || "Analysis failed due to data issues"
                     }
                 );
                 await reportError(error, {
@@ -135,37 +199,22 @@ export class TableAnalysisService {
                 throw error;
             }
 
-            // 檢查表格是否為空
-            if (result.data.table.length === 0) {
-                const error = createError(
-                    ErrorCode.ANALYSIS_ERROR,
-                    ErrorContext.ANALYSIS,
-                    undefined,
-                    {
-                        correlationId,
-                        customMessage: "分析未產生任何結果，請檢查變項設定或資料內容"
-                    }
-                );
-                await reportError(error, {
-                    action: "table_analysis",
-                    request: {
-                        groupCol: request.group_col,
-                        catVars: request.cat_vars,
-                        contVars: request.cont_vars
-                    }
-                });
-                throw error;
-            }
+            // 不檢查表格是否為空 - 空表格是合法的結果
 
             return result;
 
         } catch (error: unknown) {
+            // 如果已經是 AppError，直接拋出
             if (isAppError(error)) {
                 throw error;
             }
 
-            // 包裝為 AppError
+            // 處理網路錯誤
             const errorMessage = error instanceof Error ? error.message : String(error);
+            const isNetworkError = errorMessage.includes('Network') || 
+                                   errorMessage.includes('timeout') ||
+                                   errorMessage.includes('ECONNREFUSED');
+            
             const appError = createError(
                 ErrorCode.NETWORK_ERROR,
                 ErrorContext.ANALYSIS,
@@ -179,13 +228,13 @@ export class TableAnalysisService {
 
             await reportError(appError, {
                 action: "table_analysis",
-                dataRows: request.data.length,
+                dataRows: request.data?.length || 0,
                 originalError: error,
-                request: {
+                request: request.data ? {
                     groupCol: request.group_col,
                     catVars: request.cat_vars,
                     contVars: request.cont_vars
-                }
+                } : undefined
             });
             throw appError;
         }

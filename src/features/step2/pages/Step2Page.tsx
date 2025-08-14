@@ -19,9 +19,13 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { ShieldAlert } from "lucide-react";
-import InlineNotice from "@/components/ui/custom/InlineNotice"
+import InlineNotice from "@/components/ui/custom/InlineNotice";
 import ActionButton from "@/components/ui/custom/ActionButton";
 import Image from "next/image";
+
+// 引入新組件
+import AdvancedMissingValuePanel from "@/features/step2/components/AdvancedMissingValuePanel";
+import VariableVisualizationPanel from "@/features/step2/components/VariableVisualizationPanel";
 
 export default function Step2Page() {
     const [loading, setLoading] = useState(false);
@@ -33,7 +37,7 @@ export default function Step2Page() {
     const router = useRouter();
     const { getToken } = useAuth();
 
-    // ✅ 直接從 Zustand store 取得所需的狀態和方法
+    // 從 Zustand store 取得所需的狀態和方法
     const {
         parsedData,
         groupVar,
@@ -88,7 +92,6 @@ export default function Step2Page() {
             return aIndex - bIndex;
         });
     };
-
 
     const groupOptions: SelectOption[] = sortByType(
         allColumns.map((col) => ({
@@ -243,7 +246,7 @@ export default function Step2Page() {
 
             if (!res.ok) {
                 const errorText = await res.text();
-                console.error("❌ API 錯誤詳情:", errorText);
+                console.error("⌧ API 錯誤詳情:", errorText);
 
                 try {
                     const errorJson = JSON.parse(errorText);
@@ -275,7 +278,7 @@ export default function Step2Page() {
             }
 
         } catch (err: unknown) {
-            console.error("❌ 分析失敗：", err);
+            console.error("⌧ 分析失敗：", err);
             const errorMessage = (err as Error)?.message || err?.toString() || "未知錯誤";
             setErrorMsg(`分析失敗: ${errorMessage}`);
             setLoading(false);
@@ -320,7 +323,7 @@ export default function Step2Page() {
                 />
             </div>
 
-            <div className="bg-white">
+            <div className="bg-white min-h-screen">
                 <Header />
                 <div className="container-custom pt-[70px] lg:pt-[110px] pb-2 lg:pb-45">
                     <StepNavigator />
@@ -328,7 +331,8 @@ export default function Step2Page() {
                         Step2：選擇變項
                     </h2>
 
-                    <div className="space-y-8">
+                    <div className="space-y-6">
+                        {/* 上方區塊：變項選擇 */}
                         <div className="flex flex-col lg:flex-row gap-6 mt-4 lg:mt-8">
                             <div className="flex-1">
                                 <label className="block mb-2 text-[20px] tracking-[2px] leading-[32px] font-bold text-[#555555]">
@@ -347,7 +351,7 @@ export default function Step2Page() {
                                     <TooltipProvider>
                                         <Tooltip>
                                             <TooltipTrigger asChild>
-                                                <span className="ml-1 text-gray-400 cursor-default">&#9432;</span>
+                                                <span className="ml-1 text-gray-400 cursor-default">ⓘ</span>
                                             </TooltipTrigger>
                                             <TooltipContent side="top">
                                                 <p>請指定要納入結果表中的類別變項欄位（如性別、分期等）</p>
@@ -369,7 +373,7 @@ export default function Step2Page() {
                                     <TooltipProvider>
                                         <Tooltip>
                                             <TooltipTrigger asChild>
-                                                <span className="ml-1 text-gray-400 cursor-default">&#9432;</span>
+                                                <span className="ml-1 text-gray-400 cursor-default">ⓘ</span>
                                             </TooltipTrigger>
                                             <TooltipContent side="top">
                                                 <p>請指定要納入結果表中的連續變項欄位（如年齡、檢驗值等）</p>
@@ -386,19 +390,19 @@ export default function Step2Page() {
                             </div>
                         </div>
 
+                        {/* 警告訊息 */}
                         {parsedData.length > 0 && (
-                            <>
-                                <InlineNotice
-                                    type="error"
-                                    icon={<ShieldAlert className="w-4 h-4 text-[#DC2626] mt-0" />}
-                                    className="text-[16px] leading-[24px] sm:text-[20px] sm:leading-[26px] -mt-4"
-                                >
-                                    <span className="text-[#DC2626] font-semibold">注意：</span>
-                                    目前系統不支援 <span className="font-semibold text-[#DC2626]">配對 (paired)</span> 分析
-                                </InlineNotice>
-                            </>
+                            <InlineNotice
+                                type="error"
+                                icon={<ShieldAlert className="w-4 h-4 text-[#DC2626] mt-0" />}
+                                className="text-[16px] leading-[24px] sm:text-[20px] sm:leading-[26px]"
+                            >
+                                <span className="text-[#DC2626] font-semibold">注意：</span>
+                                目前系統不支援 <span className="font-semibold text-[#DC2626]">配對 (paired)</span> 分析
+                            </InlineNotice>
                         )}
 
+                        {/* 填補缺值選項 */}
                         <div className="flex items-center space-x-1">
                             <input
                                 type="checkbox"
@@ -412,6 +416,16 @@ export default function Step2Page() {
                             </label>
                         </div>
 
+                        {/* 新增：下方兩個面板 */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                            {/* 左側：進階遺漏值處理 */}
+                            <AdvancedMissingValuePanel />
+                            
+                            {/* 右側：變項視覺化 */}
+                            <VariableVisualizationPanel />
+                        </div>
+
+                        {/* 分析按鈕 */}
                         <div className="flex justify-center pt-4 pb-10 lg:pb-24">
                             <ActionButton
                                 text={loading ? "分析中..." : "開始分析"}

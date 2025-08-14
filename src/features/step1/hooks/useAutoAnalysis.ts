@@ -53,7 +53,7 @@ export const useAutoAnalysis = (props: UseAutoAnalysisProps) => {
         }
     };
 
-    // 獲取認證令牌
+    // 取得認證令牌
     const getAuthToken = async (): Promise<string> => {
         const correlationId = `auto-analysis-auth-${Date.now()}`;
         
@@ -75,6 +75,32 @@ export const useAutoAnalysis = (props: UseAutoAnalysisProps) => {
             );
             await reportError(authError, { action: "auto_analysis_auth" });
             throw authError;
+        }
+    };
+
+    // 驗證分析結果的完整性
+    const validateAnalysisResult = (result: AutoAnalysisResult): void => {
+        // 檢查是否有識別到有效的變項
+        const hasValidVariables = 
+            result.group_var || 
+            (result.cat_vars && result.cat_vars.length > 0) || 
+            (result.cont_vars && result.cont_vars.length > 0);
+
+        if (!hasValidVariables) {
+            const validationError = createError(
+                ErrorCode.VALIDATION_ERROR,
+                ErrorContext.ANALYSIS,
+                undefined,
+                {
+                    customMessage: '自動分析未能識別到有效的變項',
+                    details: {
+                        group_var: result.group_var,
+                        cat_vars: result.cat_vars,
+                        cont_vars: result.cont_vars
+                    }
+                }
+            );
+            throw validationError;
         }
     };
 
@@ -133,6 +159,9 @@ export const useAutoAnalysis = (props: UseAutoAnalysisProps) => {
                 }
             );
 
+            // 驗證分析結果
+            validateAnalysisResult(result);
+
             // 更新 Store
             updateStoreState(result, file!);
             updateAnalysisResults(result);
@@ -140,16 +169,37 @@ export const useAutoAnalysis = (props: UseAutoAnalysisProps) => {
             return result;
 
         } catch (err) {
-            // 確保錯誤是 AppError 格式
-            const errorToReport = isAppError(err) ? err : createError(
-                ErrorCode.ANALYSIS_ERROR,
-                ErrorContext.ANALYSIS,
-                undefined,
-                {
-                    correlationId,
-                    cause: err instanceof Error ? err : undefined
-                }
-            );
+            // 如果已經是 AppError，保留原本的錯誤碼和訊息
+            let errorToReport: AppError;
+            
+            if (isAppError(err)) {
+                errorToReport = err;
+            } else if (err && typeof err === 'object' && 'code' in err) {
+                // 如果錯誤物件有 code 屬性，嘗試保留它
+                const errorObj = err as any;
+                errorToReport = createError(
+                    errorObj.code || ErrorCode.ANALYSIS_ERROR,
+                    errorObj.context || ErrorContext.ANALYSIS,
+                    undefined,
+                    {
+                        customMessage: errorObj.userMessage || errorObj.message,
+                        correlationId,
+                        cause: err instanceof Error ? err : undefined,
+                        details: errorObj.details
+                    }
+                );
+            } else {
+                // 只有在完全無法識別錯誤類型時，才使用通用的 ANALYSIS_ERROR
+                errorToReport = createError(
+                    ErrorCode.ANALYSIS_ERROR,
+                    ErrorContext.ANALYSIS,
+                    undefined,
+                    {
+                        correlationId,
+                        cause: err instanceof Error ? err : undefined
+                    }
+                );
+            }
             
             await reportError(errorToReport, { 
                 action: "auto_analysis_error",
@@ -165,7 +215,7 @@ export const useAutoAnalysis = (props: UseAutoAnalysisProps) => {
     const mutation = useMutation({
         mutationKey: ['autoAnalysis'],
         mutationFn: performAutoAnalysis,
-        onSuccess: () => {  // 移除未使用的 _data 參數
+        onSuccess: () => {
             // 使快取失效（如果有相關的 query）
             queryClient.invalidateQueries({ queryKey: ['analysisResults'] });
             
@@ -189,7 +239,7 @@ export const useAutoAnalysis = (props: UseAutoAnalysisProps) => {
         loading: mutation.isPending,
         error: mutation.error as AppError | null,
         handleAutoAnalyze,
-        setError: () => mutation.reset(), // 移除未使用的 _error 參數
+        setError: () => mutation.reset(),
         clearError: () => mutation.reset(),
         // 額外暴露 mutation 物件以供進階使用
         mutation

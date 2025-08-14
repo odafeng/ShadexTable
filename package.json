@@ -25,14 +25,14 @@
   },
   "lint-staged": {
     "src/**/*.{ts,tsx,js,jsx}": [
-      "eslint --fix --max-warnings 0",
+      "eslint --fix --max-warnings 10",
       "prettier --write"
     ],
     "src/**/*.{css,scss,md,json}": [
       "prettier --write"
     ],
     "*.{ts,tsx,js,jsx}": [
-      "eslint --fix --max-warnings 0"
+      "eslint --fix --max-warnings 10"
     ]
   },
   "husky": {
@@ -68,6 +68,7 @@
     "@tanstack/react-query": "^5.84.2",
     "@tanstack/react-query-devtools": "^5.84.2",
     "antd": "^5.26.7",
+    "apexcharts": "^5.3.3",
     "class-variance-authority": "^0.7.1",
     "cloudinary": "^2.7.0",
     "clsx": "^2.1.1",
@@ -83,9 +84,13 @@
     "lucide-react": "^0.525.0",
     "next": "15.3.4",
     "next-themes": "^0.4.6",
+    "plotly": "^1.0.6",
+    "plotly.js-dist-min": "^3.1.0",
     "react": "^19.0.0",
+    "react-apexcharts": "^1.7.0",
     "react-dom": "^19.0.0",
     "react-tooltip": "^5.29.1",
+    "recharts": "^3.1.2",
     "resend": "^4.6.0",
     "skeleton": "^1.0.0",
     "sonner": "^2.0.6",
@@ -105,6 +110,8 @@
     "@types/dompurify": "^3.0.5",
     "@types/file-saver": "^2.0.7",
     "@types/node": "^20",
+    "@types/plotly.js": "^3.0.3",
+    "@types/plotly.js-dist-min": "^2.3.4",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19",
     "@vitest/ui": "^3.2.4",

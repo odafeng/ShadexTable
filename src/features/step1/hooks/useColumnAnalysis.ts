@@ -46,6 +46,11 @@ export function useColumnAnalysis() {
     const setColumnAnalysisLoading = useAnalysisStore(state => state.setColumnAnalysisLoading);
 
     const convertToColumnProfile = (columns: ColumnInfo[]): ColumnProfile[] => {
+        // 確保 columns 不是 undefined 或 null
+        if (!columns || !Array.isArray(columns)) {
+            return [];
+        }
+        
         return columns.map(col => ({
             column: col.column,
             dataType: col.suggested_type,
@@ -77,7 +82,24 @@ export function useColumnAnalysis() {
             }
 
             if (!authToken) {
-                throw CommonErrors.authTokenMissing();
+                // 當沒有 token 時，先拋出錯誤，但仍然設置備用方案
+                const error = CommonErrors.authTokenMissing();
+                
+                // 使用備用方案以避免 UI 崩潰
+                const fallbackColumns = FileAnalysisService.createFallbackColumnData(data);
+                const fallbackProfiles = convertToColumnProfile(fallbackColumns);
+                setColumnProfile(fallbackProfiles);
+                setShowPreview(true);
+
+                if (setColumnTypes) {
+                    const fallbackTypesData: ColumnType[] = fallbackColumns.map(col => ({
+                        column: col.column,
+                        suggested_type: col.suggested_type
+                    }));
+                    setColumnTypes(fallbackTypesData);
+                }
+                
+                throw error;
             }
 
             console.log("📊 準備分析欄位，資料筆數:", data.length);
@@ -105,29 +127,49 @@ export function useColumnAnalysis() {
                 }
                 setShowPreview(true);
             } else {
-                throw new Error('Column analysis failed');
+                // API 返回失敗狀態
+                const errorMessage = result.error || 'Column analysis failed';
+                
+                // 使用備用方案
+                const fallbackColumns = FileAnalysisService.createFallbackColumnData(data);
+                const fallbackProfiles = convertToColumnProfile(fallbackColumns);
+                setColumnProfile(fallbackProfiles);
+                setShowPreview(true);
+
+                if (setColumnTypes) {
+                    const fallbackTypesData: ColumnType[] = fallbackColumns.map(col => ({
+                        column: col.column,
+                        suggested_type: col.suggested_type
+                    }));
+                    setColumnTypes(fallbackTypesData);
+                }
+                
+                throw new Error(errorMessage);
             }
         } catch (err) {
             console.error("❌ 欄位分析錯誤:", err);
-            // 使用備用方案
-            const fallbackColumns = FileAnalysisService.createFallbackColumnData(data);
-            const fallbackProfiles = convertToColumnProfile(fallbackColumns);
-            setColumnProfile(fallbackProfiles);
-            setShowPreview(true);
+            
+            // 如果還沒有設置備用方案（例如，網路錯誤等其他錯誤）
+            if (!columnProfile || columnProfile.length === 0) {
+                const fallbackColumns = FileAnalysisService.createFallbackColumnData(data);
+                const fallbackProfiles = convertToColumnProfile(fallbackColumns);
+                setColumnProfile(fallbackProfiles);
+                setShowPreview(true);
 
-            if (setColumnTypes) {
-                const fallbackTypesData: ColumnType[] = fallbackColumns.map(col => ({
-                    column: col.column,
-                    suggested_type: col.suggested_type
-                }));
-                setColumnTypes(fallbackTypesData);
+                if (setColumnTypes) {
+                    const fallbackTypesData: ColumnType[] = fallbackColumns.map(col => ({
+                        column: col.column,
+                        suggested_type: col.suggested_type
+                    }));
+                    setColumnTypes(fallbackTypesData);
+                }
             }
 
             throw err;
         } finally {
             setColumnAnalysisLoading(false);
         }
-    }, [getToken, setColumnProfile, setShowPreview, setColumnAnalysisLoading]);
+    }, [getToken, setColumnProfile, setShowPreview, setColumnAnalysisLoading, columnProfile]);
     
     const retryAnalysis = useCallback(async (
         data: DataRow[],

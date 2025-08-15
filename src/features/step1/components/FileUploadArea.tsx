@@ -1,8 +1,10 @@
 // FileUploadArea.tsx
 import React, { useRef } from 'react';
+
+import { toast } from 'sonner';
+
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { FileProcessor } from '@/utils/fileProcessor';
-import { toast } from 'sonner';
 
 interface FileUploadAreaProps {
     fileName: string | null;

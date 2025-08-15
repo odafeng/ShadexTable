@@ -1,5 +1,5 @@
-import useSWR from "swr";
 import { useAuth } from "@clerk/nextjs";
+import useSWR from "swr";
 
 export type UsageLog = {
   timestamp: string;

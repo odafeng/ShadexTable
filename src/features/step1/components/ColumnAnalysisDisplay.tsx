@@ -1,5 +1,6 @@
 // step1/components/ColumnAnalysisDisplay.tsx
 import React, { useState, useMemo } from "react";
+
 import {
   ChevronDown,
   TableProperties,
@@ -7,6 +8,7 @@ import {
   ArrowUp,
   ArrowDown,
 } from "lucide-react";
+
 import {
   Accordion,
   AccordionItem,

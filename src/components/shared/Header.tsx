@@ -1,10 +1,11 @@
 "use client";
 
-import Link from "next/link";
-import Image from "next/image";
 import { useState } from "react";
+
 import { useClerk } from "@clerk/nextjs";
 import { Menu, X, Settings, LogOut } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 
 export default function Header() {
   const [hoverLogout, setHoverLogout] = useState(false);

@@ -1,9 +1,12 @@
 // stores/analysisStore.hooks.ts
 // 更細粒度的 Selector Hooks，提供更好的效能
 
-import { useAnalysisStore } from './analysisStore';
-import { useShallow } from 'zustand/shallow';
 import { useMemo } from 'react';
+
+import { useShallow } from 'zustand/shallow';
+
+import { useAnalysisStore } from './analysisStore';
+
 import type { AnalysisResult, ColumnProfile } from './analysisStore';
 
 

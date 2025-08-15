@@ -1,10 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { motion } from "framer-motion";
+import Link from "next/link";
+
+import Navbar from "@/components/Navbar"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import LightButton from "@/components/ui/custom/LightButton";
-import Navbar from "@/components/Navbar"
 
 export default function FaqPage() {
   return (

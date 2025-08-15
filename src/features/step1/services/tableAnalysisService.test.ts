@@ -1,16 +1,15 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { TableAnalysisService, TableAnalysisRequest, TableAnalysisResponse } from './tableAnalysisService';
+
 import * as apiClient from '@/lib/apiClient';
 import * as reportError from '@/lib/reportError';
+import type { DataRow } from '@/stores/analysisStore';
 import { ErrorCode, ErrorContext } from '@/types/errors';
 import { createError } from '@/utils/error';
-import type { DataRow } from '@/stores/analysisStore';
-import { 
-  expectErrorToMatch, 
-  createTestError,
-  assertThrowsError,
-  TIMESTAMP_CORRELATION_PATTERN 
+import {
+  assertThrowsError 
 } from '@/utils/errorMatchers';
+
+import { TableAnalysisService, TableAnalysisRequest, TableAnalysisResponse } from './tableAnalysisService';
 
 // Mock dependencies
 vi.mock('@/lib/apiClient', () => ({

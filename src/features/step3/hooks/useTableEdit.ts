@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
-import { arrayMove } from "@dnd-kit/sortable";
+
 import { DragEndEvent } from "@dnd-kit/core";
-import type { TableRow, BinaryMapping } from "@/features/step3/types";
+import { arrayMove } from "@dnd-kit/sortable";
+
 import { formatVariableName } from "@/features/step3/services/dataTransformService";
+import type { TableRow, BinaryMapping } from "@/features/step3/types";
 
 export function useTableEdit(
   filteredRows: TableRow[],

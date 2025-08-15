@@ -1,13 +1,16 @@
 // src/hooks/step1_useAnalysisTrigger.test.ts
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { useAuth } from '@clerk/nextjs';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@clerk/nextjs';
-import { useAnalysisTrigger } from './useAnalysisTrigger';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+
+
 import { FileAnalysisService } from '@/features/step1/services/fileAnalysisService';
-import { CommonErrors } from '@/utils/error';
 import type { DataRow } from '@/stores/analysisStore';
+import { CommonErrors } from '@/utils/error';
 import { createErrorMatcher } from '@/utils/errorMatchers';
+
+import { useAnalysisTrigger } from './useAnalysisTrigger';
 
 // Mock 相依套件
 vi.mock('next/navigation', () => ({
@@ -53,7 +56,7 @@ const createMockStore = (overrides = {}) => ({
   clearFileData: vi.fn(),
   
   // Variable State
-  groupVar: '',
+  groupVar: '',  // 使用者指定的分組變項
   catVars: [] as string[],
   contVars: [] as string[],
   excludedVars: [] as string[],
@@ -157,14 +160,17 @@ describe('useAnalysisTrigger', () => {
   // 測試資料
   const mockFile = new File(['test content'], 'test.csv', { type: 'text/csv' });
   
-  // 使用與 fileAnalysisService 相同的 AutoAnalysisResponse 型別
+  // 更新：移除 AI 判定的 group_var，使用前端指定的值
   const mockAutoAnalysisResponseData = {
     success: true,
     message: 'Analysis completed successfully',
-    group_var: 'name',
+    group_var: 'name',  // 這應該與前端傳入的值一致
     cat_vars: ['category'],
     cont_vars: ['value'],
-    classification: { col1: 'categorical', col2: 'continuous' },
+    classification: { 
+      category: 'categorical',  // name 不在這裡，因為它是分組變項
+      value: 'continuous' 
+    },
     analysis: {
       summary: 'Test summary',
       details: { key: 'value' },
@@ -309,7 +315,10 @@ describe('useAnalysisTrigger', () => {
       );
     });
 
-    it('應該在自動模式下成功執行分析', async () => {
+    it('應該在自動模式下成功執行分析（有分組變項）', async () => {
+      // 設定使用者選擇的分組變項
+      mockStoreState = createMockStore({ groupVar: 'name' });
+      
       const { result } = renderHook(() => useAnalysisTrigger());
 
       // 設定為自動模式
@@ -327,18 +336,22 @@ describe('useAnalysisTrigger', () => {
       // 驗證取得 token
       expect(mockGetToken).toHaveBeenCalled();
 
-      // 驗證呼叫自動分析服務
+      // 驗證呼叫自動分析服務，包含使用者指定的分組變項
       expect(FileAnalysisService.performAutoAnalysis).toHaveBeenCalledWith(
         mockParsedData,
         false,
-        'test-token'
+        'test-token',
+        'name'  // 使用者指定的分組變項
       );
 
       // 驗證更新 store 狀態
-      expect(mockSetGroupVar).toHaveBeenCalledWith('name');
+      // 注意：不再更新 setGroupVar，因為它是使用者指定的
       expect(mockSetCatVars).toHaveBeenCalledWith(['category']);
       expect(mockSetContVars).toHaveBeenCalledWith(['value']);
-      expect(mockSetAutoAnalysisResult).toHaveBeenCalledWith(mockAutoAnalysisResponseData);
+      expect(mockSetAutoAnalysisResult).toHaveBeenCalledWith({
+        ...mockAutoAnalysisResponseData,
+        group_var: 'name'  // 確保是使用者指定的值
+      });
       expect(mockSetResultTable).toHaveBeenCalledWith(mockParsedData);
       expect(mockSetGroupCounts).toHaveBeenCalledWith({ 
         'Group A': 10, 
@@ -347,6 +360,55 @@ describe('useAnalysisTrigger', () => {
 
       // 驗證導航到 step3
       expect(mockPush).toHaveBeenCalledWith('/step3');
+    });
+
+    it('應該在自動模式下成功執行分析（無分組變項）', async () => {
+      // 不設定分組變項
+      mockStoreState = createMockStore({ groupVar: '' });
+      
+      // 模擬無分組的回應
+      const responseWithoutGroup = {
+        success: true,
+        result: {
+          ...mockAutoAnalysisResponseData,
+          group_var: undefined,
+          analysis: {
+            table: mockParsedData
+            // 沒有 groupCounts
+          }
+        }
+      };
+      
+      vi.mocked(FileAnalysisService.performAutoAnalysis).mockResolvedValue(
+        responseWithoutGroup as any
+      );
+
+      const { result } = renderHook(() => useAnalysisTrigger());
+
+      act(() => {
+        result.current.setAutoMode(true);
+      });
+
+      await act(async () => {
+        await result.current.triggerAnalysis(mockFile);
+      });
+
+      // 驗證呼叫自動分析服務，沒有分組變項
+      expect(FileAnalysisService.performAutoAnalysis).toHaveBeenCalledWith(
+        mockParsedData,
+        false,
+        'test-token',
+        ''  // 空的分組變項
+      );
+
+      // 驗證更新 store 狀態
+      expect(mockSetAutoAnalysisResult).toHaveBeenCalledWith({
+        ...mockAutoAnalysisResponseData,
+        group_var: '',  // 保持為空
+        analysis: {
+          table: mockParsedData
+        }
+      });
     });
 
     it('應該在沒有解析資料時拋出錯誤', async () => {
@@ -445,7 +507,7 @@ describe('useAnalysisTrigger', () => {
         });
       }).rejects.toThrow('Analysis failed');
 
-      expect(mockSetGroupVar).not.toHaveBeenCalled();
+      expect(mockSetCatVars).not.toHaveBeenCalled();
       expect(mockPush).not.toHaveBeenCalledWith('/step3');
     });
 
@@ -455,7 +517,7 @@ describe('useAnalysisTrigger', () => {
         success: true,
         result: {
           success: true,
-          group_var: 'partial_group',
+          group_var: undefined,  // 沒有分組變項
           cat_vars: undefined,
           cont_vars: undefined,
           analysis: undefined,
@@ -465,6 +527,8 @@ describe('useAnalysisTrigger', () => {
       vi.mocked(FileAnalysisService.performAutoAnalysis).mockResolvedValue(
         partialResponse as any
       );
+
+      mockStoreState = createMockStore({ groupVar: 'category' });
 
       const { result } = renderHook(() => useAnalysisTrigger());
 
@@ -477,18 +541,60 @@ describe('useAnalysisTrigger', () => {
       });
 
       // 驗證使用預設值
-      expect(mockSetGroupVar).toHaveBeenCalledWith('partial_group');
       expect(mockSetCatVars).toHaveBeenCalledWith([]);
       expect(mockSetContVars).toHaveBeenCalledWith([]);
       expect(mockSetResultTable).not.toHaveBeenCalled();
       expect(mockSetGroupCounts).not.toHaveBeenCalled();
+      
+      // 確保分組變項保持使用者選擇的值
+      expect(mockSetAutoAnalysisResult).toHaveBeenCalledWith({
+        ...partialResponse.result,
+        group_var: 'category'  // 覆蓋為使用者指定的值
+      });
+    });
+
+    it('應該正確處理 API 返回與前端不一致的分組變項', async () => {
+      // 設定使用者選擇的分組變項
+      mockStoreState = createMockStore({ groupVar: 'userSelectedGroup' });
+      
+      // API 返回不同的分組變項（這不應該發生，但要處理）
+      const inconsistentResponse = {
+        success: true,
+        result: {
+          ...mockAutoAnalysisResponseData,
+          group_var: 'apiSuggestedGroup',  // 與使用者選擇不同
+        }
+      };
+      
+      vi.mocked(FileAnalysisService.performAutoAnalysis).mockResolvedValue(
+        inconsistentResponse as any
+      );
+
+      const { result } = renderHook(() => useAnalysisTrigger());
+
+      act(() => {
+        result.current.setAutoMode(true);
+      });
+
+      await act(async () => {
+        await result.current.triggerAnalysis(mockFile);
+      });
+
+      // 驗證：應該使用使用者選擇的分組變項，而非 API 返回的
+      expect(mockSetAutoAnalysisResult).toHaveBeenCalledWith({
+        ...inconsistentResponse.result,
+        group_var: 'userSelectedGroup'  // 覆蓋為使用者指定的值
+      });
     });
   });
 
   describe('fillNA 參數處理', () => {
     it('應該正確傳遞 fillNA 參數', async () => {
       // 模擬 fillNA 為 true
-      mockStoreState = createMockStore({ fillNA: true });
+      mockStoreState = createMockStore({ 
+        fillNA: true,
+        groupVar: 'category'
+      });
 
       vi.mocked(FileAnalysisService.performAutoAnalysis).mockResolvedValue(
         mockSuccessResponse as any
@@ -506,8 +612,9 @@ describe('useAnalysisTrigger', () => {
 
       expect(FileAnalysisService.performAutoAnalysis).toHaveBeenCalledWith(
         mockParsedData,
-        true, // 驗證 fillNA 為 true
-        'test-token'
+        true,  // 驗證 fillNA 為 true
+        'test-token',
+        'category'  // 分組變項
       );
     });
   });

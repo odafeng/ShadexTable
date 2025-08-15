@@ -1,19 +1,17 @@
 // sensitiveDataDetector.test.ts
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { SensitiveDataDetector } from "./sensitiveDataDetector";
-import { FileProcessor } from "@/utils/fileProcessor";
+
 import * as reportErrorModule from "@/lib/reportError";
-import { ErrorCode, ErrorContext, CommonErrors } from "@/utils/error";
-import { ErrorSeverity } from "@/types/errors";
-import type { SensitiveCheckResult } from "./sensitiveDataDetector";
-import type { FileBasicInfo } from "@/utils/fileProcessor";
-import type { AppError } from "@/types/errors";
-import { 
-  expectErrorToMatch, 
-  createTestError,
-  errorContaining,
-  UUID_V4_PATTERN
+import { ErrorCode, CommonErrors } from "@/utils/error";
+import {
+  errorContaining
 } from "@/utils/errorMatchers";
+import type { FileBasicInfo } from "@/utils/fileProcessor";
+import { FileProcessor } from "@/utils/fileProcessor";
+
+import { SensitiveDataDetector } from "./sensitiveDataDetector";
+
+import type { SensitiveCheckResult } from "./sensitiveDataDetector";
 
 // Mock dependencies
 vi.mock("@/utils/fileProcessor");

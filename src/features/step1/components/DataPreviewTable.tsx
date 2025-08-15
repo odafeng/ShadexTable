@@ -1,7 +1,9 @@
 // src/features/step1/components/DataPreviewTable.tsx
 
 import React from "react";
+
 import Image from "next/image";
+
 import type { DataRow, DataValue } from "@/stores/analysisStore";
 
 interface DataPreviewTableProps {

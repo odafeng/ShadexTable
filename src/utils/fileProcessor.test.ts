@@ -10,9 +10,12 @@ import {
   MockedFunction,
 } from "vitest";
 import * as XLSX from "xlsx";
-import { FileProcessor } from "./fileProcessor";
-import { ErrorCode } from "@/utils/error";
+
 import { reportError } from "@/lib/reportError";
+import { ErrorCode } from "@/utils/error";
+
+import { FileProcessor } from "./fileProcessor";
+
 import type { DataRow } from "./fileProcessor";
 
 // 定義 XLSX 相關型別

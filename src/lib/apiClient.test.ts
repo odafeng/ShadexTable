@@ -1,7 +1,9 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import { apiClient, post } from './apiClient'
-import { ErrorCode, ErrorContext } from '@/utils/error'
+
 import { AppError, ErrorSeverity } from '@/types/errors'
+import { ErrorCode, ErrorContext } from '@/utils/error'
+
+import { apiClient, post } from './apiClient'
 
 // Mock fetch globally
 const mockFetch = vi.fn()

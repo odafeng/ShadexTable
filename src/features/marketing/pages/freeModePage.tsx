@@ -1,8 +1,9 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import Link from "next/link";
+
+import { Button } from "@/components/ui/button";
 import LightButton from "@/components/ui/custom/LightButton";
 
 export default function PricingPage() {

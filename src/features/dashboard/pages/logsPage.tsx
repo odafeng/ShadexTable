@@ -1,10 +1,13 @@
 "use client";
 
-import { useLogs } from "@/features/auth/hooks/useLogs";
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
+
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { useState } from "react";
+
+import { Button } from "@/components/ui/button";
+import { useLogs } from "@/features/auth/hooks/useLogs";
+
 
 export default function AnalysisHistory() {
   const { logs, loading, error } = useLogs();

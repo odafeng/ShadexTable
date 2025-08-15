@@ -1,17 +1,20 @@
 // step1_useStep1Logic.ts
 import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+
 import { useAuth } from '@clerk/nextjs';
-import { useAnalysisStore } from '@/stores/analysisStore';
+import { useRouter } from 'next/navigation';
+
 import { useUserLimits } from '@/features/auth/hooks/useUserLimits';
 import { FileAnalysisService } from '@/features/step1/services/fileAnalysisService';
-import { createErrorHandler, CommonErrors } from '@/utils/error';
 import { reportError } from '@/lib/reportError';
+import { useAnalysisStore } from '@/stores/analysisStore';
 import { AppError } from '@/types/errors';
+import { createErrorHandler, CommonErrors } from '@/utils/error';
+
+import { useAnalysisTrigger } from './useAnalysisTrigger';
+import { useColumnAnalysis } from './useColumnAnalysis';
 import { useFileValidation } from './useFileValidation';
 import { usePrivacyDetection } from './usePrivacyDetection';
-import { useColumnAnalysis } from './useColumnAnalysis';
-import { useAnalysisTrigger } from './useAnalysisTrigger';
 
 export function useStep1Logic() {
     const router = useRouter();

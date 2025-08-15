@@ -2,21 +2,27 @@
 "use client";
 
 import { useState, useEffect, JSX } from "react";
-import Image from "next/image";
-import { Button } from "@/components/ui/button";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Sparkles, CheckCircle, Info, Edit2, Check, X } from "lucide-react";
-import ActionButton2 from "@/components/ui/custom/ActionButton2";
-import ActionButton from "@/components/ui/custom/ActionButton";
-import { CheckCircle2, ClipboardCopy } from "lucide-react";
-import { motion } from "framer-motion";
-import { useAnalysisStore } from "@/stores/analysisStore";
+
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import SortableRow from "./SortableRow";
-import type { TableRow, TabConfig, TableEditState, CellValue } from "../types";
+import { motion } from "framer-motion";
 import DOMPurify from 'isomorphic-dompurify';
+import { Sparkles, CheckCircle, Info, Edit2, Check, X } from "lucide-react";
+import { CheckCircle2, ClipboardCopy } from "lucide-react";
+import Image from "next/image";
+
+import { Button } from "@/components/ui/button";
+import ActionButton from "@/components/ui/custom/ActionButton";
+import ActionButton2 from "@/components/ui/custom/ActionButton2";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useAnalysisStore } from "@/stores/analysisStore";
+
+
+import SortableRow from "./SortableRow";
+
+import type { TableRow, TabConfig, TableEditState, CellValue } from "../types";
+
 
 // TableEditState 類型已從 types.ts 導入，不需要在此定義
 
@@ -165,31 +171,6 @@ export default function Step3Tabs({
 
   return (
     <div>
-      {/* Auto mode indicator */}
-      {autoMode && autoAnalysisResult?.success && (
-        <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
-          <div className="flex items-start gap-3">
-            <div className="flex-shrink-0">
-              <CheckCircle className="w-6 h-6 text-green-600 mt-0.5" />
-            </div>
-            <div className="flex-1">
-              <div className="text-sm text-green-700 space-y-4">
-                <div>
-                  <strong>分組變項：</strong>
-                  <span className="ml-2 px-2 py-1 bg-slate-100 text-slate-800 rounded text-xs">
-                    {groupVar || "無"}
-                  </span>
-                </div>
-                <p className="text-xs mt-2">
-                  💡 以上分類由 AI 自動識別完成<br />
-                  📝 類別變項的選項可透過拖曳重新排序
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Tabs */}
       <div className="w-full max-h-[60px] flex border-b border-[#D9D9D9] mb-6 overflow-x-auto no-scrollbar whitespace-nowrap cursor-pointer">
         {tabs.map((tab) => {

@@ -1,7 +1,9 @@
 // stores/__tests__/analysisStore.test.ts
-import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { act, renderHook, waitFor } from "@testing-library/react";
+import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+
 import { useAnalysisStore } from "./analysisStore";
+
 import type { DataRow, AnalysisResult } from "./analysisStore";
 
 // Mock zustand persist with proper typing

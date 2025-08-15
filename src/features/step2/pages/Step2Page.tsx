@@ -1,17 +1,9 @@
 "use client";
 
-import Header from "@/components/shared/Header";
-import Footer from "@/components/shared/Footer";
-import StepNavigator from "@/components/shared/stepNavigator";
 import { useState, useEffect, ReactNode } from "react";
-import { MultiSelect } from "@/components/ui/custom/MultiSelect";
-import GroupSelect from "@/components/ui/custom/GroupSelect";
-import { useRouter } from "next/navigation";
-import { useAnalysisStore, type DataRow } from "@/stores/analysisStore";
+
 import { useAuth } from "@clerk/nextjs";
-import AnalysisErrorDialog from "@/components/ui/custom/AnalysisErrorDialog";
-import ConfirmTypeMismatchDialog from "@/components/ui/custom/ConfirmTypeMismatchDialog";
-import AnalysisLoadingModal, { DEFAULT_ANALYSIS_STEPS } from "@/components/ui/custom/AnalysisLoadingModal";
+
 import {
     Tooltip,
     TooltipContent,
@@ -22,10 +14,20 @@ import { ShieldAlert } from "lucide-react";
 import InlineNotice from "@/components/ui/custom/InlineNotice";
 import ActionButton from "@/components/ui/custom/ActionButton";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import Footer from "@/components/shared/Footer";
+import Header from "@/components/shared/Header";
+import StepNavigator from "@/components/shared/stepNavigator";
+import AnalysisErrorDialog from "@/components/ui/custom/AnalysisErrorDialog";
+import AnalysisLoadingModal, { DEFAULT_ANALYSIS_STEPS } from "@/components/ui/custom/AnalysisLoadingModal";
+import ConfirmTypeMismatchDialog from "@/components/ui/custom/ConfirmTypeMismatchDialog";
+import GroupSelect from "@/components/ui/custom/GroupSelect";
+import { MultiSelect } from "@/components/ui/custom/MultiSelect";
 
 // 引入新組件
 import AdvancedMissingValuePanel from "@/features/step2/components/AdvancedMissingValuePanel";
 import VariableVisualizationPanel from "@/features/step2/components/VariableVisualizationPanel";
+import { useAnalysisStore, type DataRow } from "@/stores/analysisStore";
 
 export default function Step2Page() {
     const [loading, setLoading] = useState(false);

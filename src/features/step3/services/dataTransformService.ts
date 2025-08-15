@@ -1,11 +1,11 @@
 // app/step3/services/dataTransformService.ts
-import { ErrorCode, ErrorContext } from "@/utils/error";
-import { createError } from "@/utils/error";
 import type {
   TableRow,
   GroupCounts,
   BinaryMapping,
 } from "@/features/step3/types";
+import { ErrorCode, ErrorContext } from "@/utils/error";
+import { createError } from "@/utils/error";
 
 // 定義導出資料的類型
 type ExportValue = string | number | boolean | Date | null | undefined;

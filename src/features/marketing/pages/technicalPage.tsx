@@ -1,8 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+
 import LightButton from "@/components/ui/custom/LightButton";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 export default function TechnicalPage() {
   return (

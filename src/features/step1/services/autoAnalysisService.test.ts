@@ -1,9 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vitest';
+
 import { AutoAnalysisService, type AutoAnalysisRequest, type AutoAnalysisResponse } from '@/features/step1/services/autoAnalysisService';
 import * as apiClient from '@/lib/apiClient';
 import { reportError } from '@/lib/reportError';
-import { ErrorCode, ErrorContext, CommonErrors, isAppError } from '@/utils/error';
 import type { DataRow } from '@/stores/analysisStore';
+import { ErrorCode, ErrorContext, CommonErrors, isAppError } from '@/utils/error';
 import { 
   assertThrowsError,
   TIMESTAMP_CORRELATION_PATTERN,

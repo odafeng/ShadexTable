@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useRef } from "react";
-import Link from "next/link";
-import Image from "next/image";
+
 import { ChevronDown, ChevronUp } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 
 export default function ModuleDropdown() {
   const [open, setOpen] = useState(false);

@@ -1,10 +1,13 @@
 "use client";
 
-import Link from "next/link";
-import Image from "next/image";
 import { useState } from "react";
-import ModuleDropdown from "@/components/ModuleDropdown";
+
 import { Menu, X } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+
+import ModuleDropdown from "@/components/ModuleDropdown";
+
 
 export default function Navbar() {
   const [hovered, setHovered] = useState(false);

@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
+
+import { Button } from "@/components/ui/button";
 import AnalysisErrorDialog from "@/components/ui/custom/AnalysisErrorDialog";
 import AnalysisLoadingModal, { DEFAULT_ANALYSIS_STEPS } from "@/components/ui/custom/AnalysisLoadingModal";
-import ConfirmTypeMismatchDialog from "@/components/ui/custom/ConfirmTypeMismatchDialog";
 import { AppErrorBoundary } from "@/components/ui/custom/AppErrorBoundary";
-import { Button } from "@/components/ui/button";
+import ConfirmTypeMismatchDialog from "@/components/ui/custom/ConfirmTypeMismatchDialog";
 
 export default function TestDialogPage() {
   // 各個對話框的開關狀態

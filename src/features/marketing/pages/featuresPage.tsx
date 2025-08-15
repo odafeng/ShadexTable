@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
+
+import { motion } from "framer-motion";
 import Image from "next/image";
+import Link from "next/link";
+
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/shared/Footer";
-import { motion } from "framer-motion";
-import Link from "next/link";
 
 export default function FeaturesPage() {
   const [rightHover, setRightHover] = useState(false);

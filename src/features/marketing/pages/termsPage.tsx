@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+
 import LightButton from "@/components/ui/custom/LightButton";
 
 export default function TermsPage() {

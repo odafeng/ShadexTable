@@ -1,11 +1,13 @@
 "use client";
 
+import { useState } from "react";
+
+import { motion } from "framer-motion";
 import Image from "next/image";
+import Link from "next/link";
+
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/shared/Footer";
-import { useState } from "react";
-import Link from "next/link";
-import { motion } from "framer-motion";
 
 // 定義卡片的類型
 interface PointCardData {

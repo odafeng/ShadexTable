@@ -1,6 +1,13 @@
 // src/utils/__tests__/error.test.ts
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+
+import {
+  ErrorSeverity,
+  type AppError,
+  type ErrorDetails,
+  type ErrorMetadata,
+} from "@/types/errors";
 import {
   createError,
   createErrorFromHttp,
@@ -12,12 +19,6 @@ import {
   ErrorCode,
   ErrorContext,
 } from "@/utils/error";
-import {
-  ErrorSeverity,
-  type AppError,
-  type ErrorDetails,
-  type ErrorMetadata,
-} from "@/types/errors";
 
 describe("Error Utilities", () => {
   // Mock crypto.randomUUID

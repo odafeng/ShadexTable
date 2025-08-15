@@ -2,8 +2,10 @@
 "use client";
 
 import dynamic from 'next/dynamic';
-import type { ApexOptions } from 'apexcharts';
+
 import { BarplotStatistics, PlotDataPoint, PLOT_COLORS } from '@/features/step2/types/types';
+
+import type { ApexOptions } from 'apexcharts';
 
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
 

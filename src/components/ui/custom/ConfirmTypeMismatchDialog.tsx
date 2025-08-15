@@ -1,9 +1,10 @@
 "use client";
 
 import * as AlertDialog from "@radix-ui/react-alert-dialog";
+import Image from "next/image";
+
 import ActionButton from "@/components/ui/custom/ActionButton";
 import ActionButton2 from "@/components/ui/custom/ActionButton2";
-import Image from "next/image";
 
 interface Props {
   open: boolean;

@@ -1,10 +1,11 @@
 "use client";
 
 import React from "react";
-import Hero from "@/components/Hero";
+
 import FeatureSection from "@/components/FeatureSection";
-import Footer from "@/components/shared/Footer";
+import Hero from "@/components/Hero";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/shared/Footer";
 
 export default function HomePage() {
   return (

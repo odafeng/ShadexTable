@@ -2,16 +2,19 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
+
 import { useRouter } from "next/navigation";
-import { useAnalysisStore } from "@/stores/analysisStore";
-import type { DataRow } from "@/stores/analysisStore";
-import Header from "@/components/shared/Header";
+
 import Footer from "@/components/shared/Footer";
+import Header from "@/components/shared/Header";
 import StepNavigator from "@/components/shared/stepNavigator";
 import Step3Tabs from "@/features/step3/components/ResultsTabs";
-import { useTableEdit } from "@/features/step3/hooks/useTableEdit";
 import { useAISummary } from "@/features/step3/hooks/useAiSummary";
 import { useExport } from "@/features/step3/hooks/useExport";
+import { useTableEdit } from "@/features/step3/hooks/useTableEdit";
+import type { DataRow } from "@/stores/analysisStore";
+import { useAnalysisStore } from "@/stores/analysisStore";
+
 import type { TableRow } from "../types";
 
 export default function Step3Summary() {

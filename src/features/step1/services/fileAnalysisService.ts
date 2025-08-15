@@ -1,17 +1,17 @@
 // step1_fileAnalysisService.ts
-import { FileProcessor } from "@/utils/fileProcessor";
 import { SensitiveDataDetector } from "@/features/step1/services/sensitiveDataDetector";
+import { post } from "@/lib/apiClient";
+import { reportError } from "@/lib/reportError";
+import type { DataRow } from "@/stores/analysisStore";
+import { AppError } from "@/types/errors";
 import {
   createError,
   ErrorCode,
   ErrorContext,
   CommonErrors,
+  isAppError,
 } from "@/utils/error";
-import { AppError } from "@/types/errors";
-// 移除未使用的 apiClient
-import { post } from "@/lib/apiClient";
-// 從 analysisStore 引入類型
-import type { DataRow } from "@/stores/analysisStore";
+import { FileProcessor } from "@/utils/fileProcessor";
 
 // 定義錯誤類型
 interface ServiceError {
@@ -45,14 +45,22 @@ export interface ColumnProfile {
   suggested_type: string;
 }
 
+export interface ColumnAnalysisResult {
+  columns: ColumnProfile[];
+  success: boolean;
+  error?: AppError;
+}
+
 interface AutoAnalysisResponse {
   success: boolean;
   message?: string;
-  group_var?: string;
+  group_var?: string;  // 現在由前端傳入，後端回傳相同值
   cat_vars?: string[];
   cont_vars?: string[];
   classification?: Record<string, string>;
   analysis?: {
+    table?: DataRow[];
+    groupCounts?: Record<string, number>;
     summary?: string;
     details?: Record<string, unknown>;
   };
@@ -68,14 +76,7 @@ interface ColumnAnalysisRequest {
 interface AutoAnalysisRequest {
   parsedData: DataRow[];
   fillNA: boolean;
-}
-
-// 定義 HTTP 錯誤回應類型
-interface HttpErrorResponse {
-  response?: {
-    data?: unknown;
-    status?: number;
-  };
+  groupVar?: string;  // 新增：使用者指定的分組變項
 }
 
 export class FileAnalysisService {
@@ -170,16 +171,37 @@ export class FileAnalysisService {
     }
   }
 
-  // 欄位分析
+  // 整合後的欄位分析 - 包含所有優點
   static async analyzeColumns(
     data: DataRow[],
-    token: string,
-  ): Promise<{
-    success: boolean;
-    columns?: ColumnProfile[];
-    error?: ServiceError | AppError;
-  }> {
+    token?: string,  // Token 改為可選，支援向下相容
+  ): Promise<ColumnAnalysisResult> {
+    const correlationId = crypto.randomUUID();
+
     try {
+      // 驗證輸入資料
+      if (!data || data.length === 0) {
+        const error = CommonErrors.insufficientData();
+        return {
+          columns: [],
+          success: false,
+          error
+        };
+      }
+
+      // 使用傳入的 token 或從 localStorage 獲取（向下相容）
+      const authToken = token || localStorage.getItem("__session") || "";
+
+      if (!authToken) {
+        const error = CommonErrors.authTokenMissing();
+        await reportError(error, { action: "column_analysis", dataRows: data.length });
+        return {
+          columns: [],
+          success: false,
+          error
+        };
+      }
+
       if (!process.env.NEXT_PUBLIC_API_URL) {
         throw createError(
           ErrorCode.SERVER_ERROR,
@@ -188,8 +210,6 @@ export class FileAnalysisService {
           { customMessage: "API URL 未配置" },
         );
       }
-
-      const correlationId = crypto.randomUUID();
 
       const requestBody: ColumnAnalysisRequest = {
         data: data,
@@ -203,95 +223,166 @@ export class FileAnalysisService {
         data.length > 0 ? Object.keys(data[0]).length : 0,
       );
 
-      // 先用 unknown 接收，再做型別檢查
-      const response = await post<ColumnAnalysisRequest, unknown>(
+      // 使用統一的 apiClient 進行 API 呼叫
+      interface ColumnsApiResponse {
+        data: {
+          columns: ColumnProfile[];
+        };
+      }
+      
+      const response = await post(
         `${process.env.NEXT_PUBLIC_API_URL}/api/preprocess/columns`,
         requestBody,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${authToken}`,
             "Content-Type": "application/json",
           },
           context: ErrorContext.ANALYSIS,
           correlationId,
-          timeout: 30000,
-        },
-      );
+          timeout: 30000
+        }
+      ) as ColumnsApiResponse;
 
       console.log("📥 收到欄位分析回應:", response);
 
-      // 型別守衛來檢查回應結構
-      if (response && typeof response === "object") {
-        const res = response as Record<string, unknown>;
-
-        // 檢查 data.columns 結構
-        if (res.data && typeof res.data === "object") {
-          const data = res.data as Record<string, unknown>;
-          if (data.columns && Array.isArray(data.columns)) {
-            return {
-              success: true,
-              columns: data.columns as ColumnProfile[],
-            };
+      // 檢查回應格式
+      if (response && response.data && response.data.columns && Array.isArray(response.data.columns)) {
+        return {
+          columns: response.data.columns,
+          success: true
+        };
+      } else {
+        console.warn("⚠️ API 回應格式異常，使用備用方案");
+        const fallback = FileAnalysisService.createFallbackColumnDataComplete(data);
+        const error = createError(
+          ErrorCode.SERVER_ERROR,
+          ErrorContext.ANALYSIS,
+          'column.type_detection_failed',
+          {
+            correlationId,
+            customMessage: "欄位分析服務回應異常，已使用基本解析"
           }
-        }
+        );
+        await reportError(error, {
+          action: "column_analysis",
+          dataRows: data.length,
+          responseFormat: typeof response
+        });
+        return {
+          ...fallback,
+          error
+        };
+      }
 
-        // 檢查直接 columns 結構
-        if (res.columns && Array.isArray(res.columns)) {
+    } catch (error: unknown) {
+      console.error("❌ 欄位解析錯誤：", error);
+
+      // 如果已經是 AppError，直接使用
+      if (isAppError(error)) {
+        await reportError(error, {
+          action: "column_analysis",
+          dataRows: data.length
+        });
+        
+        // 嘗試使用備用方案
+        try {
+          const fallback = FileAnalysisService.createFallbackColumnDataComplete(data);
           return {
-            success: true,
-            columns: res.columns as ColumnProfile[],
+            ...fallback,
+            error
+          };
+        } catch {
+          return {
+            columns: [],
+            success: false,
+            error
           };
         }
       }
 
-      console.warn("⚠️ API 回應格式異常:", response);
-      return {
-        success: false,
-        error: createError(
-          ErrorCode.ANALYSIS_ERROR,
-          ErrorContext.ANALYSIS,
-          "column.type_detection_failed",
-          {
-            customMessage: "API 回應格式異常",
-            correlationId,
-            details: { response: JSON.stringify(response) },
-          },
-        ),
-      };
-    } catch (err: unknown) {
-      console.error("❌ 欄位解析錯誤:", err);
+      // 包裝為 AppError
+      const appError = createError(
+        ErrorCode.ANALYSIS_ERROR,
+        ErrorContext.ANALYSIS,
+        'column.type_detection_failed',
+        {
+          correlationId,
+          cause: error instanceof Error ? error : undefined
+        }
+      );
 
-      if (err && typeof err === "object" && "response" in err) {
-        const errorResponse = err as HttpErrorResponse;
-        console.error("❌ 錯誤回應:", errorResponse.response?.data);
-        console.error("❌ 錯誤狀態:", errorResponse.response?.status);
-      }
+      await reportError(appError, {
+        action: "column_analysis",
+        dataRows: data.length,
+        originalError: error
+      });
 
-      if (err instanceof Error) {
+      // 嘗試使用備用方案
+      try {
+        const fallback = FileAnalysisService.createFallbackColumnDataComplete(data);
         return {
+          ...fallback,
+          error: appError
+        };
+      } catch {
+        return {
+          columns: [],
           success: false,
-          error: createError(
-            ErrorCode.ANALYSIS_ERROR,
-            ErrorContext.ANALYSIS,
-            undefined,
-            { customMessage: err.message, cause: err },
-          ),
+          error: appError
         };
       }
+    }
+  }
+
+  // 完整的備用方案：創建基本的欄位資訊
+  static createFallbackColumnDataComplete(data: DataRow[]): ColumnAnalysisResult {
+    if (data.length === 0) {
+      const error = createError(
+        ErrorCode.VALIDATION_ERROR,
+        ErrorContext.ANALYSIS,
+        'column.no_valid_columns',
+        {
+          correlationId: `fallback-${Date.now()}`
+        }
+      );
+      return {
+        columns: [],
+        success: false,
+        error
+      };
+    }
+
+    try {
+      const columns: ColumnProfile[] = Object.keys(data[0]).map(col => ({
+        column: col,
+        missing_pct: FileAnalysisService.calculateMissingPercentage(data, col),
+        suggested_type: FileAnalysisService.inferColumnType(data, col)
+      }));
 
       return {
+        columns,
+        success: true
+      };
+    } catch (error) {
+      const appError = createError(
+        ErrorCode.ANALYSIS_ERROR,
+        ErrorContext.ANALYSIS,
+        'column.type_detection_failed',
+        {
+          correlationId: `fallback-error-${Date.now()}`,
+          cause: error instanceof Error ? error : undefined
+        }
+      );
+      return {
+        columns: [],
         success: false,
-        error: createError(
-          ErrorCode.ANALYSIS_ERROR,
-          ErrorContext.ANALYSIS,
-          undefined,
-          { customMessage: "欄位分析發生未知錯誤" },
-        ),
+        error: appError
       };
     }
   }
 
-  // 創建備用欄位資料
+  // 簡化版備用欄位資料（保留原有方法供其他地方使用）
   static createFallbackColumnData(data: DataRow[]): ColumnProfile[] {
     if (data.length === 0) return [];
 
@@ -302,11 +393,84 @@ export class FileAnalysisService {
     }));
   }
 
-  // AI 自動分析
+  // 計算遺失值百分比
+  private static calculateMissingPercentage(data: DataRow[], column: string): string {
+    try {
+      const totalRows = data.length;
+      const missingCount = data.filter(row =>
+        row[column] === null ||
+        row[column] === undefined ||
+        row[column] === '' ||
+        (typeof row[column] === 'string' && (row[column] as string).trim() === '')
+      ).length;
+
+      const percentage = ((missingCount / totalRows) * 100).toFixed(1);
+      return `${percentage}%`;
+    } catch {
+      return "0.0%";
+    }
+  }
+
+  // 完整的類型推斷
+  private static inferColumnType(data: DataRow[], column: string): string {
+    try {
+      const sample = data.slice(0, Math.min(100, data.length))
+        .map(row => row[column])
+        .filter(val => val !== null && val !== undefined && val !== '');
+
+      if (sample.length === 0) return "未知";
+
+      // 檢查是否為數字
+      const numericSample = sample.filter(val => !isNaN(Number(val)));
+      if (numericSample.length / sample.length > 0.8) {
+        // 檢查是否為整數
+        const integerSample = numericSample.filter(val => Number.isInteger(Number(val)));
+        if (integerSample.length / numericSample.length > 0.9) {
+          return "整數";
+        } else {
+          return "小數";
+        }
+      }
+
+      // 檢查是否為日期
+      const dateSample = sample.filter(val => {
+        const date = new Date(val as string);
+        return !isNaN(date.getTime());
+      });
+      if (dateSample.length / sample.length > 0.8) {
+        return "日期";
+      }
+
+      // 檢查是否為布林值
+      const boolSample = sample.filter(val =>
+        val === true || val === false ||
+        val === 'true' || val === 'false' ||
+        val === 'True' || val === 'False' ||
+        val === '是' || val === '否' ||
+        val === 'Y' || val === 'N'
+      );
+      if (boolSample.length / sample.length > 0.8) {
+        return "布林";
+      }
+
+      // 檢查是否為分類變項（唯一值較少）
+      const uniqueValues = [...new Set(sample.map(v => String(v)))];
+      if (uniqueValues.length <= Math.min(10, sample.length * 0.5)) {
+        return "分類";
+      }
+
+      return "文字";
+    } catch {
+      return "未知";
+    }
+  }
+
+  // AI 自動分析 - 更新支援使用者指定的分組變項
   static async performAutoAnalysis(
     parsedData: DataRow[],
     fillNA: boolean,
     token: string,
+    groupVar?: string,  // 新增：使用者指定的分組變項
   ): Promise<{
     success: boolean;
     result?: AutoAnalysisResponse;
@@ -318,11 +482,13 @@ export class FileAnalysisService {
       const requestBody: AutoAnalysisRequest = {
         parsedData: parsedData,
         fillNA: fillNA,
+        groupVar: groupVar,  // 傳遞使用者指定的分組變項
       };
 
       console.log("📤 發送自動分析請求:");
       console.log("  - 資料筆數:", parsedData.length);
       console.log("  - 填補缺值:", fillNA);
+      console.log("  - 分組變項:", groupVar || "無");
 
       const response = await post<AutoAnalysisRequest, AutoAnalysisResponse>(
         `${process.env.NEXT_PUBLIC_API_URL}/api/ai_automation/auto-analyze`,
@@ -347,6 +513,12 @@ export class FileAnalysisService {
             correlationId,
           },
         );
+      }
+
+      // 確保回傳的 group_var 與使用者選擇的一致
+      if (response.group_var !== groupVar) {
+        console.log("📝 後端返回的分組變項與前端不一致，使用前端值");
+        response.group_var = groupVar;
       }
 
       return {

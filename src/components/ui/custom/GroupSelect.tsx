@@ -1,12 +1,13 @@
 "use client";
 
 import { ChevronsUpDown, Check } from "lucide-react";
-import { cn } from "@/lib/utils";
+
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandGroup, CommandItem } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { typeColorClass } from "@/lib/constants";
+import { cn } from "@/lib/utils";
 
 type OptionType = {
   label: string;

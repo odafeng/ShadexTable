@@ -1,11 +1,15 @@
 import "./globals.css";
-import { Geist, Geist_Mono } from "next/font/google";
-import type { Metadata } from "next";
-import { ClerkProvider } from "@clerk/nextjs";
 import { zhTW } from '@clerk/localizations';
-import ClientProviders from './clientProvider';
+import { ClerkProvider } from "@clerk/nextjs";
+import { Geist, Geist_Mono } from "next/font/google";
+
+
 import { AppErrorBoundary } from "@/components/ui/custom/AppErrorBoundary";
 import { ReactQueryProvider } from "@/lib/reactQueryProvider";
+
+import ClientProviders from './clientProvider';
+
+import type { Metadata } from "next";
 
 const geistSans = Geist({
   subsets: ["latin"],

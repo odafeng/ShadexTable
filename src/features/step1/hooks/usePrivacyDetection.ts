@@ -1,11 +1,12 @@
 // app/features/step1/hooks/usePrivacyDetection.ts
 
 import { useState, useCallback } from "react";
-import { FileAnalysisService } from "@/features/step1/services/fileAnalysisService";
+
 import { useUserLimits } from "@/features/auth/hooks/useUserLimits";
+import { FileAnalysisService } from "@/features/step1/services/fileAnalysisService";
+import type { DataRow } from "@/stores/analysisStore";
 import { AppError } from "@/types/errors";
 import { isAppError } from "@/utils/error";
-import type { DataRow } from "@/stores/analysisStore";
 
 // 定義檔案基本資訊類型
 interface FileBasicInfo {

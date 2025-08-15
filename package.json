@@ -7,32 +7,48 @@
     "build": "next build",
     "build:no-lint": "next build --no-lint",
     "start": "next start",
-    "lint": "next lint",
-    "lint:fix": "next lint --fix",
+    
+    "// Linting & Type Checking": "",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "lint:strict": "next lint --strict",
     "typecheck": "tsc --noEmit",
-    "verify": "npm run lint && npm run typecheck",
+    "verify": "npm run typecheck && npm run lint",
+    
+    "// Formatting": "",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,css,md,json}\"",
     "format:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx,css,md,json}\"",
+    
+    "// Code Cleaning": "",
+    "clean:imports": "eslint . --fix --rule 'unused-imports/no-unused-imports: error'",
+    "clean:vars": "eslint . --fix",
+    "clean:all": "npm run clean:imports && npm run format",
+    "clean:full": "npm run lint:fix && npm run format && npm run typecheck",
+    
+    "// Testing": "",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
     "test:watch": "vitest watch",
     "test:coverage": "vitest run --coverage",
+    
+    "// Git Hooks": "",
     "prepare": "husky",
     "pre-commit": "lint-staged",
-    "pre-push": "npm run verify && npm run test:run"
+    "pre-push": "npm run verify && npm run test:run",
+    
+    "// Utilities": "",
+    "check:all": "npm run typecheck && npm run lint && npm run format:check",
+    "fix:all": "npm run clean:all && npm run typecheck"
   },
+  
   "lint-staged": {
-    "src/**/*.{ts,tsx,js,jsx}": [
-      "eslint --fix --max-warnings 10",
-      "prettier --write"
-    ],
-    "src/**/*.{css,scss,md,json}": [
-      "prettier --write"
-    ],
     "*.{ts,tsx,js,jsx}": [
-      "eslint --fix --max-warnings 10"
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{css,scss,md,json}": [
+      "prettier --write"
     ]
   },
   "husky": {
@@ -114,11 +130,15 @@
     "@types/plotly.js-dist-min": "^2.3.4",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19",
+    "@typescript-eslint/eslint-plugin": "^8.39.1",
+    "@typescript-eslint/parser": "^8.39.1",
     "@vitest/ui": "^3.2.4",
     "autoprefixer": "^10.4.21",
     "cross-env": "^7.0.3",
-    "eslint": "^9",
+    "eslint": "^9.33.0",
     "eslint-config-next": "15.3.4",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-unused-imports": "^4.1.4",
     "happy-dom": "^18.0.1",
     "husky": "^9.1.7",
     "lint-staged": "^16.1.5",

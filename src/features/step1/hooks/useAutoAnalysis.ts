@@ -1,5 +1,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { AutoAnalysisRequest } from '../services/autoAnalysisService';
+
+import { post } from "@/lib/apiClient";
+import { reportError } from "@/lib/reportError";
+import { useAnalysisStore } from '@/stores/analysisStore';
+import type { DataRow, AutoAnalysisResult } from '@/stores/analysisStore';
+import { AppError } from '@/types/errors';
 import { 
   isAppError, 
   ErrorCode, 
@@ -7,11 +12,8 @@ import {
   createError,
   CommonErrors 
 } from "@/utils/error";
-import { post } from "@/lib/apiClient";
-import { reportError } from "@/lib/reportError";
-import { AppError } from '@/types/errors';
-import { useAnalysisStore } from '@/stores/analysisStore';
-import type { DataRow, AutoAnalysisResult } from '@/stores/analysisStore';
+
+import { AutoAnalysisRequest } from '../services/autoAnalysisService';
 
 interface UseAutoAnalysisProps {
     getToken: () => Promise<string | null>;
@@ -147,7 +149,7 @@ export const useAutoAnalysis = (props: UseAutoAnalysisProps) => {
 
             // 使用 apiClient 進行請求
             const result = await post<AutoAnalysisRequest, AutoAnalysisResult>(
-                `${process.env.NEXT_PUBLIC_API_URL}/api/analysis/auto`, 
+                `${process.env.NEXT_PUBLIC_API_URL}/api/ai_automation/auto-analyze`, 
                 requestData, 
                 {
                     headers: {

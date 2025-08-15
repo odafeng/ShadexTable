@@ -1,5 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
+
 import { useAuth, useUser } from '@clerk/nextjs';
+
 import { FileProcessor, FileLimits } from '@/utils/fileProcessor';
 
 export type UserType = 'GENERAL' | 'PROFESSIONAL';

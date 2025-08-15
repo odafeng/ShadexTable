@@ -1,22 +1,23 @@
 "use client";
 
-import * as AlertDialog from "@radix-ui/react-alert-dialog";
 import { useState } from "react";
+
+import * as AlertDialog from "@radix-ui/react-alert-dialog";
 import Image from "next/image";
-import { FileProcessor } from "@/utils/fileProcessor";
+
 import ActionButton from "@/components/ui/custom/ActionButton";
 import ActionButton2 from "@/components/ui/custom/ActionButton2";
 import { reportError } from "@/lib/reportError";
 
 // 使用統一錯誤處理系統
+import { AppError } from '@/types/errors'
 import { 
     ErrorCode, 
     createError, 
     createErrorHandler,
     CommonErrors 
 } from "@/utils/error";
-
-import { AppError } from '@/types/errors'
+import { FileProcessor } from "@/utils/fileProcessor";
 
 interface Props {
     open: boolean;

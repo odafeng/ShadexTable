@@ -1,13 +1,15 @@
 "use client";
 
-import Header from "@/components/shared/Header";
-import Footer from "@/components/shared/Footer";
-import { useUser } from "@clerk/nextjs";
-import { usePoints } from "@/features/auth/hooks/usePoints";
-import { useLogs } from "@/features/auth/hooks/useLogs";
 import { useState } from "react";
+
+import { useUser } from "@clerk/nextjs";
 import { CircleDollarSign } from "lucide-react";
+
+import Footer from "@/components/shared/Footer";
+import Header from "@/components/shared/Header";
 import DarkButton from "@/components/ui/custom/DarkButton";
+import { useLogs } from "@/features/auth/hooks/useLogs";
+import { usePoints } from "@/features/auth/hooks/usePoints";
 
 export default function UserDashboardPage() {
     const { user } = useUser();

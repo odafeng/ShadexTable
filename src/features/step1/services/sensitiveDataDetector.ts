@@ -1,13 +1,13 @@
-import { FileProcessor } from "@/utils/fileProcessor";
+import { reportError } from "@/lib/reportError";
+import { AppError } from "@/types/errors";
 import {
   ErrorCode,
   ErrorContext,
   createError,
   CommonErrors,
 } from "@/utils/error";
+import { FileProcessor } from "@/utils/fileProcessor";
 
-import { AppError } from "@/types/errors";
-import { reportError } from "@/lib/reportError";
 
 export interface SensitiveCheckResult {
   hasSensitiveData: boolean;

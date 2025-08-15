@@ -1,14 +1,18 @@
 "use client";
 
 import { useState } from "react";
+
+import { motion } from "framer-motion";
+import { ReceiptText } from "lucide-react";
+
+import Footer from "@/components/shared/Footer";
+import Header from "@/components/shared/Header";
+import { Button } from "@/components/ui/button";
+import LightButton from "@/components/ui/custom/LightButton";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
-import Header from "@/components/shared/Header";
-import Footer from "@/components/shared/Footer";
-import LightButton from "@/components/ui/custom/LightButton";
-import { ReceiptText } from "lucide-react";
+
+
 
 export default function ContactPage() {
   const [name, setName] = useState("");

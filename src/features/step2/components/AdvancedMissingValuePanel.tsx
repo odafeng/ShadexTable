@@ -1,21 +1,23 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useAnalysisStore, type DataRow, type ColumnInfo } from "@/stores/analysisStore";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
 import { AlertCircle, TrendingUp, Hash, Calendar, HelpCircle } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
     Tooltip,
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { apiClient } from "@/lib/apiClient";
 import type { MissingFillStrategy, SelfDefinedMissingFillRequest } from "@/features/step2/types/schemas";
+import { apiClient } from "@/lib/apiClient";
+import { useAnalysisStore, type DataRow, type ColumnInfo } from "@/stores/analysisStore";
 
 interface MissingColumnInfo {
     column: string;

@@ -1,10 +1,10 @@
 // app/sign-up/[[...index]]/page.tsx
 "use client";
 
-import { SignUp } from "@clerk/nextjs";
 import { zhTW } from "@clerk/localizations";
-import { useSearchParams } from "next/navigation";
+import { SignUp } from "@clerk/nextjs";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 
 export default function SignUpPage() {
   const searchParams = useSearchParams();

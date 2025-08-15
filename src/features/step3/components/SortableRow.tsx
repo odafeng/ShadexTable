@@ -2,11 +2,15 @@
 "use client";
 
 import { JSX } from "react";
-import { Edit2, Check, X } from "lucide-react";
+
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import type { TableRow, BinaryMapping, CellValue } from "../types";
+import { Edit2, Check, X } from "lucide-react";
+
 import { formatVariableName, isCategorySubItem } from "@/features/step3/services/dataTransformService";
+
+import type { TableRow, BinaryMapping, CellValue } from "../types";
+
 
 interface SortableRowProps {
   row: TableRow;

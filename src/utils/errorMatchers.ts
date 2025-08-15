@@ -1,6 +1,7 @@
 // test-utils/errorMatchers.ts
 
 import { expect } from 'vitest';
+
 import type { AppError } from '@/types/errors';
 import { ErrorCode, ErrorContext, ErrorSeverity } from '@/types/errors';
 

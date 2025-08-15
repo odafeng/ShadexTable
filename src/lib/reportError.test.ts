@@ -1,10 +1,11 @@
 // src/lib/__tests__/reportError.test.ts
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+
 import { reportError } from "@/lib/reportError";
-import { createError, CommonErrors } from "@/utils/error";
 import type { AppError } from "@/types/errors";
 import { ErrorCode, ErrorContext } from "@/types/errors";
+import { createError, CommonErrors } from "@/utils/error";
 
 describe("reportError", () => {
   // Mock crypto.randomUUID for createError

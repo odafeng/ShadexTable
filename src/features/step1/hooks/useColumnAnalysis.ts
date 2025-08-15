@@ -1,10 +1,12 @@
 // step1_useColumnAnalysis.ts
 import { useCallback } from 'react';
+
 import { useAuth } from '@clerk/nextjs';
+
 import { FileAnalysisService } from '@/features/step1/services/fileAnalysisService';
-import { CommonErrors } from '@/utils/error';
 import { useAnalysisStore } from '@/stores/analysisStore';
 import type { ColumnProfile, DataRow } from '@/stores/analysisStore';  // 從 store 匯入
+import { CommonErrors } from '@/utils/error';
 
 // 定義欄位資訊的類型（從 API 返回的格式）
 export interface ColumnInfo {

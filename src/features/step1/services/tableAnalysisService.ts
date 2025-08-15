@@ -1,5 +1,6 @@
 import { post } from "@/lib/apiClient";
 import { reportError } from "@/lib/reportError";
+import type { DataRow } from '@/stores/analysisStore';
 import {
     isAppError,
     ErrorCode,
@@ -8,7 +9,6 @@ import {
     CommonErrors
 } from "@/utils/error";
 
-import type { DataRow } from '@/stores/analysisStore';
 
 export interface TableAnalysisRequest {
     data: DataRow[];

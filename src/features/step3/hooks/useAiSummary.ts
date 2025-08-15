@@ -1,10 +1,12 @@
 import { useState } from "react";
+
 import { useAuth } from "@clerk/nextjs";
-import { createErrorHandler } from "@/utils/error";
-import { reportError } from "@/lib/reportError";
+
 import { generateAISummary } from "@/features/step3/services/aiSummaryService";
 import { createCoreSummaryData } from "@/features/step3/services/dataTransformService";
 import type { TableRow } from "@/features/step3/types";
+import { reportError } from "@/lib/reportError";
+import { createErrorHandler } from "@/utils/error";
 
 export function useAISummary() {
   const [summaryText, setSummaryText] = useState<string | null>(null);

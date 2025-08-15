@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from 'react';
+
 import { Calendar, Clock, Bell, CheckCircle } from 'lucide-react';
 
 export default function DateVariablePlaceholder() {

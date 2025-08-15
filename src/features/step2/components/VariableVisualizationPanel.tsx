@@ -2,15 +2,20 @@
 "use client";
 
 import { useState, useMemo, JSX } from "react";
+
 import { useAuth } from "@clerk/nextjs";
-import { useAnalysisStore, type DataRow, type DataValue } from "@/stores/analysisStore";
+import { BarChart3, TrendingUp, Calendar, Loader2, AlertCircle } from "lucide-react";
+
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { BarChart3, TrendingUp, Calendar, Loader2, AlertCircle } from "lucide-react";
-import { post } from "@/lib/apiClient";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 
 // 引入型別定義
+
+// 引入子元件
+import BarplotChart from '@/features/step2/components/BarplotChart';
+import BoxplotChart from '@/features/step2/components/BoxplotChart';
+import DateVariablePlaceholder from '@/features/step2/components/DateVariablePlaceholder';
 import type {
     FlattenedPlotResponse,
     PlotRequest,
@@ -20,11 +25,8 @@ import type {
     BoxplotStatistics,
     BarplotStatistics
 } from '@/features/step2/types/types';
-
-// 引入子元件
-import BoxplotChart from '@/features/step2/components/BoxplotChart';
-import BarplotChart from '@/features/step2/components/BarplotChart';
-import DateVariablePlaceholder from '@/features/step2/components/DateVariablePlaceholder';
+import { post } from "@/lib/apiClient";
+import { useAnalysisStore, type DataRow, type DataValue } from "@/stores/analysisStore";
 
 export default function VariableVisualizationPanel() {
     const {

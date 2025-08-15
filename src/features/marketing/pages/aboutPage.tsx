@@ -1,10 +1,12 @@
 "use client";
 
+import React from "react";
+
+import { motion } from "framer-motion";
 import Image from "next/image";
+
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/shared/Footer";
-import { motion } from "framer-motion";
-import React from "react";
 
 
 

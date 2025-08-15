@@ -1,589 +1,529 @@
-// src/features/step1/hooks/useAutoAnalysis.test.ts
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook, waitFor } from '@testing-library/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactNode } from 'react';
-import { useAutoAnalysis } from './useAutoAnalysis';
-import { useAnalysisStore } from '@/stores/analysisStore';
+import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vitest';
+
+import { AutoAnalysisService, type AutoAnalysisRequest, type AutoAnalysisResponse } from '@/features/step1/services/autoAnalysisService';
 import * as apiClient from '@/lib/apiClient';
-import * as reportErrorModule from '@/lib/reportError';
-import { ErrorCode, ErrorContext } from '@/types/errors';
-import type { DataRow, AutoAnalysisResult } from '@/stores/analysisStore';
+import { reportError } from '@/lib/reportError';
+import type { DataRow } from '@/stores/analysisStore';
+import { ErrorCode, ErrorContext, CommonErrors, isAppError } from '@/utils/error';
+import { 
+  assertThrowsError,
+  TIMESTAMP_CORRELATION_PATTERN,
+  UUID_V4_PATTERN 
+} from '@/utils/errorMatchers';
 
-// Mock dependencies
-vi.mock('@/lib/apiClient', () => ({
-  post: vi.fn(),
-}));
-
+// Mock 依賴模組
+vi.mock('@/lib/apiClient');
 vi.mock('@/lib/reportError', () => ({
-  reportError: vi.fn(),
+  reportError: vi.fn().mockResolvedValue(undefined)
 }));
 
-vi.mock('@/stores/analysisStore', () => {
-  const actualStore = vi.importActual('@/stores/analysisStore');
-  return {
-    ...actualStore,
-    useAnalysisStore: vi.fn(),
-  };
-});
+describe('AutoAnalysisService', () => {
+  let service: AutoAnalysisService;
+  
+  // 測試資料準備
+  const mockToken = 'test-bearer-token-123';
+  
+  const mockDataRows: DataRow[] = [
+    { id: 1, category: 'A', value: 100, status: 'active' },
+    { id: 2, category: 'B', value: 200, status: 'inactive' },
+    { id: 3, category: 'A', value: 150, status: 'active' },
+    { id: 4, category: 'C', value: 300, status: 'pending' },
+    { id: 5, category: 'B', value: 250, status: 'active' }
+  ];
 
-// Test data
-const mockParsedData: DataRow[] = [
-  { id: 1, name: 'Test 1', value: 100, category: 'A' },
-  { id: 2, name: 'Test 2', value: 200, category: 'B' },
-  { id: 3, name: 'Test 3', value: 300, category: 'A' },
-];
-
-const mockFile = new File(['test content'], 'test.csv', { type: 'text/csv' });
-const largeFile = new File(['x'.repeat(100 * 1024 * 1024)], 'large.csv', { type: 'text/csv' });
-
-const mockAutoAnalysisResult: AutoAnalysisResult = {
-  success: true,
-  message: '分析成功',
-  group_var: 'category',
-  cat_vars: ['name'],
-  cont_vars: ['value'],
-  analysis: {
-    table: mockParsedData,
-    groupCounts: { A: 2, B: 1 },
-  },
-};
-
-// Mock store functions
-const mockStoreFunctions = {
-  setFile: vi.fn(),
-  setGroupVar: vi.fn(),
-  setCatVars: vi.fn(),
-  setContVars: vi.fn(),
-  setAutoAnalysisResult: vi.fn(),
-  setResultTable: vi.fn(),
-  setGroupCounts: vi.fn(),
-};
-
-// Test wrapper
-const createWrapper = () => {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: { retry: false },
-      mutations: { retry: false },
+  // 更新：移除 AI 判定的 group_var，改為由前端傳入
+  const mockSuccessResponse: AutoAnalysisResponse = {
+    success: true,
+    message: '分析成功',
+    group_var: 'category',  // 現在這是前端傳入的值，後端只是回傳
+    cat_vars: ['status'],
+    cont_vars: ['value'],
+    classification: {
+      status: 'categorical',
+      value: 'continuous'
+      // 注意：category 不在 classification 中，因為它是分組變項
     },
-  });
-
-  return function Wrapper({ children }: { children: ReactNode }) {
-    return QueryClientProvider({ client: queryClient, children });
+    analysis: {
+      table: mockDataRows,
+      groupCounts: {
+        'A': 2,
+        'B': 2,
+        'C': 1
+      }
+    }
   };
-};
-
-describe('useAutoAnalysis Hook', () => {
-  const mockGetToken = vi.fn();
-  const mockOnSuccess = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
-    // Setup store mock
-    (useAnalysisStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue(mockStoreFunctions);
-    
-    // Default successful token
-    mockGetToken.mockResolvedValue('test-token-123');
-    
-    // Reset environment variable
-    process.env.NEXT_PUBLIC_API_URL = 'http://test-api.com';
+    service = new AutoAnalysisService();
+    // 設定環境變數
+    process.env.NEXT_PUBLIC_API_URL = 'http://test-api.example.com';
   });
 
   afterEach(() => {
-    vi.clearAllMocks();
+    vi.restoreAllMocks();
   });
 
-  describe('成功情境', () => {
-    it('應該成功執行自動分析並更新 store', async () => {
-      // Arrange
-      (apiClient.post as ReturnType<typeof vi.fn>).mockResolvedValue(mockAutoAnalysisResult);
+  describe('analyzeData', () => {
+    describe('成功案例', () => {
+      it('應該成功完成自動分析並返回正確結果（有分組變項）', async () => {
+        // Arrange
+        const request: AutoAnalysisRequest = {
+          parsedData: mockDataRows,
+          fillNA: true,
+          groupVar: 'category'  // 新增：使用者指定的分組變項
+        };
 
-      // Act
-      const { result } = renderHook(
-        () => useAutoAnalysis({ getToken: mockGetToken, onSuccess: mockOnSuccess }),
-        { wrapper: createWrapper() }
-      );
+        (apiClient.post as Mock).mockResolvedValue(mockSuccessResponse);
 
-      result.current.handleAutoAnalyze(mockFile, mockParsedData, false);
+        // Act
+        const result = await service.analyzeData(request, mockToken);
 
-      // Assert
-      await waitFor(() => {
-        expect(result.current.loading).toBe(false);
+        // Assert
+        expect(result).toEqual(mockSuccessResponse);
+        expect(apiClient.post).toHaveBeenCalledTimes(1);
+        expect(apiClient.post).toHaveBeenCalledWith(
+          'http://test-api.example.com/api/ai_automation/auto-analyze',
+          request,
+          expect.objectContaining({
+            headers: {
+              Authorization: `Bearer ${mockToken}`
+            },
+            context: ErrorContext.ANALYSIS,
+            correlationId: expect.stringMatching(TIMESTAMP_CORRELATION_PATTERN),
+            timeout: 60000
+          })
+        );
+        expect(reportError).not.toHaveBeenCalled();
       });
 
-      expect(mockGetToken).toHaveBeenCalledTimes(1);
-      expect(apiClient.post).toHaveBeenCalledWith(
-        'http://test-api.com/api/analysis/auto',
-        { parsedData: mockParsedData, fillNA: false },
-        expect.objectContaining({
-          headers: { Authorization: 'Bearer test-token-123' },
-          context: ErrorContext.ANALYSIS,
-          timeout: 60000,
-        })
-      );
+      it('應該成功完成自動分析並返回正確結果（無分組變項）', async () => {
+        // Arrange - 不指定分組變項
+        const request: AutoAnalysisRequest = {
+          parsedData: mockDataRows,
+          fillNA: true
+          // 沒有 groupVar
+        };
 
-      expect(mockStoreFunctions.setFile).toHaveBeenCalledWith(mockFile);
-      expect(mockStoreFunctions.setGroupVar).toHaveBeenCalledWith('category');
-      expect(mockStoreFunctions.setCatVars).toHaveBeenCalledWith(['name']);
-      expect(mockStoreFunctions.setContVars).toHaveBeenCalledWith(['value']);
-      expect(mockStoreFunctions.setAutoAnalysisResult).toHaveBeenCalledWith(mockAutoAnalysisResult);
-      expect(mockStoreFunctions.setResultTable).toHaveBeenCalledWith(mockParsedData);
-      expect(mockStoreFunctions.setGroupCounts).toHaveBeenCalledWith({ A: 2, B: 1 });
-      expect(mockOnSuccess).toHaveBeenCalledTimes(1);
-    });
+        const responseWithoutGroup: AutoAnalysisResponse = {
+          success: true,
+          message: '分析成功',
+          // group_var 可能為 undefined 或空字串
+          cat_vars: ['category', 'status'],
+          cont_vars: ['value'],
+          classification: {
+            category: 'categorical',
+            status: 'categorical',
+            value: 'continuous'
+          },
+          analysis: {
+            table: mockDataRows
+          }
+        };
 
-    it('應該處理填補缺失值選項', async () => {
-      // Arrange
-      (apiClient.post as ReturnType<typeof vi.fn>).mockResolvedValue(mockAutoAnalysisResult);
+        (apiClient.post as Mock).mockResolvedValue(responseWithoutGroup);
 
-      // Act
-      const { result } = renderHook(
-        () => useAutoAnalysis({ getToken: mockGetToken }),
-        { wrapper: createWrapper() }
-      );
+        // Act
+        const result = await service.analyzeData(request, mockToken);
 
-      result.current.handleAutoAnalyze(mockFile, mockParsedData, true);
-
-      // Assert
-      await waitFor(() => {
-        expect(result.current.loading).toBe(false);
-      });
-
-      expect(apiClient.post).toHaveBeenCalledWith(
-        expect.any(String),
-        { parsedData: mockParsedData, fillNA: true },
-        expect.any(Object)
-      );
-    });
-  });
-
-  describe('檔案驗證錯誤', () => {
-    it('應該拒絕未選擇檔案的請求', async () => {
-      // Act
-      const { result } = renderHook(
-        () => useAutoAnalysis({ getToken: mockGetToken }),
-        { wrapper: createWrapper() }
-      );
-
-      result.current.handleAutoAnalyze(null, mockParsedData, false);
-
-      // Assert
-      await waitFor(() => {
-        expect(result.current.error).toBeTruthy();
-      });
-
-      expect(result.current.error?.code).toBe(ErrorCode.VALIDATION_ERROR);
-      expect(result.current.error?.userMessage).toContain('請先選擇要上傳的檔案');
-      expect(reportErrorModule.reportError).toHaveBeenCalledWith(
-        expect.objectContaining({
-          code: ErrorCode.VALIDATION_ERROR,
-        }),
-        { action: 'auto_analysis_validation' }
-      );
-      expect(apiClient.post).not.toHaveBeenCalled();
-    });
-
-    it('應該拒絕空資料', async () => {
-      // Act
-      const { result } = renderHook(
-        () => useAutoAnalysis({ getToken: mockGetToken }),
-        { wrapper: createWrapper() }
-      );
-
-      result.current.handleAutoAnalyze(mockFile, [], false);
-
-      // Assert
-      await waitFor(() => {
-        expect(result.current.error).toBeTruthy();
-      });
-
-      expect(result.current.error?.code).toBe(ErrorCode.VALIDATION_ERROR);
-      expect(result.current.error?.userMessage).toContain('資料不足');
-      expect(reportErrorModule.reportError).toHaveBeenCalledWith(
-        expect.objectContaining({
-          code: ErrorCode.VALIDATION_ERROR,
-        }),
-        { action: 'auto_analysis_validation' }
-      );
-    });
-
-    it('應該處理不支援的檔案格式', async () => {
-      // Arrange
-      const invalidFile = new File(['test'], 'test.txt', { type: 'text/plain' });
-      const errorResponse = {
-        code: ErrorCode.FILE_FORMAT_UNSUPPORTED,
-        userMessage: '不支援的檔案格式',
-        context: ErrorContext.FILE_UPLOAD,
-      };
-      
-      (apiClient.post as ReturnType<typeof vi.fn>).mockRejectedValue(errorResponse);
-
-      // Act
-      const { result } = renderHook(
-        () => useAutoAnalysis({ getToken: mockGetToken }),
-        { wrapper: createWrapper() }
-      );
-
-      result.current.handleAutoAnalyze(invalidFile, mockParsedData, false);
-
-      // Assert
-      await waitFor(() => {
-        expect(result.current.error).toBeTruthy();
-      });
-
-      expect(reportErrorModule.reportError).toHaveBeenCalled();
-    });
-  });
-
-  describe('認證錯誤', () => {
-    it('應該處理 token 獲取失敗', async () => {
-      // Arrange
-      mockGetToken.mockResolvedValue(null);
-
-      // Act
-      const { result } = renderHook(
-        () => useAutoAnalysis({ getToken: mockGetToken }),
-        { wrapper: createWrapper() }
-      );
-
-      result.current.handleAutoAnalyze(mockFile, mockParsedData, false);
-
-      // Assert
-      await waitFor(() => {
-        expect(result.current.error).toBeTruthy();
-      });
-
-      expect(result.current.error?.code).toBe(ErrorCode.AUTH_ERROR);
-      expect(result.current.error?.context).toBe(ErrorContext.ANALYSIS);
-      expect(reportErrorModule.reportError).toHaveBeenCalledWith(
-        expect.objectContaining({
-          code: ErrorCode.AUTH_ERROR,
-        }),
-        { action: 'auto_analysis_auth' }
-      );
-    });
-
-    it('應該處理 token 異常錯誤', async () => {
-      // Arrange
-      const tokenError = new Error('Token service unavailable');
-      mockGetToken.mockRejectedValue(tokenError);
-
-      // Act
-      const { result } = renderHook(
-        () => useAutoAnalysis({ getToken: mockGetToken }),
-        { wrapper: createWrapper() }
-      );
-
-      result.current.handleAutoAnalyze(mockFile, mockParsedData, false);
-
-      // Assert
-      await waitFor(() => {
-        expect(result.current.error).toBeTruthy();
-      });
-
-      expect(result.current.error?.code).toBe(ErrorCode.AUTH_ERROR);
-      expect(reportErrorModule.reportError).toHaveBeenCalled();
-    });
-  });
-
-  describe('API 錯誤處理', () => {
-    it('應該處理 API 回傳的分析錯誤', async () => {
-      // Arrange
-      const apiError = {
-        code: ErrorCode.ANALYSIS_ERROR,
-        message: '分析失敗',
-        userMessage: '資料分析過程中發生錯誤',
-        context: ErrorContext.ANALYSIS,
-        severity: 'HIGH',
-        correlationId: 'test-correlation-id',
-        timestamp: new Date(),
-        action: '請重試或檢查資料格式',
-        canRetry: true,
-      };
-      
-      (apiClient.post as ReturnType<typeof vi.fn>).mockRejectedValue(apiError);
-
-      // Act
-      const { result } = renderHook(
-        () => useAutoAnalysis({ getToken: mockGetToken }),
-        { wrapper: createWrapper() }
-      );
-
-      result.current.handleAutoAnalyze(mockFile, mockParsedData, false);
-
-      // Assert
-      await waitFor(() => {
-        expect(result.current.error).toBeTruthy();
-      });
-
-      expect(result.current.error?.code).toBe(ErrorCode.ANALYSIS_ERROR);
-      expect(reportErrorModule.reportError).toHaveBeenCalledWith(
-        expect.objectContaining({
-          code: ErrorCode.ANALYSIS_ERROR,
-        }),
-        expect.objectContaining({
-          action: 'auto_analysis_error',
-          fileName: 'test.csv',
-          dataSize: 3,
-        })
-      );
-    });
-
-    it('應該處理網路錯誤', async () => {
-      // Arrange
-      const networkError = new Error('Network timeout');
-      (apiClient.post as ReturnType<typeof vi.fn>).mockRejectedValue(networkError);
-
-      // Act
-      const { result } = renderHook(
-        () => useAutoAnalysis({ getToken: mockGetToken }),
-        { wrapper: createWrapper() }
-      );
-
-      result.current.handleAutoAnalyze(mockFile, mockParsedData, false);
-
-      // Assert
-      await waitFor(() => {
-        expect(result.current.error).toBeTruthy();
-      });
-
-      expect(result.current.error?.code).toBe(ErrorCode.ANALYSIS_ERROR);
-      expect(reportErrorModule.reportError).toHaveBeenCalled();
-    });
-
-    it('應該處理分析超時', async () => {
-      // Arrange
-      const timeoutError = {
-        code: ErrorCode.ANALYSIS_TIMEOUT,
-        message: '分析超時',
-        userMessage: '分析超時，請稍後重試',
-        context: ErrorContext.ANALYSIS,
-      };
-      
-      (apiClient.post as ReturnType<typeof vi.fn>).mockRejectedValue(timeoutError);
-
-      // Act
-      const { result } = renderHook(
-        () => useAutoAnalysis({ getToken: mockGetToken }),
-        { wrapper: createWrapper() }
-      );
-
-      result.current.handleAutoAnalyze(mockFile, mockParsedData, false);
-
-      // Assert
-      await waitFor(() => {
-        expect(result.current.error).toBeTruthy();
-      });
-
-      expect(result.current.error?.code).toBe(ErrorCode.ANALYSIS_TIMEOUT);
-    });
-  });
-
-  describe('錯誤清除與重置', () => {
-    it('應該能清除錯誤狀態', async () => {
-      // Arrange
-      (apiClient.post as ReturnType<typeof vi.fn>).mockRejectedValue(
-        new Error('Test error')
-      );
-
-      // Act
-      const { result } = renderHook(
-        () => useAutoAnalysis({ getToken: mockGetToken }),
-        { wrapper: createWrapper() }
-      );
-
-      result.current.handleAutoAnalyze(mockFile, mockParsedData, false);
-
-      await waitFor(() => {
-        expect(result.current.error).toBeTruthy();
-      });
-
-      result.current.clearError();
-
-      // Assert
-      await waitFor(() => {
-        expect(result.current.error).toBe(null);
+        // Assert
+        expect(result).toEqual(responseWithoutGroup);
+        expect(apiClient.post).toHaveBeenCalledWith(
+          'http://test-api.example.com/api/ai_automation/auto-analyze',
+          request,
+          expect.any(Object)
+        );
       });
     });
 
-    it('應該能重置 mutation 狀態', async () => {
-      // Arrange
-      (apiClient.post as ReturnType<typeof vi.fn>).mockRejectedValue(
-        new Error('Test error')
-      );
+    describe('參數驗證錯誤', () => {
+      it('應該在缺少 token 時拋出認證錯誤', async () => {
+        // Arrange
+        const request: AutoAnalysisRequest = {
+          parsedData: mockDataRows,
+          fillNA: true,
+          groupVar: 'category'
+        };
 
-      // Act
-      const { result } = renderHook(
-        () => useAutoAnalysis({ getToken: mockGetToken }),
-        { wrapper: createWrapper() }
-      );
-
-      result.current.handleAutoAnalyze(mockFile, mockParsedData, false);
-
-      await waitFor(() => {
-        expect(result.current.error).toBeTruthy();
+        // Act & Assert
+        await assertThrowsError(
+          () => service.analyzeData(request, ''),
+          {
+            code: ErrorCode.ANALYSIS_AUTH_FAILED
+          },
+          {
+            correlationIdPattern: UUID_V4_PATTERN,
+            ignoreExtraFields: true
+          }
+        );
+        
+        expect(apiClient.post).not.toHaveBeenCalled();
       });
 
-      result.current.setError();
+      it('應該在資料為空時拋出資料不足錯誤', async () => {
+        // Arrange
+        const emptyRequest: AutoAnalysisRequest = {
+          parsedData: [],
+          fillNA: true,
+          groupVar: 'category'
+        };
 
-      // Assert
-      await waitFor(() => {
-        expect(result.current.error).toBe(null);
-      });
-    });
-  });
+        // Act & Assert
+        await assertThrowsError(
+          () => service.analyzeData(emptyRequest, mockToken),
+          {
+            code: ErrorCode.VALIDATION_ERROR
+          },
+          {
+            correlationIdPattern: UUID_V4_PATTERN,
+            ignoreExtraFields: true
+          }
+        );
 
-  describe('缺少必要欄位', () => {
-    it('應該處理缺少關鍵欄位的資料', async () => {
-      // Arrange
-      const incompleteData: DataRow[] = [
-        { id: 1 }, // 缺少 name, value, category
-        { id: 2 },
-      ];
-
-      const incompleteResult = {
-        success: true,
-        message: '分析成功但識別變項有限',
-        group_var: undefined,
-        cat_vars: [],
-        cont_vars: [],
-      };
-
-      (apiClient.post as ReturnType<typeof vi.fn>).mockResolvedValue(incompleteResult);
-
-      // Act
-      const { result } = renderHook(
-        () => useAutoAnalysis({ getToken: mockGetToken }),
-        { wrapper: createWrapper() }
-      );
-
-      result.current.handleAutoAnalyze(mockFile, incompleteData, false);
-
-      // Assert
-      await waitFor(() => {
-        expect(result.current.error).toBeTruthy();
+        expect(apiClient.post).not.toHaveBeenCalled();
       });
 
-      expect(result.current.error?.userMessage).toContain('自動分析未能識別到有效的變項');
-      expect(reportErrorModule.reportError).toHaveBeenCalled();
-    });
+      it('應該在 parsedData 為 null 時拋出錯誤', async () => {
+        // Arrange
+        const nullDataRequest = {
+          parsedData: null as unknown as DataRow[],
+          fillNA: false,
+          groupVar: undefined
+        };
 
-    it('應該處理部分成功的分析結果', async () => {
-      // Arrange
-      const partialResult: AutoAnalysisResult = {
-        success: true,
-        message: '部分分析成功',
-        group_var: 'category',
-        cat_vars: [],  // 沒有類別變項
-        cont_vars: ['value'],  // 只有連續變項
-      };
-
-      (apiClient.post as ReturnType<typeof vi.fn>).mockResolvedValue(partialResult);
-
-      // Act
-      const { result } = renderHook(
-        () => useAutoAnalysis({ getToken: mockGetToken }),
-        { wrapper: createWrapper() }
-      );
-
-      result.current.handleAutoAnalyze(mockFile, mockParsedData, false);
-
-      // Assert
-      await waitFor(() => {
-        expect(result.current.loading).toBe(false);
-      });
-
-      expect(result.current.error).toBe(null);
-      expect(mockStoreFunctions.setGroupVar).toHaveBeenCalledWith('category');
-      expect(mockStoreFunctions.setCatVars).toHaveBeenCalledWith([]);
-      expect(mockStoreFunctions.setContVars).toHaveBeenCalledWith(['value']);
-    });
-  });
-
-  describe('檔案大小限制', () => {
-    it('應該處理超過大小限制的檔案', async () => {
-      // Arrange
-      const sizeError = {
-        code: ErrorCode.FILE_SIZE_EXCEEDED,
-        message: '檔案超過大小限制',
-        userMessage: '檔案大小超過 50MB 限制',
-        context: ErrorContext.FILE_UPLOAD,
-        details: {
-          actualSize: 100 * 1024 * 1024,
-          maxSize: 50 * 1024 * 1024,
-        },
-      };
-
-      (apiClient.post as ReturnType<typeof vi.fn>).mockRejectedValue(sizeError);
-
-      // Act
-      const { result } = renderHook(
-        () => useAutoAnalysis({ getToken: mockGetToken }),
-        { wrapper: createWrapper() }
-      );
-
-      result.current.handleAutoAnalyze(largeFile, mockParsedData, false);
-
-      // Assert
-      await waitFor(() => {
-        expect(result.current.error).toBeTruthy();
-      });
-
-      expect(result.current.error?.code).toBe(ErrorCode.FILE_SIZE_EXCEEDED);
-      expect(reportErrorModule.reportError).toHaveBeenCalled();
-    });
-  });
-
-  describe('Loading 狀態管理', () => {
-    it('應該正確管理 loading 狀態', async () => {
-      // Arrange
-      let resolvePromise: (value: any) => void;
-      const pendingPromise = new Promise((resolve) => {
-        resolvePromise = resolve;
-      });
-      
-      (apiClient.post as ReturnType<typeof vi.fn>).mockReturnValue(pendingPromise);
-
-      // Act
-      const { result } = renderHook(
-        () => useAutoAnalysis({ getToken: mockGetToken }),
-        { wrapper: createWrapper() }
-      );
-
-      expect(result.current.loading).toBe(false);
-
-      result.current.handleAutoAnalyze(mockFile, mockParsedData, false);
-
-      // Assert - Loading should be true
-      await waitFor(() => {
-        expect(result.current.loading).toBe(true);
-      });
-
-      // Resolve the promise
-      resolvePromise!(mockAutoAnalysisResult);
-
-      // Assert - Loading should be false after completion
-      await waitFor(() => {
-        expect(result.current.loading).toBe(false);
+        // Act & Assert
+        await expect(
+          service.analyzeData(nullDataRequest, mockToken)
+        ).rejects.toThrow();
+        
+        expect(apiClient.post).not.toHaveBeenCalled();
       });
     });
-  });
 
-  describe('Mutation 物件暴露', () => {
-    it('應該暴露完整的 mutation 物件供進階使用', () => {
-      // Act
-      const { result } = renderHook(
-        () => useAutoAnalysis({ getToken: mockGetToken }),
-        { wrapper: createWrapper() }
-      );
+    describe('API 回應錯誤處理', () => {
+      it('應該處理 API 返回 success: false 的情況', async () => {
+        // Arrange
+        const request: AutoAnalysisRequest = {
+          parsedData: mockDataRows,
+          fillNA: true,
+          groupVar: 'category'
+        };
 
-      // Assert
-      expect(result.current.mutation).toBeDefined();
-      expect(result.current.mutation.mutate).toBeDefined();
-      expect(result.current.mutation.mutateAsync).toBeDefined();
-      expect(result.current.mutation.reset).toBeDefined();
+        const failureResponse: AutoAnalysisResponse = {
+          success: false,
+          message: '伺服器處理失敗：記憶體不足'
+        };
+
+        (apiClient.post as Mock).mockResolvedValue(failureResponse);
+
+        // Act & Assert
+        await assertThrowsError(
+          () => service.analyzeData(request, mockToken),
+          {
+            code: ErrorCode.ANALYSIS_ERROR,
+            context: ErrorContext.ANALYSIS
+          },
+          {
+            correlationIdPattern: TIMESTAMP_CORRELATION_PATTERN,
+            ignoreExtraFields: true
+          }
+        );
+
+        expect(reportError).toHaveBeenCalledTimes(1);
+        expect(reportError).toHaveBeenCalledWith(
+          expect.objectContaining({
+            code: ErrorCode.ANALYSIS_ERROR,
+            context: ErrorContext.ANALYSIS
+          }),
+          expect.objectContaining({
+            action: 'auto_analysis',
+            dataRows: mockDataRows.length,
+            groupVar: 'category',  // 新增：記錄分組變項
+            response: failureResponse
+          })
+        );
+      });
+
+      it('應該處理無有效變項識別的情況（但允許無分組）', async () => {
+        // Arrange
+        const request: AutoAnalysisRequest = {
+          parsedData: mockDataRows,
+          fillNA: true
+          // 沒有指定 groupVar
+        };
+
+        const noVariablesResponse: AutoAnalysisResponse = {
+          success: true,
+          cat_vars: [],
+          cont_vars: []
+          // 沒有 group_var 且沒有其他變項
+        };
+
+        (apiClient.post as Mock).mockResolvedValue(noVariablesResponse);
+
+        // Act & Assert
+        await assertThrowsError(
+          () => service.analyzeData(request, mockToken),
+          {
+            code: ErrorCode.ANALYSIS_ERROR
+          },
+          {
+            correlationIdPattern: TIMESTAMP_CORRELATION_PATTERN,
+            ignoreExtraFields: true
+          }
+        );
+
+        expect(reportError).toHaveBeenCalledTimes(1);
+      });
+
+      it('應該接受只有分組變項沒有其他變項的情況', async () => {
+        // Arrange
+        const request: AutoAnalysisRequest = {
+          parsedData: mockDataRows,
+          fillNA: true,
+          groupVar: 'category'
+        };
+
+        const onlyGroupResponse: AutoAnalysisResponse = {
+          success: true,
+          group_var: 'category',
+          cat_vars: [],
+          cont_vars: [],
+          analysis: {
+            groupCounts: { 'A': 2, 'B': 2, 'C': 1 }
+          }
+        };
+
+        (apiClient.post as Mock).mockResolvedValue(onlyGroupResponse);
+
+        // Act & Assert - 這應該會失敗，因為沒有其他變項可分析
+        await assertThrowsError(
+          () => service.analyzeData(request, mockToken),
+          {
+            code: ErrorCode.ANALYSIS_ERROR
+          },
+          {
+            correlationIdPattern: TIMESTAMP_CORRELATION_PATTERN,
+            ignoreExtraFields: true
+          }
+        );
+      });
+    });
+
+    describe('網路錯誤處理', () => {
+      it('應該處理網路連線錯誤', async () => {
+        // Arrange
+        const request: AutoAnalysisRequest = {
+          parsedData: mockDataRows,
+          fillNA: true,
+          groupVar: 'status'
+        };
+
+        const networkError = new Error('Network request failed');
+        (apiClient.post as Mock).mockRejectedValue(networkError);
+
+        // Act & Assert
+        await assertThrowsError(
+          () => service.analyzeData(request, mockToken),
+          {
+            code: ErrorCode.NETWORK_ERROR,
+            context: ErrorContext.ANALYSIS
+          },
+          {
+            correlationIdPattern: TIMESTAMP_CORRELATION_PATTERN,
+            ignoreExtraFields: true
+          }
+        );
+
+        expect(reportError).toHaveBeenCalledTimes(1);
+        expect(reportError).toHaveBeenCalledWith(
+          expect.objectContaining({
+            code: ErrorCode.NETWORK_ERROR,
+            context: ErrorContext.ANALYSIS
+          }),
+          expect.objectContaining({
+            action: 'auto_analysis',
+            dataRows: mockDataRows.length,
+            groupVar: 'status',
+            originalError: networkError
+          })
+        );
+      });
+
+      it('應該處理字串類型的錯誤', async () => {
+        // Arrange
+        const request: AutoAnalysisRequest = {
+          parsedData: mockDataRows,
+          fillNA: true
+        };
+
+        const stringError = 'API 服務暫時無法使用';
+        (apiClient.post as Mock).mockRejectedValue(stringError);
+
+        // Act & Assert
+        await assertThrowsError(
+          () => service.analyzeData(request, mockToken),
+          {
+            code: ErrorCode.NETWORK_ERROR
+          },
+          {
+            correlationIdPattern: TIMESTAMP_CORRELATION_PATTERN,
+            ignoreExtraFields: true
+          }
+        );
+
+        expect(reportError).toHaveBeenCalledTimes(1);
+      });
+
+      it('應該正確處理已經是 AppError 的錯誤', async () => {
+        // Arrange
+        const request: AutoAnalysisRequest = {
+          parsedData: mockDataRows,
+          fillNA: true,
+          groupVar: 'category'
+        };
+
+        const existingAppError = CommonErrors.serverError(ErrorContext.ANALYSIS);
+        (apiClient.post as Mock).mockRejectedValue(existingAppError);
+
+        // Act & Assert
+        let thrownError: unknown;
+        try {
+          await service.analyzeData(request, mockToken);
+        } catch (error) {
+          thrownError = error;
+        }
+
+        // 確認錯誤被原封不動地拋出
+        expect(thrownError).toBeDefined();
+        if (thrownError && isAppError(thrownError)) {
+          expect(thrownError.code).toBe(existingAppError.code);
+          expect(thrownError.context).toBe(existingAppError.context);
+        }
+      });
+    });
+
+    describe('大型資料集處理', () => {
+      it('應該能處理大量資料（有分組）', async () => {
+        // Arrange
+        const largeDataRows: DataRow[] = Array.from({ length: 10000 }, (_, i) => ({
+          id: i,
+          category: `Category_${i % 10}`,
+          value: Math.random() * 1000,
+          status: i % 2 === 0 ? 'active' : 'inactive'
+        }));
+
+        const request: AutoAnalysisRequest = {
+          parsedData: largeDataRows,
+          fillNA: true,
+          groupVar: 'category'  // 指定分組變項
+        };
+
+        const largeDataResponse: AutoAnalysisResponse = {
+          success: true,
+          group_var: 'category',
+          cat_vars: ['status'],
+          cont_vars: ['value', 'id'],
+          classification: {
+            status: 'categorical',
+            value: 'continuous',
+            id: 'continuous'
+          }
+        };
+
+        (apiClient.post as Mock).mockResolvedValue(largeDataResponse);
+
+        // Act
+        const result = await service.analyzeData(request, mockToken);
+
+        // Assert
+        expect(result).toEqual(largeDataResponse);
+        expect(apiClient.post).toHaveBeenCalledWith(
+          expect.any(String),
+          expect.objectContaining({
+            parsedData: largeDataRows,
+            fillNA: true,
+            groupVar: 'category'
+          }),
+          expect.any(Object)
+        );
+      });
+    });
+
+    describe('邊界條件測試', () => {
+      it('應該處理極長的 token', async () => {
+        // Arrange
+        const veryLongToken = 'Bearer ' + 'a'.repeat(1000);
+        const request: AutoAnalysisRequest = {
+          parsedData: mockDataRows,
+          fillNA: true,
+          groupVar: undefined  // 測試不指定分組
+        };
+
+        (apiClient.post as Mock).mockResolvedValue(mockSuccessResponse);
+
+        // Act
+        const result = await service.analyzeData(request, veryLongToken);
+
+        // Assert
+        expect(result).toEqual(mockSuccessResponse);
+        expect(apiClient.post).toHaveBeenCalledWith(
+          expect.any(String),
+          expect.any(Object),
+          expect.objectContaining({
+            headers: {
+              Authorization: `Bearer ${veryLongToken}`
+            }
+          })
+        );
+      });
+
+      it('應該處理 API URL 未設定的情況', async () => {
+        // Arrange
+        delete process.env.NEXT_PUBLIC_API_URL;
+        const request: AutoAnalysisRequest = {
+          parsedData: mockDataRows,
+          fillNA: true,
+          groupVar: 'category'
+        };
+
+        (apiClient.post as Mock).mockResolvedValue(mockSuccessResponse);
+
+        // Act
+        const result = await service.analyzeData(request, mockToken);
+
+        // Assert
+        expect(result).toEqual(mockSuccessResponse);
+        expect(apiClient.post).toHaveBeenCalledWith(
+          'undefined/api/ai_automation/auto-analyze',
+          expect.any(Object),
+          expect.any(Object)
+        );
+      });
+
+      it('應該正確處理特殊字元的分組變項名稱', async () => {
+        // Arrange
+        const request: AutoAnalysisRequest = {
+          parsedData: mockDataRows,
+          fillNA: false,
+          groupVar: '特殊@#$%變項'  // 特殊字元的分組變項名稱
+        };
+
+        const responseWithSpecialGroup: AutoAnalysisResponse = {
+          success: true,
+          group_var: '特殊@#$%變項',
+          cat_vars: ['status'],
+          cont_vars: ['value']
+        };
+
+        (apiClient.post as Mock).mockResolvedValue(responseWithSpecialGroup);
+
+        // Act
+        const result = await service.analyzeData(request, mockToken);
+
+        // Assert
+        expect(result.group_var).toBe('特殊@#$%變項');
+      });
     });
   });
 });

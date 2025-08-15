@@ -1,7 +1,7 @@
 // app/step3/services/aiSummaryService.ts
+import type { AISummaryResponse } from "@/features/step3/types";
 import { post } from "@/lib/apiClient";
 import { ErrorContext, ErrorCode, createError, isAppError } from "@/utils/error";
-import type { AISummaryResponse } from "@/features/step3/types";
 
 export async function generateAISummary(
   data: string,

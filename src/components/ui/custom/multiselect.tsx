@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useRef, useCallback, ReactNode } from "react";
+
 import { Check, ChevronsUpDown } from "lucide-react";
-import { cn } from "@/lib/utils";
+
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { typeColorClass } from "@/lib/constants"; // 顏色對應表
+import { cn } from "@/lib/utils";
 
 type MultiSelectOption = {
   [x: string]: ReactNode;

@@ -1,22 +1,19 @@
-"use client";
-
-// Step 1 page implementation for the feature‑based architecture.
-// This file was moved from `app/step1/page.tsx` so that the route under `app/` can be
-// a thin wrapper.  The imports below reference local feature components via
-// relative paths (../components), while shared components continue to use the
-// `@/components` alias.
+// src/features/step1/pages/Step1Page.tsx
 
 import React from "react";
+
 import { Shield } from "lucide-react";
-import Header from "@/components/shared/Header";
+
 import Footer from "@/components/shared/Footer";
+import Header from "@/components/shared/Header";
 import StepNavigator from "@/components/shared/stepNavigator";
-import DataPrivacyDialog from "../components/DataPrivacyDialog";
-import FileUploadArea from "../components/FileUploadArea";
-import DataPreviewTable from "../components/DataPreviewTable";
-import ColumnAnalysisDisplay from "../components/ColumnAnalysisDisplay";
-import ErrorDisplay from "../components/ErrorDisplay";
+
 import AnalysisControls from "../components/AnalysisControl";
+import ColumnAnalysisDisplay from "../components/ColumnAnalysisDisplay";
+import DataPreviewTable from "../components/DataPreviewTable";
+import DataPrivacyDialog from "../components/DataPrivacyDialog";
+import ErrorDisplay from "../components/ErrorDisplay";
+import FileUploadArea from "../components/FileUploadArea";
 import { useStep1Logic } from "../hooks/useStep1Logic";
 
 export default function Step1Page() {
@@ -102,14 +99,14 @@ export default function Step1Page() {
           </div>
         </div>
 
-        {/* 錯誤訊息顯示 - 保持使用 props */}
+        {/* 錯誤訊息顯示 */}
         <ErrorDisplay
           error={error}
           onClearError={clearError}
           onRetry={retryColumnAnalysis}
         />
 
-        {/* 檔案上傳區 - 保持使用 props */}
+        {/* 檔案上傳區 */}
         <FileUploadArea
           fileName={fileName}
           dragOver={dragOver}
@@ -122,19 +119,19 @@ export default function Step1Page() {
           onDragLeave={handleDragLeave}
         />
 
-        {/* 資料預覽表格 - 保持使用 props */}
+        {/* 資料預覽表格 */}
         {parsedData.length > 0 && <DataPreviewTable parsedData={parsedData} />}
 
-        {/* 自動欄位解析結果 - 改用 Zustand，不需要傳 props */}
+        {/* 自動欄位解析結果 */}
         {parsedData.length > 0 && <ColumnAnalysisDisplay />}
 
-        {/* 分析控制區 - 改用 Zustand，不需要傳 props */}
+        {/* 分析控制區 - 包含分組變項選擇 */}
         {parsedData.length > 0 && <AnalysisControls />}
       </div>
 
       <Footer />
 
-      {/* 隱私對話框 - 保持使用 props */}
+      {/* 隱私對話框 */}
       <DataPrivacyDialog
         open={showPrivacyDialog}
         onConfirm={handlePrivacyConfirm}

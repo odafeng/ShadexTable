@@ -1,6 +1,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { TableAnalysisRequest } from '../services/tableAnalysisService';
+
+import { post } from '@/lib/apiClient';
+import { reportError } from '@/lib/reportError';
+import { useAnalysisStore } from '@/stores/analysisStore';
+import type { DataRow } from '@/stores/analysisStore';
+import { AppError } from '@/types/errors';
 import { 
   isAppError, 
   ErrorCode, 
@@ -8,11 +13,8 @@ import {
   createError,
   CommonErrors 
 } from '@/utils/error';
-import { post } from '@/lib/apiClient';
-import { reportError } from '@/lib/reportError';
-import { AppError } from '@/types/errors';
-import { useAnalysisStore } from '@/stores/analysisStore';
-import type { DataRow } from '@/stores/analysisStore';
+
+import { TableAnalysisRequest } from '../services/tableAnalysisService';
 
 interface UseTableAnalysisProps {
     getToken: () => Promise<string | null>;

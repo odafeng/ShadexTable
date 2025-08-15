@@ -1,31 +1,39 @@
 // src/features/step1/hooks/useColumnAnalysis.test.ts
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
-import { useColumnAnalysis } from './useColumnAnalysis';
 import type { DataRow } from '@/stores/analysisStore';
 
 // 從 fileAnalysisService 匯入 ColumnProfile 型別
 import type { ColumnProfile } from '@/features/step1/services/fileAnalysisService';
 
 // Mock Clerk Auth
+const mockGetToken = vi.fn();
 vi.mock('@clerk/nextjs', () => ({
   useAuth: vi.fn(() => ({
-    getToken: vi.fn()
+    getToken: mockGetToken
   }))
 }));
 
 // Mock FileAnalysisService 
-vi.mock('@/features/step1/services/fileAnalysisService');
-
-// Mock CommonErrors
-vi.mock('@/utils/error', () => ({
-  CommonErrors: {
-    authTokenMissing: vi.fn(() => new Error('Auth token missing'))
+const mockAnalyzeColumns = vi.fn();
+const mockCreateFallbackColumnData = vi.fn();
+vi.mock('@/features/step1/services/fileAnalysisService', () => ({
+  FileAnalysisService: {
+    analyzeColumns: mockAnalyzeColumns,
+    createFallbackColumnData: mockCreateFallbackColumnData
   }
 }));
 
-// Mock useAnalysisStore
+// Mock CommonErrors
+const mockAuthTokenMissing = vi.fn(() => new Error('Auth token missing'));
+vi.mock('@/utils/error', () => ({
+  CommonErrors: {
+    authTokenMissing: mockAuthTokenMissing
+  }
+}));
+
+// Mock store state
 const mockStoreState = {
   columnProfile: [],
   columnsPreview: [],
@@ -37,17 +45,22 @@ const mockStoreState = {
   setColumnAnalysisLoading: vi.fn()
 };
 
+// Mock useAnalysisStore
+const mockUseAnalysisStore = vi.fn((selector: any) => {
+  if (typeof selector === 'function') {
+    return selector(mockStoreState);
+  }
+  return mockStoreState;
+});
+
 vi.mock('@/stores/analysisStore', () => ({
-  useAnalysisStore: vi.fn((selector) => {
-    if (typeof selector === 'function') {
-      return selector(mockStoreState);
-    }
-    return mockStoreState;
-  })
+  useAnalysisStore: mockUseAnalysisStore
 }));
 
+// Import the component to test after all mocks are set up
+import { useColumnAnalysis } from './useColumnAnalysis';
+
 describe('useColumnAnalysis Hook', () => {
-  const mockGetToken = vi.fn();
   const mockData: DataRow[] = [
     { id: 1, name: 'John', age: 30, city: 'Taipei' },
     { id: 2, name: 'Jane', age: 25, city: 'Kaohsiung' },
@@ -112,17 +125,6 @@ describe('useColumnAnalysis Hook', () => {
     mockStoreState.showPreview = false;
     mockStoreState.columnAnalysisLoading = false;
     
-    // Setup default mock return values
-    const { useAuth } = require('@clerk/nextjs');
-    useAuth.mockReturnValue({
-      getToken: mockGetToken
-    });
-
-    // Setup FileAnalysisService mocks
-    const { FileAnalysisService } = require('@/features/step1/services/fileAnalysisService');
-    FileAnalysisService.analyzeColumns = vi.fn();
-    FileAnalysisService.createFallbackColumnData = vi.fn();
-    
     // Clear localStorage
     localStorage.clear();
   });
@@ -156,9 +158,8 @@ describe('useColumnAnalysis Hook', () => {
   describe('analyzeColumns 方法', () => {
     it('應該成功分析欄位並更新狀態', async () => {
       // Arrange
-      const { FileAnalysisService } = require('@/features/step1/services/fileAnalysisService');
       mockGetToken.mockResolvedValue('test-token');
-      FileAnalysisService.analyzeColumns.mockResolvedValue({
+      mockAnalyzeColumns.mockResolvedValue({
         success: true,
         columns: createMockColumnResponse(true)
       });
@@ -175,7 +176,7 @@ describe('useColumnAnalysis Hook', () => {
       await waitFor(() => {
         expect(mockStoreState.setColumnAnalysisLoading).toHaveBeenCalledWith(true);
         expect(mockStoreState.setColumnAnalysisLoading).toHaveBeenCalledWith(false);
-        expect(FileAnalysisService.analyzeColumns).toHaveBeenCalledWith(mockData, 'test-token');
+        expect(mockAnalyzeColumns).toHaveBeenCalledWith(mockData, 'test-token');
         expect(mockStoreState.setColumnProfile).toHaveBeenCalled();
         expect(mockStoreState.setShowPreview).toHaveBeenCalledWith(true);
         expect(mockSetColumnTypes).toHaveBeenCalled();
@@ -201,9 +202,8 @@ describe('useColumnAnalysis Hook', () => {
 
     it('應該使用傳入的 token 而非從 Clerk 取得', async () => {
       // Arrange
-      const { FileAnalysisService } = require('@/features/step1/services/fileAnalysisService');
       const customToken = 'custom-token';
-      FileAnalysisService.analyzeColumns.mockResolvedValue({
+      mockAnalyzeColumns.mockResolvedValue({
         success: true,
         columns: createMockColumnResponse()
       });
@@ -218,16 +218,15 @@ describe('useColumnAnalysis Hook', () => {
       // Assert
       await waitFor(() => {
         expect(mockGetToken).not.toHaveBeenCalled();
-        expect(FileAnalysisService.analyzeColumns).toHaveBeenCalledWith(mockData, customToken);
+        expect(mockAnalyzeColumns).toHaveBeenCalledWith(mockData, customToken);
       });
     });
 
     it('應該在沒有 token 時從 localStorage 取得', async () => {
       // Arrange
-      const { FileAnalysisService } = require('@/features/step1/services/fileAnalysisService');
       mockGetToken.mockResolvedValue(null);
       localStorage.setItem('__session', 'localStorage-token');
-      FileAnalysisService.analyzeColumns.mockResolvedValue({
+      mockAnalyzeColumns.mockResolvedValue({
         success: true,
         columns: createMockColumnResponse()
       });
@@ -241,7 +240,7 @@ describe('useColumnAnalysis Hook', () => {
 
       // Assert
       await waitFor(() => {
-        expect(FileAnalysisService.analyzeColumns).toHaveBeenCalledWith(mockData, 'localStorage-token');
+        expect(mockAnalyzeColumns).toHaveBeenCalledWith(mockData, 'localStorage-token');
       });
     });
 
@@ -257,17 +256,16 @@ describe('useColumnAnalysis Hook', () => {
         await act(async () => {
           await result.current.analyzeColumns(mockData);
         });
-      }).rejects.toThrow();
+      }).rejects.toThrow('Auth token missing');
 
-      expect(require('@/utils/error').CommonErrors.authTokenMissing).toHaveBeenCalled();
+      expect(mockAuthTokenMissing).toHaveBeenCalled();
     });
 
     it('應該處理 API 錯誤並使用備用方案', async () => {
       // Arrange
-      const { FileAnalysisService } = require('@/features/step1/services/fileAnalysisService');
       mockGetToken.mockResolvedValue('test-token');
-      FileAnalysisService.analyzeColumns.mockRejectedValue(new Error('API Error'));
-      FileAnalysisService.createFallbackColumnData.mockReturnValue(mockFallbackColumns);
+      mockAnalyzeColumns.mockRejectedValue(new Error('API Error'));
+      mockCreateFallbackColumnData.mockReturnValue(mockFallbackColumns);
 
       const { result } = renderHook(() => useColumnAnalysis());
       const mockSetColumnTypes = vi.fn();
@@ -281,7 +279,7 @@ describe('useColumnAnalysis Hook', () => {
 
       // 檢查是否使用了備用方案
       await waitFor(() => {
-        expect(FileAnalysisService.createFallbackColumnData).toHaveBeenCalledWith(mockData);
+        expect(mockCreateFallbackColumnData).toHaveBeenCalledWith(mockData);
         expect(mockStoreState.setColumnProfile).toHaveBeenCalled();
         expect(mockStoreState.setShowPreview).toHaveBeenCalledWith(true);
         expect(mockSetColumnTypes).toHaveBeenCalled();
@@ -298,9 +296,8 @@ describe('useColumnAnalysis Hook', () => {
 
     it('應該處理空資料陣列', async () => {
       // Arrange
-      const { FileAnalysisService } = require('@/features/step1/services/fileAnalysisService');
       mockGetToken.mockResolvedValue('test-token');
-      FileAnalysisService.analyzeColumns.mockResolvedValue({
+      mockAnalyzeColumns.mockResolvedValue({
         success: true,
         columns: []
       });
@@ -315,14 +312,13 @@ describe('useColumnAnalysis Hook', () => {
 
       // Assert
       await waitFor(() => {
-        expect(FileAnalysisService.analyzeColumns).toHaveBeenCalledWith(emptyData, 'test-token');
+        expect(mockAnalyzeColumns).toHaveBeenCalledWith(emptyData, 'test-token');
         expect(mockStoreState.setColumnProfile).toHaveBeenCalledWith([]);
       });
     });
 
     it('應該正確轉換欄位資料格式', async () => {
       // Arrange
-      const { FileAnalysisService } = require('@/features/step1/services/fileAnalysisService');
       mockGetToken.mockResolvedValue('test-token');
       const columnWithStringPercentage = [
         {
@@ -335,7 +331,7 @@ describe('useColumnAnalysis Hook', () => {
         }
       ];
 
-      FileAnalysisService.analyzeColumns.mockResolvedValue({
+      mockAnalyzeColumns.mockResolvedValue({
         success: true,
         columns: columnWithStringPercentage
       });
@@ -363,13 +359,12 @@ describe('useColumnAnalysis Hook', () => {
 
     it('應該處理 API 返回失敗狀態', async () => {
       // Arrange
-      const { FileAnalysisService } = require('@/features/step1/services/fileAnalysisService');
       mockGetToken.mockResolvedValue('test-token');
-      FileAnalysisService.analyzeColumns.mockResolvedValue({
+      mockAnalyzeColumns.mockResolvedValue({
         success: false,
         error: 'Column analysis failed'
       });
-      FileAnalysisService.createFallbackColumnData.mockReturnValue([]);
+      mockCreateFallbackColumnData.mockReturnValue([]);
 
       const { result } = renderHook(() => useColumnAnalysis());
 
@@ -385,9 +380,8 @@ describe('useColumnAnalysis Hook', () => {
   describe('retryAnalysis 方法', () => {
     it('應該重試分析當資料存在時', async () => {
       // Arrange
-      const { FileAnalysisService } = require('@/features/step1/services/fileAnalysisService');
       mockGetToken.mockResolvedValue('test-token');
-      FileAnalysisService.analyzeColumns.mockResolvedValue({
+      mockAnalyzeColumns.mockResolvedValue({
         success: true,
         columns: createMockColumnResponse()
       });
@@ -402,14 +396,13 @@ describe('useColumnAnalysis Hook', () => {
 
       // Assert
       await waitFor(() => {
-        expect(FileAnalysisService.analyzeColumns).toHaveBeenCalledWith(mockData, 'test-token');
+        expect(mockAnalyzeColumns).toHaveBeenCalledWith(mockData, 'test-token');
         expect(mockSetColumnTypes).toHaveBeenCalled();
       });
     });
 
     it('應該不執行分析當資料為空時', async () => {
       // Arrange
-      const { FileAnalysisService } = require('@/features/step1/services/fileAnalysisService');
       const { result } = renderHook(() => useColumnAnalysis());
       const emptyData: DataRow[] = [];
 
@@ -419,7 +412,7 @@ describe('useColumnAnalysis Hook', () => {
       });
 
       // Assert
-      expect(FileAnalysisService.analyzeColumns).not.toHaveBeenCalled();
+      expect(mockAnalyzeColumns).not.toHaveBeenCalled();
     });
   });
 
@@ -444,14 +437,13 @@ describe('useColumnAnalysis Hook', () => {
   describe('邊界情況測試', () => {
     it('應該處理包含 null 和 undefined 值的資料', async () => {
       // Arrange
-      const { FileAnalysisService } = require('@/features/step1/services/fileAnalysisService');
       const dataWithNulls: DataRow[] = [
         { id: 1, name: null, age: undefined, city: 'Taipei' },
         { id: 2, name: 'Jane', age: 25, city: null }
       ];
 
       mockGetToken.mockResolvedValue('test-token');
-      FileAnalysisService.analyzeColumns.mockResolvedValue({
+      mockAnalyzeColumns.mockResolvedValue({
         success: true,
         columns: [
           {
@@ -476,21 +468,20 @@ describe('useColumnAnalysis Hook', () => {
 
       // Assert
       await waitFor(() => {
-        expect(FileAnalysisService.analyzeColumns).toHaveBeenCalledWith(dataWithNulls, 'test-token');
+        expect(mockAnalyzeColumns).toHaveBeenCalledWith(dataWithNulls, 'test-token');
         expect(mockStoreState.setColumnProfile).toHaveBeenCalled();
       });
     });
 
     it('應該處理欄位名稱包含特殊字符的情況', async () => {
       // Arrange
-      const { FileAnalysisService } = require('@/features/step1/services/fileAnalysisService');
       const specialData: DataRow[] = [
         { '中文欄位': 1, 'column-with-dash': 'A', 'column_with_underscore': true },
         { '中文欄位': 2, 'column-with-dash': 'B', 'column_with_underscore': false }
       ];
 
       mockGetToken.mockResolvedValue('test-token');
-      FileAnalysisService.analyzeColumns.mockResolvedValue({
+      mockAnalyzeColumns.mockResolvedValue({
         success: true,
         columns: [
           {
@@ -520,7 +511,7 @@ describe('useColumnAnalysis Hook', () => {
 
       // Assert
       await waitFor(() => {
-        expect(FileAnalysisService.analyzeColumns).toHaveBeenCalledWith(specialData, 'test-token');
+        expect(mockAnalyzeColumns).toHaveBeenCalledWith(specialData, 'test-token');
         const callArgs = mockStoreState.setColumnProfile.mock.calls[0][0];
         expect(callArgs).toHaveLength(3);
         expect(callArgs[0].column).toBe('中文欄位');
@@ -529,14 +520,13 @@ describe('useColumnAnalysis Hook', () => {
 
     it('應該在網路逾時時正確處理', async () => {
       // Arrange
-      const { FileAnalysisService } = require('@/features/step1/services/fileAnalysisService');
       mockGetToken.mockResolvedValue('test-token');
-      FileAnalysisService.analyzeColumns.mockImplementation(() => 
+      mockAnalyzeColumns.mockImplementation(() => 
         new Promise((_, reject) => {
           setTimeout(() => reject(new Error('Network timeout')), 100);
         })
       );
-      FileAnalysisService.createFallbackColumnData.mockReturnValue([]);
+      mockCreateFallbackColumnData.mockReturnValue([]);
 
       const { result } = renderHook(() => useColumnAnalysis());
 
@@ -548,7 +538,7 @@ describe('useColumnAnalysis Hook', () => {
       }).rejects.toThrow('Network timeout');
 
       await waitFor(() => {
-        expect(FileAnalysisService.createFallbackColumnData).toHaveBeenCalled();
+        expect(mockCreateFallbackColumnData).toHaveBeenCalled();
         expect(mockStoreState.setColumnAnalysisLoading).toHaveBeenCalledWith(false);
       });
     });
@@ -557,10 +547,9 @@ describe('useColumnAnalysis Hook', () => {
   describe('並發測試', () => {
     it('應該處理多次連續調用', async () => {
       // Arrange
-      const { FileAnalysisService } = require('@/features/step1/services/fileAnalysisService');
       mockGetToken.mockResolvedValue('test-token');
       let callCount = 0;
-      FileAnalysisService.analyzeColumns.mockImplementation(() => {
+      mockAnalyzeColumns.mockImplementation(() => {
         callCount++;
         return Promise.resolve({
           success: true,

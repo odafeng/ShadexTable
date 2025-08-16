@@ -1,16 +1,20 @@
-// step2/VariableVisualizationPanel.tsx
+// step2/VariableVisualizationPanel.tsx - 企業級應用風格版
 "use client";
 
 import { useState, useMemo, JSX } from "react";
-
 import { useAuth } from "@clerk/nextjs";
-import { BarChart3, TrendingUp, Calendar, Loader2, AlertCircle } from "lucide-react";
-
+import { BarChart3, TrendingUp, Calendar, Loader2, AlertCircle, Info } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
-// 引入型別定義
+import { Badge } from "@/components/ui/badge";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 // 引入子元件
 import BarplotChart from '@/features/step2/components/BarplotChart';
@@ -27,6 +31,30 @@ import type {
 } from '@/features/step2/types/types';
 import { post } from "@/lib/apiClient";
 import { useAnalysisStore, type DataRow, type DataValue } from "@/stores/analysisStore";
+
+// 變數類型配置
+const VARIABLE_TYPE_CONFIG = {
+    continuous: { 
+        label: "連續型", 
+        className: "bg-blue-50 text-blue-700 border-blue-200",
+        icon: TrendingUp 
+    },
+    categorical: { 
+        label: "類別型", 
+        className: "bg-emerald-50 text-emerald-700 border-emerald-200",
+        icon: BarChart3 
+    },
+    date: { 
+        label: "日期型", 
+        className: "bg-purple-50 text-purple-700 border-purple-200",
+        icon: Calendar 
+    },
+    unknown: { 
+        label: "未知", 
+        className: "bg-gray-50 text-gray-600 border-gray-200",
+        icon: Info 
+    }
+};
 
 export default function VariableVisualizationPanel() {
     const {
@@ -87,6 +115,22 @@ export default function VariableVisualizationPanel() {
             };
         });
     }, [parsedData, columnTypes, catVars, contVars, groupVar]);
+
+    // 計算統計摘要
+    const variableSummary = useMemo(() => {
+        const continuous = availableVariables.filter(v => v.type === "continuous").length;
+        const categorical = availableVariables.filter(v => v.type === "categorical").length;
+        const date = availableVariables.filter(v => v.type === "date").length;
+        const unknown = availableVariables.filter(v => v.type === "unknown").length;
+        
+        return {
+            total: availableVariables.length,
+            continuous,
+            categorical,
+            date,
+            unknown
+        };
+    }, [availableVariables]);
 
     // 處理變項選擇變更
     const handleVariableChange = async (varName: string): Promise<void> => {
@@ -211,70 +255,139 @@ export default function VariableVisualizationPanel() {
         );
     };
 
-    // 取得變項圖示
-    const getVariableIcon = (type: string): JSX.Element | null => {
-        switch (type) {
-            case "continuous": return <TrendingUp className="w-3 h-3" />;
-            case "categorical": return <BarChart3 className="w-3 h-3" />;
-            case "date": return <Calendar className="w-3 h-3" />;
-            default: return null;
-        }
-    };
+    // 取得選中變項的資訊
+    const selectedVariableInfo = useMemo(() => {
+        return availableVariables.find(v => v.name === selectedVariable);
+    }, [availableVariables, selectedVariable]);
 
     return (
-        <Card className="h-full">
-            <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-base">
-                    <BarChart3 className="w-5 h-5 text-[#0F2844]" />
-                    變項視覺化
-                </CardTitle>
+        <Card className="border border-gray-200 shadow-sm h-full">
+            <CardHeader className="bg-gray-50 px-6 py-4 border-b">
+                <div className="flex items-center justify-between">
+                    <CardTitle className="text-base font-semibold text-gray-800">
+                        變項初步視覺化
+                    </CardTitle>
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger>
+                                <div className="flex items-center gap-2 text-xs text-gray-600">
+                                    <Info className="w-3.5 h-3.5" />
+                                    <span>{variableSummary.total} 個變項可視覺化</span>
+                                </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <div className="text-xs space-y-1">
+                                    <p>連續型: {variableSummary.continuous} 個</p>
+                                    <p>類別型: {variableSummary.categorical} 個</p>
+                                    {variableSummary.date > 0 && <p>日期型: {variableSummary.date} 個</p>}
+                                    {variableSummary.unknown > 0 && <p>未知: {variableSummary.unknown} 個</p>}
+                                </div>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                </div>
             </CardHeader>
-            <CardContent>
+            
+            <CardContent className="pt-0 px-4">
                 <div className="space-y-4">
-                    <Select value={selectedVariable} onValueChange={handleVariableChange}>
-                        <SelectTrigger className="w-full">
-                            <SelectValue placeholder="選擇要視覺化的變項" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {availableVariables.map((variable) => (
-                                <SelectItem key={variable.name} value={variable.name}>
-                                    <div className="flex items-center gap-2">
-                                        {getVariableIcon(variable.type)}
-                                        <span>{variable.name}</span>
-                                        {variable.isGroupVar && (
-                                            <span className="text-[10px] bg-blue-100 text-blue-700 px-1 rounded">
-                                                分組
-                                            </span>
-                                        )}
-                                    </div>
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    {/* 變項選擇器 */}
+                    <div className="space-y-2">
+                        <label className="text-xs text-gray-500 font-medium">選擇變項</label>
+                        <Select value={selectedVariable} onValueChange={handleVariableChange}>
+                            <SelectTrigger className="w-full h-10 text-sm">
+                                <SelectValue placeholder="請選擇要視覺化的變項" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <ScrollArea className="h-[280px]">
+                                    {availableVariables.map((variable) => {
+                                        const config = VARIABLE_TYPE_CONFIG[variable.type as keyof typeof VARIABLE_TYPE_CONFIG];
+                                        const Icon = config?.icon || Info;
+                                        
+                                        return (
+                                            <SelectItem 
+                                                key={variable.name} 
+                                                value={variable.name}
+                                                className="py-2.5"
+                                            >
+                                                <div className="flex items-center gap-2 w-full">
+                                                    <Icon className="w-3.5 h-3.5 text-gray-500" />
+                                                    <span className="flex-1 text-sm">{variable.name}</span>
+                                                    <div className="flex items-center gap-1.5">
+                                                        <Badge 
+                                                            variant="outline" 
+                                                            className={`text-xs px-1.5 py-0 ${config?.className || ''}`}
+                                                        >
+                                                            {config?.label || '未知'}
+                                                        </Badge>
+                                                        {variable.isGroupVar && (
+                                                            <Badge 
+                                                                variant="outline"
+                                                                className="text-xs px-1.5 py-0 bg-blue-50 text-blue-700 border-blue-200"
+                                                            >
+                                                                分組
+                                                            </Badge>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </SelectItem>
+                                        );
+                                    })}
+                                </ScrollArea>
+                            </SelectContent>
+                        </Select>
+                    </div>
 
-                    {isLoading && (
-                        <div className="flex items-center justify-center py-8">
-                            <Loader2 className="w-8 h-8 animate-spin text-[#0F2844]" />
+                    {/* 選中變項資訊 */}
+                    {selectedVariableInfo && !isLoading && !error && (
+                        <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                            <div className="flex items-center gap-2 text-xs">
+                                <span className="text-gray-500">當前變項：</span>
+                                <span className="font-medium text-gray-700">{selectedVariable}</span>
+                                <Badge 
+                                    variant="outline" 
+                                    className={`text-xs px-1.5 py-0 ${
+                                        VARIABLE_TYPE_CONFIG[selectedVariableInfo.type as keyof typeof VARIABLE_TYPE_CONFIG]?.className || ''
+                                    }`}
+                                >
+                                    {VARIABLE_TYPE_CONFIG[selectedVariableInfo.type as keyof typeof VARIABLE_TYPE_CONFIG]?.label || '未知'}
+                                </Badge>
+                            </div>
                         </div>
                     )}
 
-                    {error && (
-                        <Alert className="bg-red-50 border-red-200">
-                            <AlertCircle className="w-4 h-4 text-red-600" />
-                            <AlertDescription className="text-red-700">
-                                {error}
-                            </AlertDescription>
-                        </Alert>
-                    )}
+                    {/* 圖表區域 */}
+                    <ScrollArea className="h-[420px]">
+                        {isLoading && (
+                            <div className="flex flex-col items-center justify-center py-16">
+                                <div className="w-16 h-16 mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+                                    <Loader2 className="w-8 h-8 animate-spin text-[#0F2844]" />
+                                </div>
+                                <p className="text-sm font-medium text-gray-600">正在生成視覺化...</p>
+                                <p className="text-xs text-gray-400 mt-1">請稍候片刻</p>
+                            </div>
+                        )}
 
-                    {!isLoading && !error && plotData && renderChart()}
+                        {error && (
+                            <Alert className="bg-red-50 border-red-200">
+                                <AlertCircle className="w-4 h-4 text-red-600" />
+                                <AlertDescription className="text-red-700 text-sm">
+                                    {error}
+                                </AlertDescription>
+                            </Alert>
+                        )}
 
-                    {!selectedVariable && !isLoading && (
-                        <div className="text-center py-8 text-gray-400">
-                            <BarChart3 className="w-12 h-12 mx-auto mb-2" />
-                            <p className="text-xs">請選擇變項以查看分布圖</p>
-                        </div>
-                    )}
+                        {!isLoading && !error && plotData && renderChart()}
+
+                        {!selectedVariable && !isLoading && (
+                            <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+                                <div className="w-16 h-16 mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+                                    <BarChart3 className="w-8 h-8 text-gray-300" />
+                                </div>
+                                <p className="text-sm font-medium">尚未選擇變項</p>
+                                <p className="text-xs mt-1">請從上方選擇變項以查看分布圖</p>
+                            </div>
+                        )}
+                    </ScrollArea>
                 </div>
             </CardContent>
         </Card>

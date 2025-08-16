@@ -49,6 +49,7 @@ export enum ErrorContext {
   UNKNOWN = "UNKNOWN",
   DATA_FETCH = "DATA_FETCH",
   USER_INPUT = "USER_INPUT",
+  GENERAL = "GENERAL",
 }
 
 // 錯誤嚴重程度

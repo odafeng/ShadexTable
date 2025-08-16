@@ -15,6 +15,43 @@ interface ColumnInfo {
     missingCount?: number;
 }
 
+interface DataProcessingLog {
+    missingFilled: boolean;
+    fillMethod: string;
+    fillTimestamp: number | null;
+    affectedColumns: string[];
+    originalMissingCount?: number;
+    filledMissingCount?: number;
+    fillSummary?: Array<{
+        column: string;
+        before_pct: string;
+        after_pct: string;
+        fill_method: string;
+    }>;
+}
+
+interface FileState {
+    file: File | null;
+    fileName: string;
+    fileSize: number;
+    uploadedAt: number | null;
+    parsedData: DataRow[];
+    processedData: DataRow[] | null;  // 新增：處理後的資料
+    dataProcessingLog: DataProcessingLog;  // 新增：處理記錄
+    dataShape: {
+        rows: number;
+        columns: number;
+    };
+    setFile: (file: File | null) => void;
+    setParsedData: (data: DataRow[]) => void;
+    setProcessedData: (data: DataRow[] | null) => void;  // 新增
+    updateProcessingLog: (log: Partial<DataProcessingLog>) => void;  // 新增
+    getActiveData: () => DataRow[];  // 新增：智能返回資料
+    clearProcessedData: () => void;  // 新增：清除處理資料
+    updateDataShape: () => void;
+    clearFileData: () => void;
+}
+
 // 定義資料行的值類型
 type DataValue = string | number | boolean | Date | null | undefined;
 
@@ -217,6 +254,16 @@ export const useAnalysisStore = create<AnalysisStore>()(
                     fileSize: 0,
                     uploadedAt: null,
                     parsedData: [],
+                    processedData: null,  // 新增
+                    dataProcessingLog: {  // 新增
+                        missingFilled: false,
+                        fillMethod: '',
+                        fillTimestamp: null,
+                        affectedColumns: [],
+                        originalMissingCount: undefined,
+                        filledMissingCount: undefined,
+                        fillSummary: []
+                    },
                     dataShape: { rows: 0, columns: 0 },
 
                     setFile: (file) => set((state) => {
@@ -236,8 +283,52 @@ export const useAnalysisStore = create<AnalysisStore>()(
                         state.isDirty = true;
                     }),
 
+                    setProcessedData: (data) => set((state) => {
+                        state.processedData = data;
+                        if (data) {
+                            // 更新資料形狀為處理後的資料
+                            state.dataShape = {
+                                rows: data.length,
+                                columns: data.length > 0 ? Object.keys(data[0]).length : 0
+                            };
+                        }
+                        state.isDirty = true;
+                    }),
+
+                    updateProcessingLog: (log) => set((state) => {
+                        state.dataProcessingLog = {
+                            ...state.dataProcessingLog,
+                            ...log
+                        };
+                    }),
+
+                    getActiveData: () => {
+                        const state = get();
+                        return state.processedData || state.parsedData;
+                    },
+
+                    clearProcessedData: () => set((state) => {
+                        state.processedData = null;
+                        state.dataProcessingLog = {
+                            missingFilled: false,
+                            fillMethod: '',
+                            fillTimestamp: null,
+                            affectedColumns: [],
+                            originalMissingCount: undefined,
+                            filledMissingCount: undefined,
+                            fillSummary: []
+                        };
+                        // 恢復資料形狀為原始資料
+                        state.dataShape = {
+                            rows: state.parsedData.length,
+                            columns: state.parsedData.length > 0 ? Object.keys(state.parsedData[0]).length : 0
+                        };
+                        state.isDirty = true;
+                    }),
+
                     updateDataShape: () => set((state) => {
-                        const data = state.parsedData;
+                        // 優先使用處理後的資料
+                        const data = state.processedData || state.parsedData;
                         state.dataShape = {
                             rows: data.length,
                             columns: data.length > 0 ? Object.keys(data[0]).length : 0
@@ -250,6 +341,16 @@ export const useAnalysisStore = create<AnalysisStore>()(
                         state.fileSize = 0;
                         state.uploadedAt = null;
                         state.parsedData = [];
+                        state.processedData = null;  // 新增
+                        state.dataProcessingLog = {  // 新增
+                            missingFilled: false,
+                            fillMethod: '',
+                            fillTimestamp: null,
+                            affectedColumns: [],
+                            originalMissingCount: undefined,
+                            filledMissingCount: undefined,
+                            fillSummary: []
+                        };
                         state.dataShape = { rows: 0, columns: 0 };
                     }),
 
@@ -506,6 +607,16 @@ export const useAnalysisStore = create<AnalysisStore>()(
                             uploadedAt: null,
                             parsedData: [],
                             dataShape: { rows: 0, columns: 0 },
+                            processedData: null,  // 新增
+                            dataProcessingLog: {  // 新增
+                                missingFilled: false,
+                                fillMethod: '',
+                                fillTimestamp: null,
+                                affectedColumns: [],
+                                originalMissingCount: undefined,
+                                filledMissingCount: undefined,
+                                fillSummary: []
+                            },
                             // Variables
                             groupVar: '',
                             catVars: [],
@@ -559,6 +670,16 @@ export const useAnalysisStore = create<AnalysisStore>()(
                         state.errors = [];
                         state.warnings = [];
                         state.isDirty = false;
+                        state.processedData = null;
+                        state.dataProcessingLog = {
+                            missingFilled: false,
+                            fillMethod: '',
+                            fillTimestamp: null,
+                            affectedColumns: [],
+                            originalMissingCount: undefined,
+                            filledMissingCount: undefined,
+                            fillSummary: []
+                        };
                     }),
 
                     exportState: () => {
@@ -628,9 +749,13 @@ export const useFileData = () =>
     useAnalysisStore((state) => ({
         file: state.file,
         parsedData: state.parsedData,
+        processedData: state.processedData,  // 新增
+        getActiveData: state.getActiveData,  // 新增
         setFile: state.setFile,
         setParsedData: state.setParsedData,
+        setProcessedData: state.setProcessedData,  // 新增
         clearFileData: state.clearFileData,
+        clearProcessedData: state.clearProcessedData,  // 新增
     }));
 
 export const useVariables = () =>
@@ -712,6 +837,19 @@ export const useAnalysisReady = () =>
         return hasData && hasVariables;
     });
 
+export const useProcessedData = () =>
+    useAnalysisStore((state) => ({
+        processedData: state.processedData,
+        dataProcessingLog: state.dataProcessingLog,
+        setProcessedData: state.setProcessedData,
+        updateProcessingLog: state.updateProcessingLog,
+        getActiveData: state.getActiveData,
+        clearProcessedData: state.clearProcessedData,
+        hasProcessedData: !!state.processedData,
+    }));
+
+
+
 // ========== 工具函數 (保留向後相容) ==========
 export const getAnalysisState = () => useAnalysisStore.getState();
 
@@ -727,6 +865,7 @@ export const batchUpdateAnalysis = (updates: Partial<AnalysisStore>) => {
 };
 
 // 匯出新增的類型定義，供其他文件使用
+// 匯出新增的類型定義，供其他文件使用
 export type {
     DataRow,
     DataValue,
@@ -735,5 +874,5 @@ export type {
     ColumnPreview,
     AiDiagnosis,
     AutoAnalysisResult,
-    AnalysisResult
+    AnalysisResult, ColumnInfo
 };

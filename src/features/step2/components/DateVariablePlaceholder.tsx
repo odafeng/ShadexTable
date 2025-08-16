@@ -26,7 +26,7 @@ export default function DateVariablePlaceholder() {
                     <div className="flex items-center space-x-4">
                         <span className="inline-flex items-center text-xs text-amber-600">
                             <Clock className="w-3 h-3 mr-1" />
-                            預計上線時間：2025 Q1
+                            預計上線時間：2026 Q1
                         </span>
                         <button
                             onClick={() => setShowNotification(true)}

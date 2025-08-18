@@ -2,8 +2,8 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Info, AlertTriangle } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Info, AlertTriangle, PlayCircle } from "lucide-react";
+import ActionButton2 from "@/components/ui/custom/ActionButton2";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -57,6 +57,22 @@ const TYPE_CONFIG = {
     date: { label: "日期型", className: "bg-purple-50 text-purple-700 border-purple-200" },
     unknown: { label: "未知", className: "bg-gray-50 text-gray-600 border-gray-200" }
 };
+
+// 定義標準回應類型
+interface StandardResponseWithFillData {
+    success: boolean;
+    message?: string;
+    error_code?: number;
+    filled_data?: DataRow[];
+    summary?: Array<{
+        column: string;
+        before_pct: string;
+        after_pct: string;
+        fill_method: string;
+    }>;
+    statistics?: Record<string, unknown>;
+    processing_details?: Array<Record<string, unknown>>;
+}
 
 export default function AdvancedMissingValuePanel() {
     const { 
@@ -169,7 +185,7 @@ export default function AdvancedMissingValuePanel() {
             const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
             const endpoint = `${baseUrl}/api/regression/self_defined_missing_fill`;
 
-            const response = await post<SelfDefinedMissingFillRequest, any>(
+            const response = await post<SelfDefinedMissingFillRequest, StandardResponseWithFillData>(
                 endpoint,
                 request,
                 {
@@ -394,13 +410,14 @@ export default function AdvancedMissingValuePanel() {
                                     將處理 {missingColumns.filter(c => c.selectedStrategy !== "delete_column").length} 個欄位，
                                     刪除 {missingColumns.filter(c => c.selectedStrategy === "delete_column").length} 個欄位
                                 </div>
-                                <Button
+                                <ActionButton2
+                                    text="執行處理"
                                     onClick={handleApplyFill}
                                     disabled={isProcessing}
-                                    className="px-6 h-9 bg-[#0F2844] hover:bg-[#1a3a5c] text-white text-sm"
-                                >
-                                    {isProcessing ? "處理中..." : "執行處理"}
-                                </Button>
+                                    loading={isProcessing}
+                                    icon={PlayCircle}
+                                    className="!h-[36px] !text-[14px] !tracking-[2px] !px-6"
+                                />
                             </div>
                         </div>
                     </>

@@ -1,38 +1,30 @@
 // app/step3/components/ResultsTabs.tsx
 "use client";
 
-import { useState, useEffect, JSX, Suspense, memo, useCallback } from "react";
-import dynamic from "next/dynamic";
+import { useState, useEffect, JSX } from "react";
 
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { motion } from "framer-motion";
 import DOMPurify from 'isomorphic-dompurify';
-import { Sparkles, CheckCircle, Info } from "lucide-react";
+import { Sparkles, CheckCircle, Info, Edit2, Check, X } from "lucide-react";
 import { CheckCircle2, ClipboardCopy } from "lucide-react";
 import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import ActionButton from "@/components/ui/custom/ActionButton";
 import ActionButton2 from "@/components/ui/custom/ActionButton2";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAnalysisStore } from "@/stores/analysisStore";
 
+
+import SortableRow from "./SortableRow";
+
 import type { TableRow, TabConfig, TableEditState, CellValue } from "../types";
 
-// 動態載入 DnD Table 組件
-const DndTableWrapper = dynamic(
-  () => import("./DnDTableWrapper"),
-  {
-    loading: () => (
-      <div className="overflow-x-auto w-full rounded-md border border-[#CED6E0]">
-        <div className="flex justify-center py-8">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#0F2844]"></div>
-          <span className="ml-2 text-sm text-gray-500">載入表格功能中...</span>
-        </div>
-      </div>
-    ),
-    ssr: false // DnD 不支援 SSR
-  }
-);
+
+// TableEditState 類型已從 types.ts 導入，不需要在此定義
 
 interface Props {
   columns: string[];
@@ -69,8 +61,7 @@ const loadingSteps = [
   "完成！"
 ];
 
-// 使用 memo 優化重新渲染
-const Step3Tabs = memo(function Step3Tabs({
+export default function Step3Tabs({
   columns,
   groupCounts,
   summaryText,
@@ -95,6 +86,18 @@ const Step3Tabs = memo(function Step3Tabs({
 
   const rowsPerPage = 10;
   const pageCount = Math.ceil(tableEditState.sortedRows.length / rowsPerPage);
+
+  // DnD sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   // Loading animation
   useEffect(() => {
@@ -126,14 +129,26 @@ const Step3Tabs = memo(function Step3Tabs({
     }
   }, [loading, currentStepIndex]);
 
-  const handleCopyClick = useCallback(() => {
+  const handleCopyClick = () => {
     handleCopySummary();
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
-  }, [handleCopySummary]);
+  };
+
+  const renderCell = (val: CellValue): JSX.Element => {
+    if (val === undefined || val === null || val === "nan" || val === "undefined" || val?.toString().trim() === "—") {
+      return <span className="text-gray-400 italic">&mdash;</span>;
+    }
+    // 對表格單元格內容也進行清理
+    const cleanValue = DOMPurify.sanitize(String(val), {
+      ALLOWED_TAGS: [], // 不允許任何 HTML 標籤
+      ALLOWED_ATTR: []
+    });
+    return <>{cleanValue}</>;
+  };
 
   // 安全地處理 AI 摘要文本
-  const renderSummaryText = useCallback((text: string | null): string => {
+  const renderSummaryText = (text: string | null): string => {
     if (text === null || text === undefined) {
       return "尚未產生摘要，請點擊按鈕產出。";
     }
@@ -145,9 +160,14 @@ const Step3Tabs = memo(function Step3Tabs({
       ALLOWED_ATTR: [], // 不允許任何屬性
       KEEP_CONTENT: true // 保留文字內容
     });
-  }, []);
+  };
 
   const currentPageRows = tableEditState.sortedRows.slice(currentPage * rowsPerPage, (currentPage + 1) * rowsPerPage);
+
+  const sortableItems = currentPageRows.map((row: TableRow, idx: number) => {
+    const cleanVar = row.Variable?.replace(/\*+/g, '');
+    return `sortable-${currentPage * rowsPerPage + idx}-${cleanVar}`;
+  });
 
   return (
     <div>
@@ -165,9 +185,8 @@ const Step3Tabs = memo(function Step3Tabs({
               <Image
                 src={isActive ? tab.activeIcon : tab.inactiveIcon}
                 alt={`${tab.label} icon`}
-                width={24}
-                height={24}
-                loading="lazy"
+                width={0}
+                height={0}
                 className="w-[20px] h-[20px] lg:w-[24px] lg:h-[24px]"
               />
               <span
@@ -193,15 +212,155 @@ const Step3Tabs = memo(function Step3Tabs({
             </div>
           </div>
 
-          {/* Table with DnD - 使用動態載入的組件，移除 renderCell prop */}
-          <DndTableWrapper
-            columns={columns}
-            currentPageRows={currentPageRows}
-            currentPage={currentPage}
-            rowsPerPage={rowsPerPage}
-            tableEditState={tableEditState}
-            groupCounts={groupCounts}
-          />
+          {/* Table with DnD */}
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={tableEditState.handleDragEnd}
+          >
+            <div className="overflow-x-auto w-full rounded-md border border-[#CED6E0]">
+              <table className="min-w-[700px] w-full text-[18px] text-[#0F2844] table-auto">
+                <thead className="bg-[#F0F4F8] sticky top-0 z-10 border-b border-[#CED6E0] text-[#5B6D81] leading-[32px] tracking-[2px]">
+                  <tr>
+                    {columns.map((key) => {
+                      const isGroupColumn = !["Variable", "Normal", "P", "Method", "Missing"].includes(key);
+                      const isEditingHeader = tableEditState.editingCell === `header-${key}`;
+
+                      return (
+                        <th
+                          key={key}
+                          className="px-6 py-3 font-semibold whitespace-nowrap text-center"
+                        >
+                          {key === "Variable" ? (
+                            <HoverCard>
+                              <HoverCardTrigger className="flex items-center justify-center gap-1 cursor-help">
+                                <span>變項</span>
+                                <Info className="w-3.5 h-3.5 opacity-50" />
+                              </HoverCardTrigger>
+                              <HoverCardContent className="text-sm w-80">
+                                <div className="space-y-2">
+                                  <p className="font-semibold">互動功能說明：</p>
+                                  <ul className="space-y-1 text-xs">
+                                    <li className="flex items-start gap-1">
+                                      <span className="text-gray-400">•</span>
+                                      <span>滑鼠移至變項名稱，點擊編輯圖示可修改顯示名稱</span>
+                                    </li>
+                                    <li className="flex items-start gap-1">
+                                      <span className="text-gray-400">•</span>
+                                      <span>類別變項的選項可透過拖曳手柄 ⋮⋮ 重新排序</span>
+                                    </li>
+                                    <li className="flex items-start gap-1">
+                                      <span className="text-gray-400">•</span>
+                                      <span>類別變項可點擊編輯自訂標籤</span>
+                                    </li>
+                                  </ul>
+                                </div>
+                              </HoverCardContent>
+                            </HoverCard>
+                          ) : key === "Normal" ? "Normality"
+                            : key === "P" ? "P"
+                              : key === "Method" ? "Method"
+                                : key === "Missing" ? "Missing"
+                                  : isEditingHeader ? (
+                                    // 編輯模式
+                                    <div className="flex items-center justify-center gap-2">
+                                      <input
+                                        type="text"
+                                        value={tableEditState.tempValue}
+                                        onChange={(e) => tableEditState.setTempValue(e.target.value)}
+                                        onKeyDown={(e) => {
+                                          if (e.key === 'Enter') {
+                                            tableEditState.handleEditGroupLabel(key, tableEditState.tempValue);
+                                            tableEditState.setEditingCell(null);
+                                          } else if (e.key === 'Escape') {
+                                            tableEditState.setEditingCell(null);
+                                            tableEditState.setTempValue('');
+                                          }
+                                        }}
+                                        className="px-2 py-1 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-[#0F2844] max-w-[150px] text-center"
+                                        autoFocus
+                                      />
+                                      <button
+                                        onClick={() => {
+                                          tableEditState.handleEditGroupLabel(key, tableEditState.tempValue);
+                                          tableEditState.setEditingCell(null);
+                                        }}
+                                        className="text-green-600 hover:text-green-700"
+                                      >
+                                        <Check className="w-4 h-4" />
+                                      </button>
+                                      <button
+                                        onClick={() => {
+                                          tableEditState.setEditingCell(null);
+                                          tableEditState.setTempValue('');
+                                        }}
+                                        className="text-red-600 hover:text-red-700"
+                                      >
+                                        <X className="w-4 h-4" />
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    // 顯示模式 - 包含組別標籤和樣本數
+                                    <div className="flex items-center justify-center gap-2 group">
+                                      <span>
+                                        {isGroupColumn ? (
+                                          <>
+                                            {tableEditState.groupLabels[key] || key}
+                                            <span className="ml-1 text-xs opacity-75">
+                                              (n={groupCounts?.[key] ?? "?"})
+                                            </span>
+                                          </>
+                                        ) : (
+                                          key
+                                        )}
+                                      </span>
+                                      {isGroupColumn && (
+                                        <button
+                                          onClick={() => {
+                                            tableEditState.setEditingCell(`header-${key}`);
+                                            tableEditState.setTempValue(tableEditState.groupLabels[key] || key);
+                                          }}
+                                          className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                        >
+                                          <Edit2 className="w-3 h-3 text-gray-500" />
+                                        </button>
+                                      )}
+                                    </div>
+                                  )}
+                        </th>
+                      );
+                    })}
+                  </tr>
+                </thead>
+                <tbody>
+                  <SortableContext
+                    items={sortableItems}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    {currentPageRows.map((row: TableRow, idx: number) => (
+                      <SortableRow
+                        key={`${row.Variable}-${currentPage}-${idx}`}
+                        row={row}
+                        rowIndex={currentPage * rowsPerPage + idx}
+                        columns={columns}
+                        renderCell={renderCell}
+                        displayNames={tableEditState.displayNames}
+                        binaryMappings={tableEditState.binaryMappings}
+                        onEditName={tableEditState.handleEditName}
+                        onEditBinaryMapping={tableEditState.handleEditBinaryMapping}
+                        editingCell={tableEditState.editingCell}
+                        setEditingCell={tableEditState.setEditingCell}
+                        tempValue={tableEditState.tempValue}
+                        setTempValue={tableEditState.setTempValue}
+                        groupCounts={groupCounts}
+                        allRows={tableEditState.sortedRows}
+                      />
+                    ))}
+                  </SortableContext>
+                </tbody>
+              </table>
+            </div>
+          </DndContext>
 
           {/* Pagination */}
           <div className="flex justify-center items-center gap-4 mt-4 text-sm text-[#637381] whitespace-nowrap">
@@ -343,6 +502,4 @@ const Step3Tabs = memo(function Step3Tabs({
       )}
     </div>
   );
-});
-
-export default Step3Tabs;
+}

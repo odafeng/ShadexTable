@@ -2,21 +2,23 @@
 "use client";
 
 import { useState, useMemo, useCallback, memo, useTransition } from "react";
+
 import { useAuth } from "@clerk/nextjs";
-import dynamic from 'next/dynamic';
 import { BarChart3, TrendingUp, Calendar, Loader2, AlertCircle, Info } from "lucide-react";
+import dynamic from 'next/dynamic';
+
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
     Tooltip,
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Skeleton } from "@/components/ui/skeleton";
 
 // 動態載入圖表元件
 const BarplotChart = dynamic(() => import('./BarplotChart'), {

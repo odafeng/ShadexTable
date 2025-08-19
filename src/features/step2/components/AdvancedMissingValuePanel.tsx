@@ -2,27 +2,27 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback, memo, useTransition } from "react";
+
 import { useAuth } from "@clerk/nextjs";
 import { Info, AlertTriangle, PlayCircle } from "lucide-react";
-import dynamic from 'next/dynamic';
-import ActionButton2 from "@/components/ui/custom/ActionButton2";
+
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import ActionButton2 from "@/components/ui/custom/ActionButton2";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import {
     Tooltip,
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Skeleton } from "@/components/ui/skeleton";
 import type { MissingFillStrategy, SelfDefinedMissingFillRequest } from "@/features/step2/types/schemas";
 import { post } from "@/lib/apiClient";
+import { reportError } from "@/lib/reportError";
 import { useAnalysisStore, type DataRow, type ColumnInfo } from "@/stores/analysisStore";
 import { createError, ErrorCode, ErrorContext, isAppError, extractErrorMessage } from "@/utils/error";
-import { reportError } from "@/lib/reportError";
 
 // 定義介面
 interface MissingColumnInfo {

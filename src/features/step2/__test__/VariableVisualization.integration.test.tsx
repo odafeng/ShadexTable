@@ -1,13 +1,13 @@
 // src/features/step2/components/VariableVisualization.integration.test.tsx
 
-import { describe, it, expect, vi, beforeEach, afterEach, beforeAll } from 'vitest';
-import { render, screen, waitFor, within, fireEvent } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { useAuth } from '@clerk/nextjs';
+import { render, screen, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll } from 'vitest';
+
 import VariableVisualizationPanel from '@/features/step2/components/VariableVisualizationPanel';
+import type { FlattenedPlotResponse, BoxplotStatistics, BarplotStatistics } from '@/features/step2/types/types';
 import { useAnalysisStore } from '@/stores/analysisStore';
 import type { DataRow, ColumnInfo } from '@/stores/analysisStore';
-import type { FlattenedPlotResponse, BoxplotStatistics, BarplotStatistics } from '@/features/step2/types/types';
 import '@testing-library/jest-dom';
 
 // 在所有測試之前設定 DOM polyfills

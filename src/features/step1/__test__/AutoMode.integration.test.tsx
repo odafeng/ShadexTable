@@ -3,12 +3,12 @@
 // src/features/step1/__test__/AutoMode.integration.test.tsx
 
 import React from 'react';
-import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
-import { render, screen, waitFor, within } from '@testing-library/react';
+
+import { useAuth } from '@clerk/nextjs';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@clerk/nextjs';
-import { act } from 'react';
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import '@testing-library/jest-dom';
 
 // ===== 正確的 ResizeObserver Mock 定義 =====
@@ -42,19 +42,20 @@ afterAll(() => {
 import AnalysisControl from '@/features/step1/components/AnalysisControl';
 
 // Import types and schemas
-import type { 
-  MockAnalysisResponse, 
-  MockFillMissingResponse,
-  MockTableAnalysisResponse 
-} from '../types/test-schemas';
-import type { DataRow } from '@/stores/analysisStore';
-
-// Import test utilities
 import { 
   createMockFile, 
   createMockCSVData, 
   createMockColumnTypes 
 } from './test-helpers';
+
+import type { 
+  MockAnalysisResponse, 
+  MockFillMissingResponse,
+  MockTableAnalysisResponse 
+} from '../types/test-schemas';
+
+
+// Import test utilities
 
 // Mock dependencies
 vi.mock('next/navigation', () => ({
@@ -90,8 +91,8 @@ vi.mock('@/components/ui/tooltip', () => ({
 }));
 
 // Import modules after mocks
-import { post } from '@/lib/apiClient';
 import { FileAnalysisService } from '@/features/step1/services/fileAnalysisService';
+import { post } from '@/lib/apiClient';
 import { useAnalysisStore } from '@/stores/analysisStore';
 
 describe('AutoMode Integration Tests', () => {

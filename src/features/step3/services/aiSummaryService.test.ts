@@ -1,9 +1,11 @@
 // app/step3/services/aiSummaryService.test.ts
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { generateAISummary } from './aiSummaryService';
+
+import type { AISummaryResponse } from '@/features/step3/types';
 import { post } from '@/lib/apiClient';
 import { ErrorCode, ErrorContext, createError, isAppError } from '@/utils/error';
-import type { AISummaryResponse } from '@/features/step3/types';
+
+import { generateAISummary } from './aiSummaryService';
 
 // Mock dependencies
 vi.mock('@/lib/apiClient', () => ({

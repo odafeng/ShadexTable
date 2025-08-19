@@ -1,6 +1,6 @@
 // src/features/step3/hooks/useAiSummary.test.ts
-import { renderHook, act, waitFor } from '@testing-library/react';
 import { useAuth } from '@clerk/nextjs';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 import { useAISummary } from '@/features/step3/hooks/useAiSummary';

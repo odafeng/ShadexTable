@@ -1,29 +1,31 @@
 "use client";
 
 import { useState, useEffect, ReactNode, lazy, Suspense, useCallback, useMemo, useTransition } from "react";
+
 import { useAuth } from "@clerk/nextjs";
-import { toast } from "sonner";
+import { ShieldAlert, Wand2, RotateCcw, Info } from "lucide-react";
 import dynamic from 'next/dynamic';
+import { useRouter } from "next/navigation";
 import { useInView } from 'react-intersection-observer';
+import { toast } from "sonner";
+
+
+// 核心元件 - 立即載入
+import Footer from "@/components/shared/Footer";
+import Header from "@/components/shared/Header";
+import StepNavigator from "@/components/shared/stepNavigator";
+import ActionButton from "@/components/ui/custom/ActionButton";
+import ActionButton2 from "@/components/ui/custom/ActionButton2";
+import GroupSelect from "@/components/ui/custom/GroupSelect";
+import InlineNotice from "@/components/ui/custom/InlineNotice";
+import { MultiSelect } from "@/components/ui/custom/multiselect";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
     Tooltip,
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { ShieldAlert, Wand2, RotateCcw, Info, Loader2 } from "lucide-react";
-import InlineNotice from "@/components/ui/custom/InlineNotice";
-import ActionButton from "@/components/ui/custom/ActionButton";
-import ActionButton2 from "@/components/ui/custom/ActionButton2";
-import { useRouter } from "next/navigation";
-import { Skeleton } from "@/components/ui/skeleton";
-
-// 核心元件 - 立即載入
-import Footer from "@/components/shared/Footer";
-import Header from "@/components/shared/Header";
-import StepNavigator from "@/components/shared/stepNavigator";
-import GroupSelect from "@/components/ui/custom/GroupSelect";
-import { MultiSelect } from "@/components/ui/custom/multiselect";
 
 // 導入 DEFAULT_ANALYSIS_STEPS (靜態導入)
 import { DEFAULT_ANALYSIS_STEPS } from '@/lib/constants';
@@ -58,27 +60,27 @@ const VariableVisualizationPanel = lazy(() =>
 );
 
 // Store 和其他必要的 imports
-import { useAnalysisStore, type DataRow } from "@/stores/analysisStore";
-import { apiClient, post } from "@/lib/apiClient";
+import { post } from "@/lib/apiClient";
 import { reportError } from "@/lib/reportError";
+import {
+    AnalysisRequestSchema,
+    type AnalysisRequest
+} from "@/schemas/backend";
+import { useAnalysisStore, type DataRow } from "@/stores/analysisStore";
+import type { AppError } from "@/types/errors";
 import {
     isAppError,
     createError,
     CommonErrors,
     ErrorCode,
-    ErrorContext,
-    extractErrorMessage
+    ErrorContext
 } from "@/utils/error";
-import type { AppError } from "@/types/errors";
+
 import {
     buildMissingFillRequest,
     processMissingFillResponse,
     type MissingFillResponse
 } from "../types/schemas";
-import {
-    AnalysisRequestSchema,
-    type AnalysisRequest
-} from "@/schemas/backend";
 
 // 載入骨架元件
 const PanelSkeleton = () => (

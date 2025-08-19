@@ -1,14 +1,15 @@
 // app/step3/services/dataTransformService.test.ts
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+import type { TableRow, GroupCounts, BinaryMapping } from '@/features/step3/types';
+import { ErrorCode, ErrorContext, createError } from '@/utils/error';
+
 import {
   prepareExportData,
   formatVariableName,
   isCategorySubItem,
-  createCoreSummaryData,
-  type ExportDataRow
+  createCoreSummaryData
 } from './dataTransformService';
-import type { TableRow, GroupCounts, BinaryMapping } from '@/features/step3/types';
-import { ErrorCode, ErrorContext, createError } from '@/utils/error';
 
 // Mock error utilities
 vi.mock('@/utils/error', () => ({

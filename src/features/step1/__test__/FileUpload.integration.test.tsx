@@ -1,24 +1,29 @@
 // FileUpload.integration.test.tsx
-import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
+import React from 'react';
+
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor, fireEvent, within, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import React from 'react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
+
+
 
 // Import 錯誤相關型別
-import { ErrorCode, ErrorContext, ErrorSeverity } from '@/types/errors';
-import type { AppError } from '@/types/errors';
-
-// Import store 型別
-import type { DataRow, ColumnProfile } from '@/stores/analysisStore';
-
-// Import service 型別
+import ColumnAnalysisDisplay from '@/features/step1/components/ColumnAnalysisDisplay';
+import DataPreviewTable from '@/features/step1/components/DataPreviewTable';
+import FileUploadArea from '@/features/step1/components/FileUploadArea';
+import { useStep1Logic } from '@/features/step1/hooks/useStep1Logic';
 import type {
-  FileAnalysisResult,
-  ColumnProfile as ServiceColumnProfile,
-  ColumnAnalysisResult
+  FileAnalysisResult
 } from '@/features/step1/services/fileAnalysisService';
 import type { SensitiveCheckResult } from '@/features/step1/services/sensitiveDataDetector';
+import type { DataRow, ColumnProfile } from '@/stores/analysisStore';
+import { ErrorCode, ErrorContext, ErrorSeverity } from '@/types/errors';
+
+// Import store 型別
+
+// Import service 型別
 
 // Import fileProcessor 型別
 import type {
@@ -178,17 +183,13 @@ Object.defineProperty(window, 'localStorage', {
 });
 
 // ============ 在所有 mocks 之後 import 元件 ============
-import FileUploadArea from '@/features/step1/components/FileUploadArea';
-import DataPreviewTable from '@/features/step1/components/DataPreviewTable';
-import ColumnAnalysisDisplay from '@/features/step1/components/ColumnAnalysisDisplay';
-import { useStep1Logic } from '@/features/step1/hooks/useStep1Logic';
 import { FileProcessor } from '@/utils/fileProcessor';
 import { FileAnalysisService } from '@/features/step1/services/fileAnalysisService';
 import { SensitiveDataDetector } from '@/features/step1/services/sensitiveDataDetector';
 import { useAnalysisStore } from '@/stores/analysisStore';
 
 // Import mocked modules to get references
-import { toast } from 'sonner';
+
 import { post } from '@/lib/apiClient';
 
 // Get mock references

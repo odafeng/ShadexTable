@@ -1,5 +1,4 @@
 //tests/utils/test-helpers.ts
-import { MockFile } from '@/features/step1/types/test-schemas';
 
 export function createMockFile(
   content: string,

@@ -1,13 +1,14 @@
 // app/step3/page.tsx
 "use client";
 
-import { useEffect, useMemo, lazy, Suspense } from "react";
-import dynamic from "next/dynamic";
+import { useEffect, useMemo } from "react";
+
 import { useRouter } from "next/navigation";
 
 import Footer from "@/components/shared/Footer";
 import Header from "@/components/shared/Header";
 import StepNavigator from "@/components/shared/stepNavigator";
+import Step3Tabs from "@/features/step3/components/ResultsTabs";
 import { useAISummary } from "@/features/step3/hooks/useAiSummary";
 import { useExport } from "@/features/step3/hooks/useExport";
 import { useTableEdit } from "@/features/step3/hooks/useTableEdit";
@@ -15,20 +16,6 @@ import type { DataRow } from "@/stores/analysisStore";
 import { useAnalysisStore } from "@/stores/analysisStore";
 
 import type { TableRow } from "../types";
-
-// 動態載入 Step3Tabs 組件，減少初始載入
-const Step3Tabs = dynamic(
-  () => import("@/features/step3/components/ResultsTabs"),
-  {
-    loading: () => (
-      <div className="flex justify-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0F2844]"></div>
-        <span className="ml-3 text-[#0F2844]">載入中...</span>
-      </div>
-    ),
-    ssr: true // 保持 SSR 支援
-  }
-);
 
 export default function Step3Summary() {
   // 使用選擇器只訂閱需要的狀態
@@ -50,8 +37,6 @@ export default function Step3Summary() {
   // 優化的轉換函數 - 使用 useMemo 避免重複計算
   const convertToTableRows = useMemo(() => {
     return (dataRows: DataRow[]): TableRow[] => {
-      if (!dataRows) return [];
-      
       return dataRows
         .filter(row => row.Variable !== undefined && row.Variable !== null)
         .map((row: DataRow) => {
@@ -89,7 +74,7 @@ export default function Step3Summary() {
     [tableRows, groupVar]
   );
 
-  // Hooks - 只在需要時初始化
+  // Hooks
   const tableEditState = useTableEdit(filteredRows, groupCounts);
   const aiSummaryState = useAISummary();
   const exportState = useExport({
@@ -139,25 +124,19 @@ export default function Step3Summary() {
         </div>
 
         <div className="w-full max-w-6xl mx-auto px-0 sm:px-6 md:px-8">
-          <Suspense fallback={
-            <div className="flex justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0F2844]"></div>
-            </div>
-          }>
-            <Step3Tabs
-              columns={columns}
-              groupCounts={groupCounts}
-              summaryText={aiSummaryState.summaryText}
-              loading={aiSummaryState.loading}
-              canExport={exportState.canExport}
-              exportToExcel={exportState.handleExportToExcel}
-              exportToWord={exportState.handleExportToWord}
-              handleGenerateAIResult={handleGenerateAIResult}
-              handleCopySummary={aiSummaryState.handleCopySummary}
-              autoMode={!!autoAnalysisResult?.success}
-              tableEditState={tableEditState}
-            />
-          </Suspense>
+          <Step3Tabs
+            columns={columns}
+            groupCounts={groupCounts}
+            summaryText={aiSummaryState.summaryText}
+            loading={aiSummaryState.loading}
+            canExport={exportState.canExport}
+            exportToExcel={exportState.handleExportToExcel}
+            exportToWord={exportState.handleExportToWord}
+            handleGenerateAIResult={handleGenerateAIResult}
+            handleCopySummary={aiSummaryState.handleCopySummary}
+            autoMode={!!autoAnalysisResult?.success}
+            tableEditState={tableEditState}
+          />
         </div>
       </div>
       <Footer />

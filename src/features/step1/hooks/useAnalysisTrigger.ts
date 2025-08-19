@@ -7,7 +7,7 @@ import { FileAnalysisService } from '@/features/step1/services/fileAnalysisServi
 import { post } from '@/lib/apiClient';
 import { reportError } from '@/lib/reportError';
 import { useAnalysisStore } from '@/stores/analysisStore';
-import type { DataRow, ColumnProfile, ColumnInfo } from '@/stores/analysisStore';
+import type { DataRow, ColumnInfo } from '@/stores/analysisStore';
 import { CommonErrors, createError, ErrorCode, ErrorContext } from '@/utils/error';
 
 // 定義自動分析響應的完整類型

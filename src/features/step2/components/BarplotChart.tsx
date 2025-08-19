@@ -2,8 +2,11 @@
 "use client";
 
 import { memo, useMemo } from 'react';
+
 import dynamic from 'next/dynamic';
+
 import { BarplotStatistics, PlotDataPoint, PLOT_COLORS } from '@/features/step2/types/types';
+
 import type { ApexOptions } from 'apexcharts';
 
 const Chart = dynamic(() => import('react-apexcharts'), { 

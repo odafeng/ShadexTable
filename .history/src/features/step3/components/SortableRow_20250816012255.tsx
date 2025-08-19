@@ -1,7 +1,7 @@
 // app/step3/components/SortableRow.tsx
 "use client";
 
-import { JSX, memo, useCallback } from "react";
+import { JSX } from "react";
 
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -10,6 +10,7 @@ import { Edit2, Check, X } from "lucide-react";
 import { formatVariableName, isCategorySubItem } from "@/features/step3/services/dataTransformService";
 
 import type { TableRow, BinaryMapping, CellValue } from "../types";
+
 
 interface SortableRowProps {
   row: TableRow;
@@ -28,8 +29,7 @@ interface SortableRowProps {
   allRows: TableRow[];
 }
 
-// 使用 memo 優化重新渲染，只在 props 改變時才重新渲染
-const SortableRow = memo(function SortableRow({
+export default function SortableRow({
   row,
   rowIndex,
   columns,
@@ -42,7 +42,6 @@ const SortableRow = memo(function SortableRow({
   setEditingCell,
   tempValue,
   setTempValue,
-  groupCounts,
   allRows
 }: SortableRowProps) {
   const cleanVariable = row.Variable.replace(/\*+/g, '');
@@ -69,28 +68,6 @@ const SortableRow = memo(function SortableRow({
     transition,
     opacity: isDragging ? 0.5 : 1,
   };
-
-  // 使用 useCallback 優化事件處理函數
-  const handleNameEdit = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      onEditName(row.Variable, tempValue);
-      setEditingCell(null);
-    } else if (e.key === 'Escape') {
-      setEditingCell(null);
-      setTempValue('');
-    }
-  }, [row.Variable, tempValue, onEditName, setEditingCell, setTempValue]);
-
-  const handleBinaryEdit = useCallback((binaryKey: string) => {
-    const parts = tempValue.split(',').map((p: string) => p.trim());
-    const newMapping: BinaryMapping = {};
-    parts.forEach((part: string) => {
-      const [k, v] = part.split('=').map((s: string) => s.trim());
-      if (k && v) newMapping[k] = v;
-    });
-    onEditBinaryMapping(binaryKey, newMapping['0'] || 'No', newMapping['1'] || 'Yes');
-    setEditingCell(null);
-  }, [tempValue, onEditBinaryMapping, setEditingCell]);
 
   return (
     <tr 
@@ -148,7 +125,15 @@ const SortableRow = memo(function SortableRow({
                       type="text"
                       value={tempValue}
                       onChange={(e) => setTempValue(e.target.value)}
-                      onKeyDown={handleNameEdit}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          onEditName(originalName, tempValue);
+                          setEditingCell(null);
+                        } else if (e.key === 'Escape') {
+                          setEditingCell(null);
+                          setTempValue('');
+                        }
+                      }}
                       className="px-2 py-1 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       autoFocus
                     />
@@ -219,7 +204,14 @@ const SortableRow = memo(function SortableRow({
                       placeholder="0=No, 1=Yes"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
-                          handleBinaryEdit(binaryKey);
+                          const parts = tempValue.split(',').map((p: string) => p.trim());
+                          const newMapping: BinaryMapping = {};
+                          parts.forEach((part: string) => {
+                            const [k, v] = part.split('=').map((s: string) => s.trim());
+                            if (k && v) newMapping[k] = v;
+                          });
+                          onEditBinaryMapping(binaryKey, newMapping['0'] || 'No', newMapping['1'] || 'Yes');
+                          setEditingCell(null);
                         } else if (e.key === 'Escape') {
                           setEditingCell(null);
                           setTempValue('');
@@ -229,7 +221,16 @@ const SortableRow = memo(function SortableRow({
                       autoFocus
                     />
                     <button
-                      onClick={() => handleBinaryEdit(binaryKey)}
+                      onClick={() => {
+                        const parts = tempValue.split(',').map((p: string) => p.trim());
+                        const newMapping: BinaryMapping = {};
+                        parts.forEach((part: string) => {
+                          const [k, v] = part.split('=').map((s: string) => s.trim());
+                          if (k && v) newMapping[k] = v;
+                        });
+                        onEditBinaryMapping(binaryKey, newMapping['0'] || 'No', newMapping['1'] || 'Yes');
+                        setEditingCell(null);
+                      }}
                       className="text-green-600 hover:text-green-700"
                     >
                       <Check className="w-4 h-4" />
@@ -276,19 +277,4 @@ const SortableRow = memo(function SortableRow({
       })}
     </tr>
   );
-}, 
-// 自定義比較函數，避免不必要的重新渲染
-(prevProps, nextProps) => {
-  // 只在這些 props 改變時才重新渲染
-  return (
-    prevProps.row === nextProps.row &&
-    prevProps.rowIndex === nextProps.rowIndex &&
-    prevProps.editingCell === nextProps.editingCell &&
-    prevProps.tempValue === nextProps.tempValue &&
-    prevProps.displayNames === nextProps.displayNames &&
-    prevProps.binaryMappings === nextProps.binaryMappings &&
-    prevProps.allRows === nextProps.allRows
-  );
-});
-
-export default SortableRow;
+}

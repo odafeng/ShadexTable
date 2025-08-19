@@ -18,9 +18,9 @@ import { useAnalysisStore } from "@/stores/analysisStore";
 
 import type { TableRow, TabConfig, TableEditState, CellValue } from "../types";
 
-// 動態載入 DnD Table 組件
+// 動態載入 DnD Table 組件 - 注意路徑是相對於當前檔案
 const DndTableWrapper = dynamic(
-  () => import("./DnDTableWrapper"),
+  () => import("./DnDTableWrapper"),  // 修正：使用相對路徑
   {
     loading: () => (
       <div className="overflow-x-auto w-full rounded-md border border-[#CED6E0]">
@@ -132,6 +132,18 @@ const Step3Tabs = memo(function Step3Tabs({
     setTimeout(() => setCopied(false), 1500);
   }, [handleCopySummary]);
 
+  const renderCell = useCallback((val: CellValue): JSX.Element => {
+    if (val === undefined || val === null || val === "nan" || val === "undefined" || val?.toString().trim() === "—") {
+      return <span className="text-gray-400 italic">&mdash;</span>;
+    }
+    // 對表格單元格內容也進行清理
+    const cleanValue = DOMPurify.sanitize(String(val), {
+      ALLOWED_TAGS: [], // 不允許任何 HTML 標籤
+      ALLOWED_ATTR: []
+    });
+    return <>{cleanValue}</>;
+  }, []);
+
   // 安全地處理 AI 摘要文本
   const renderSummaryText = useCallback((text: string | null): string => {
     if (text === null || text === undefined) {
@@ -193,7 +205,7 @@ const Step3Tabs = memo(function Step3Tabs({
             </div>
           </div>
 
-          {/* Table with DnD - 使用動態載入的組件，移除 renderCell prop */}
+          {/* Table with DnD - 使用動態載入的組件 */}
           <DndTableWrapper
             columns={columns}
             currentPageRows={currentPageRows}

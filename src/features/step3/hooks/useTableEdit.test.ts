@@ -1,11 +1,13 @@
 // src/features/step3/hooks/useTableEdit.test.ts
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { UniqueIdentifier } from '@dnd-kit/core';
+
 
 import { useTableEdit } from '@/features/step3/hooks/useTableEdit';
 import { formatVariableName } from '@/features/step3/services/dataTransformService';
 import type { TableRow, DragEndEvent, BinaryMapping } from '@/features/step3/types';
+
+import type { UniqueIdentifier } from '@dnd-kit/core';
 
 // Mock dataTransformService
 vi.mock('@/features/step3/services/dataTransformService', () => ({

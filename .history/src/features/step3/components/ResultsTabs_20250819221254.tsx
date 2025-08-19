@@ -20,7 +20,7 @@ import type { TableRow, TabConfig, TableEditState, CellValue } from "../types";
 
 // 動態載入 DnD Table 組件
 const DndTableWrapper = dynamic(
-  () => import("./DnDTableWrapper"),
+  () => import("./DndTableWrapper"),
   {
     loading: () => (
       <div className="overflow-x-auto w-full rounded-md border border-[#CED6E0]">

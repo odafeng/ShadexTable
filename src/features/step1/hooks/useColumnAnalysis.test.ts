@@ -1,9 +1,11 @@
 // src/features/step1/hooks/useColumnAnalysis.test.ts
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
-import type { DataRow } from '@/stores/analysisStore';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+
 import type { ColumnProfile } from '@/features/step1/services/fileAnalysisService';
+import { FileAnalysisService } from '@/features/step1/services/fileAnalysisService';
+import type { DataRow } from '@/stores/analysisStore';
 
 // Mock modules
 vi.mock('@clerk/nextjs', () => ({
@@ -28,11 +30,12 @@ vi.mock('@/stores/analysisStore', () => ({
 }));
 
 // Import after mocking
-import { useColumnAnalysis } from './useColumnAnalysis';
-import { useAuth } from '@clerk/nextjs';
-import { FileAnalysisService } from '@/features/step1/services/fileAnalysisService';
-import { CommonErrors } from '@/utils/error';
 import { useAnalysisStore } from '@/stores/analysisStore';
+import { CommonErrors } from '@/utils/error';
+
+import { useColumnAnalysis } from './useColumnAnalysis';
+
+import { useAuth } from '@clerk/nextjs';
 
 describe('useColumnAnalysis Hook', () => {
   // Mock store state

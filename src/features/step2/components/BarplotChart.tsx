@@ -1,13 +1,15 @@
-// step2/components/BarplotChart.tsx
+// BarplotChart.tsx - 優化版本
 "use client";
 
+import { memo, useMemo } from 'react';
 import dynamic from 'next/dynamic';
-
 import { BarplotStatistics, PlotDataPoint, PLOT_COLORS } from '@/features/step2/types/types';
-
 import type { ApexOptions } from 'apexcharts';
 
-const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
+const Chart = dynamic(() => import('react-apexcharts'), { 
+    ssr: false,
+    loading: () => <div className="h-[350px] bg-gray-50 animate-pulse rounded-lg" />
+});
 
 interface BarplotChartProps {
     statistics: BarplotStatistics;
@@ -15,19 +17,30 @@ interface BarplotChartProps {
     data: PlotDataPoint[];
 }
 
-export default function BarplotChart({ statistics, selectedVariable, data }: BarplotChartProps) {
+const BarplotChart = memo(function BarplotChart({ statistics, selectedVariable, data }: BarplotChartProps) {
     const stats = statistics;
 
     // 準備長條圖資料（限制前10個類別）
-    const categories = stats.categories.slice(0, 10);
-    const counts = stats.counts.slice(0, 10);
-    const percentages = stats.percentages.slice(0, 10);
+    const { categories, counts, percentages } = useMemo(() => ({
+        categories: stats.categories.slice(0, 10),
+        counts: stats.counts.slice(0, 10),
+        percentages: stats.percentages.slice(0, 10)
+    }), [stats]);
 
     // ApexCharts 長條圖配置
-    const options: ApexOptions = {
+    const options: ApexOptions = useMemo(() => ({
         chart: {
             type: 'bar',
             height: 350,
+            animations: {
+                enabled: true,
+                easing: 'easeinout',
+                speed: 400,
+                animateGradually: {
+                    enabled: true,
+                    delay: 150
+                }
+            },
             toolbar: {
                 show: true,
                 tools: {
@@ -56,12 +69,12 @@ export default function BarplotChart({ statistics, selectedVariable, data }: Bar
                 dataLabels: {
                     position: 'top'
                 },
-                distributed: true // 讓每個長條有不同顏色
+                distributed: true
             }
         },
         dataLabels: {
             enabled: true,
-            formatter: function (val: number, opts: any) {
+            formatter: function (_: number, opts: any) {
                 const percentage = percentages[opts.dataPointIndex];
                 return percentage ? `${percentage.toFixed(1)}%` : '';
             },
@@ -106,12 +119,12 @@ export default function BarplotChart({ statistics, selectedVariable, data }: Bar
         legend: {
             show: false
         }
-    };
+    }), [selectedVariable, categories, percentages]);
 
-    const series = [{
+    const series = useMemo(() => [{
         name: '數量',
         data: counts
-    }];
+    }], [counts]);
 
     return (
         <>
@@ -142,4 +155,6 @@ export default function BarplotChart({ statistics, selectedVariable, data }: Bar
             </div>
         </>
     );
-}
+});
+
+export default BarplotChart;

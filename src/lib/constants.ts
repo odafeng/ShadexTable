@@ -36,3 +36,98 @@ export const plotColors = {
         "#ca8a04",  // yellow-600
     ]
 };
+
+// analysisSteps
+export interface LoadingStep {
+    id: number;
+    title: string;
+    subtitle: string;
+    duration: number;
+}
+
+export const DEFAULT_ANALYSIS_STEPS: LoadingStep[] = [
+    {
+        id: 1,
+        title: "正在引入變項參數",
+        subtitle: "解析您選擇的變項配置...",
+        duration: 1000
+    },
+    {
+        id: 2,
+        title: "正在處理遺漏值",
+        subtitle: "智能填補與清理資料...",
+        duration: 1200
+    },
+    {
+        id: 3,
+        title: "智能檢定決策中",
+        subtitle: "選擇最適合的統計方法...",
+        duration: 1500
+    },
+    {
+        id: 4,
+        title: "正在生成結果表格",
+        subtitle: "計算統計結果與效應量...",
+        duration: 1000
+    },
+    {
+        id: 5,
+        title: "分析完成！",
+        subtitle: "準備展示分析結果",
+        duration: 800
+    }
+];
+
+export const FILE_UPLOAD_STEPS: LoadingStep[] = [
+    {
+        id: 1,
+        title: "正在上傳檔案",
+        subtitle: "將檔案傳送到伺服器...",
+        duration: 2000
+    },
+    {
+        id: 2,
+        title: "檔案驗證中",
+        subtitle: "檢查檔案格式與完整性...",
+        duration: 1000
+    },
+    {
+        id: 3,
+        title: "解析檔案內容",
+        subtitle: "讀取並分析資料結構...",
+        duration: 1500
+    },
+    {
+        id: 4,
+        title: "資料預處理",
+        subtitle: "進行資料清理與型別判定...",
+        duration: 2000
+    }
+];
+
+export const REPORT_GENERATION_STEPS: LoadingStep[] = [
+    {
+        id: 1,
+        title: "收集分析結果",
+        subtitle: "整理統計數據與圖表...",
+        duration: 800
+    },
+    {
+        id: 2,
+        title: "生成報告內容",
+        subtitle: "撰寫統計解釋與建議...",
+        duration: 2000
+    },
+    {
+        id: 3,
+        title: "格式化報告",
+        subtitle: "美化排版與圖表樣式...",
+        duration: 1200
+    },
+    {
+        id: 4,
+        title: "報告生成完成",
+        subtitle: "準備下載報告檔案...",
+        duration: 500
+    }
+];

@@ -1,12 +1,17 @@
-// step2/components/DateVariablePlaceholder.tsx
+// DateVariablePlaceholder.tsx - 優化版本
 "use client";
 
-import { useState } from 'react';
-
+import { useState, memo, useCallback } from 'react';
 import { Calendar, Clock, Bell, CheckCircle } from 'lucide-react';
 
-export default function DateVariablePlaceholder() {
+const DateVariablePlaceholder = memo(function DateVariablePlaceholder() {
     const [showNotification, setShowNotification] = useState(false);
+    
+    const handleNotificationClick = useCallback(() => {
+        setShowNotification(true);
+        // 3秒後自動隱藏通知
+        setTimeout(() => setShowNotification(false), 3000);
+    }, []);
 
     return (
         <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-lg p-6 border border-amber-200 animate-fadeIn">
@@ -29,15 +34,16 @@ export default function DateVariablePlaceholder() {
                             預計上線時間：2026 Q1
                         </span>
                         <button
-                            onClick={() => setShowNotification(true)}
+                            onClick={handleNotificationClick}
                             className="text-xs text-amber-700 font-medium hover:text-amber-800 transition-colors"
+                            disabled={showNotification}
                         >
                             <Bell className="w-3 h-3 inline mr-1" />
                             通知我
                         </button>
                     </div>
                     {showNotification && (
-                        <div className="mt-3 p-2 bg-amber-100 rounded text-xs text-amber-800">
+                        <div className="mt-3 p-2 bg-amber-100 rounded text-xs text-amber-800 animate-fadeIn">
                             <CheckCircle className="w-3 h-3 inline mr-1" />
                             感謝您的關注！功能上線時我們會通知您。
                         </div>
@@ -46,4 +52,6 @@ export default function DateVariablePlaceholder() {
             </div>
         </div>
     );
-}
+});
+
+export default DateVariablePlaceholder;

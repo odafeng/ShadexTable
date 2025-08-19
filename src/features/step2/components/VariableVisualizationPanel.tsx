@@ -1,8 +1,9 @@
-// step2/VariableVisualizationPanel.tsx - 企業級應用風格版
+// VariableVisualizationPanel.tsx - 優化版本
 "use client";
 
-import { useState, useMemo, JSX } from "react";
+import { useState, useMemo, useCallback, memo, useTransition } from "react";
 import { useAuth } from "@clerk/nextjs";
+import dynamic from 'next/dynamic';
 import { BarChart3, TrendingUp, Calendar, Loader2, AlertCircle, Info } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,11 +16,24 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Skeleton } from "@/components/ui/skeleton";
 
-// 引入子元件
-import BarplotChart from '@/features/step2/components/BarplotChart';
-import BoxplotChart from '@/features/step2/components/BoxplotChart';
-import DateVariablePlaceholder from '@/features/step2/components/DateVariablePlaceholder';
+// 動態載入圖表元件
+const BarplotChart = dynamic(() => import('./BarplotChart'), {
+    loading: () => <ChartSkeleton />,
+    ssr: false
+});
+
+const BoxplotChart = dynamic(() => import('./BoxplotChart'), {
+    loading: () => <ChartSkeleton />,
+    ssr: false
+});
+
+const DateVariablePlaceholder = dynamic(() => import('./DateVariablePlaceholder'), {
+    loading: () => <ChartSkeleton />,
+    ssr: false
+});
+
 import type {
     FlattenedPlotResponse,
     PlotRequest,
@@ -31,6 +45,21 @@ import type {
 } from '@/features/step2/types/types';
 import { post } from "@/lib/apiClient";
 import { useAnalysisStore, type DataRow, type DataValue } from "@/stores/analysisStore";
+
+// 圖表載入骨架
+const ChartSkeleton = () => (
+    <div className="space-y-4">
+        <Skeleton className="h-[350px] w-full" />
+        <div className="p-4 bg-gray-50 rounded-lg">
+            <Skeleton className="h-4 w-24 mb-3" />
+            <div className="grid grid-cols-2 gap-2">
+                {[...Array(4)].map((_, i) => (
+                    <Skeleton key={i} className="h-3 w-full" />
+                ))}
+            </div>
+        </div>
+    </div>
+);
 
 // 變數類型配置
 const VARIABLE_TYPE_CONFIG = {
@@ -56,7 +85,8 @@ const VARIABLE_TYPE_CONFIG = {
     }
 };
 
-export default function VariableVisualizationPanel() {
+// 使用 memo 來優化重新渲染
+const VariableVisualizationPanel = memo(function VariableVisualizationPanel() {
     const {
         parsedData,
         columnTypes,
@@ -71,8 +101,9 @@ export default function VariableVisualizationPanel() {
     const [plotData, setPlotData] = useState<FlattenedPlotResponse | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [isPending, startTransition] = useTransition();
 
-    // 取得所有可用變項
+    // 使用 useMemo 優化變數列表計算
     const availableVariables = useMemo<VariableInfo[]>(() => {
         if (!parsedData || parsedData.length === 0) return [];
 
@@ -81,13 +112,11 @@ export default function VariableVisualizationPanel() {
             const columnInfo = columnTypes.find(c => c.column === col);
             let type = "unknown";
 
-            // 優先使用明確分類的變項
             if (contVars.includes(col)) {
                 type = "continuous";
             } else if (catVars.includes(col)) {
                 type = "categorical";
             } else if (columnInfo?.suggested_type) {
-                // 使用建議類型作為後備
                 switch (columnInfo.suggested_type) {
                     case "連續變項":
                         type = "continuous";
@@ -132,8 +161,8 @@ export default function VariableVisualizationPanel() {
         };
     }, [availableVariables]);
 
-    // 處理變項選擇變更
-    const handleVariableChange = async (varName: string): Promise<void> => {
+    // 優化的變項選擇處理
+    const handleVariableChange = useCallback(async (varName: string): Promise<void> => {
         setSelectedVariable(varName);
         setError(null);
 
@@ -145,19 +174,21 @@ export default function VariableVisualizationPanel() {
         const variable = availableVariables.find(v => v.name === varName);
         if (!variable) return;
 
-        // 如果是日期變項，顯示優雅的提示而不是發送 API 請求
+        // 如果是日期變項，顯示優雅的提示
         if (variable.type === "date") {
-            setPlotData({
-                success: true,
-                message: "日期變項視覺化即將推出",
-                type: "timeline",
-                data: [],
-                metadata: {
-                    title: "",
-                    x_label: "",
-                    y_label: "",
-                    variable_type: "date"
-                }
+            startTransition(() => {
+                setPlotData({
+                    success: true,
+                    message: "日期變項視覺化即將推出",
+                    type: "timeline",
+                    data: [],
+                    metadata: {
+                        title: "",
+                        x_label: "",
+                        y_label: "",
+                        variable_type: "date"
+                    }
+                });
             });
             setIsLoading(false);
             return;
@@ -206,7 +237,9 @@ export default function VariableVisualizationPanel() {
             );
 
             if (response.success && response.type) {
-                setPlotData(response);
+                startTransition(() => {
+                    setPlotData(response);
+                });
             } else {
                 throw new Error(response.message || "無法生成圖表");
             }
@@ -224,10 +257,10 @@ export default function VariableVisualizationPanel() {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [availableVariables, parsedData, getToken]);
 
     // 渲染圖表
-    const renderChart = (): JSX.Element | null => {
+    const renderChart = useCallback(() => {
         if (!plotData) return null;
 
         // 處理日期變項
@@ -253,7 +286,7 @@ export default function VariableVisualizationPanel() {
                 )}
             </div>
         );
-    };
+    }, [plotData, selectedVariable]);
 
     // 取得選中變項的資訊
     const selectedVariableInfo = useMemo(() => {
@@ -392,4 +425,6 @@ export default function VariableVisualizationPanel() {
             </CardContent>
         </Card>
     );
-}
+});
+
+export default VariableVisualizationPanel;

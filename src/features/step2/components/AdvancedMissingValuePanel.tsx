@@ -1,8 +1,10 @@
-// AdvancedMissingValuePanel.tsx - 企業級應用風格版
+// AdvancedMissingValuePanel.tsx - 優化版本
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback, memo, useTransition } from "react";
+import { useAuth } from "@clerk/nextjs";
 import { Info, AlertTriangle, PlayCircle } from "lucide-react";
+import dynamic from 'next/dynamic';
 import ActionButton2 from "@/components/ui/custom/ActionButton2";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -15,12 +17,14 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { MissingFillStrategy, SelfDefinedMissingFillRequest } from "@/features/step2/types/schemas";
 import { post } from "@/lib/apiClient";
 import { useAnalysisStore, type DataRow, type ColumnInfo } from "@/stores/analysisStore";
 import { createError, ErrorCode, ErrorContext, isAppError, extractErrorMessage } from "@/utils/error";
 import { reportError } from "@/lib/reportError";
 
+// 定義介面
 interface MissingColumnInfo {
     column: string;
     missingCount: number;
@@ -74,7 +78,9 @@ interface StandardResponseWithFillData {
     processing_details?: Array<Record<string, unknown>>;
 }
 
-export default function AdvancedMissingValuePanel() {
+// 使用 memo 優化元件
+const AdvancedMissingValuePanel = memo(function AdvancedMissingValuePanel() {
+    const { getToken } = useAuth();
     const { 
         parsedData, 
         processedData,
@@ -91,8 +97,9 @@ export default function AdvancedMissingValuePanel() {
 
     const [missingColumns, setMissingColumns] = useState<MissingColumnInfo[]>([]);
     const [isProcessing, setIsProcessing] = useState(false);
+    const [isPending, startTransition] = useTransition();
 
-    // 計算遺漏值資訊 - 使用 activeData 來即時反映處理後的狀態
+    // 計算遺漏值資訊 - 使用 useMemo 優化
     const calculateMissingInfo = useMemo(() => {
         const activeData = getActiveData();
         if (!activeData || activeData.length === 0) return [];
@@ -112,7 +119,6 @@ export default function AdvancedMissingValuePanel() {
             });
 
             if (missingCount > 0) {
-                // 判斷資料型別
                 let dataType = "unknown";
                 const columnInfo = columnTypes.find((c: ColumnInfo) => c.column === col);
                 if (columnInfo) {
@@ -141,20 +147,24 @@ export default function AdvancedMissingValuePanel() {
     }, [getActiveData, columnTypes, catVars, contVars]);
 
     useEffect(() => {
-        setMissingColumns(calculateMissingInfo);
+        startTransition(() => {
+            setMissingColumns(calculateMissingInfo);
+        });
     }, [calculateMissingInfo]);
 
-    // 更新策略
-    const handleStrategyChange = (column: string, strategy: string) => {
-        setMissingColumns(prev => 
-            prev.map(col => 
-                col.column === column ? { ...col, selectedStrategy: strategy } : col
-            )
-        );
-    };
+    // 更新策略 - 使用 useCallback
+    const handleStrategyChange = useCallback((column: string, strategy: string) => {
+        startTransition(() => {
+            setMissingColumns(prev => 
+                prev.map(col => 
+                    col.column === column ? { ...col, selectedStrategy: strategy } : col
+                )
+            );
+        });
+    }, []);
 
-    // 執行遺漏值填補
-    const handleApplyFill = async () => {
+    // 執行遺漏值填補 - 優化版本
+    const handleApplyFill = useCallback(async () => {
         if (missingColumns.length === 0) {
             addError("沒有需要處理的遺漏值");
             return;
@@ -165,6 +175,16 @@ export default function AdvancedMissingValuePanel() {
         clearErrors();
 
         try {
+            const token = await getToken();
+            if (!token) {
+                throw createError(
+                    ErrorCode.AUTH_TOKEN_MISSING,
+                    ErrorContext.ANALYSIS,
+                    undefined,
+                    { customMessage: "請重新登入" }
+                );
+            }
+
             const strategies: MissingFillStrategy[] = missingColumns.map(col => ({
                 column: col.column,
                 method: col.selectedStrategy as MissingFillStrategy["method"],
@@ -173,7 +193,6 @@ export default function AdvancedMissingValuePanel() {
                             col.dataType === "date" ? "日期變項" : "不明"
             }));
 
-            // 使用 activeData 作為基礎資料
             const activeData = getActiveData();
             const request: SelfDefinedMissingFillRequest = {
                 data: activeData,
@@ -189,33 +208,34 @@ export default function AdvancedMissingValuePanel() {
                 endpoint,
                 request,
                 {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
                     context: ErrorContext.ANALYSIS,
                     correlationId: crypto.randomUUID()
                 }
             );
 
             if (response.success && response.filled_data) {
-                // 更新 processedData
-                setProcessedData(response.filled_data);
-                
-                // 更新處理記錄
-                const processingLog = {
-                    missingFilled: true,
-                    fillMethod: 'custom',
-                    fillTimestamp: Date.now(),
-                    affectedColumns: strategies.map(s => s.column),
-                    fillSummary: strategies.map(s => ({
-                        column: s.column,
-                        before_pct: missingColumns.find(c => c.column === s.column)?.missingPercentage.toFixed(1) + '%' || '0%',
-                        after_pct: '0%',
-                        fill_method: s.method
-                    }))
-                };
-                
-                updateProcessingLog(processingLog);
-                
-                // 清空遺漏值列表（因為已經填補完成）
-                setMissingColumns([]);
+                startTransition(() => {
+                    setProcessedData(response.filled_data ?? null);
+                    
+                    const processingLog = {
+                        missingFilled: true,
+                        fillMethod: 'custom',
+                        fillTimestamp: Date.now(),
+                        affectedColumns: strategies.map(s => s.column),
+                        fillSummary: strategies.map(s => ({
+                            column: s.column,
+                            before_pct: missingColumns.find(c => c.column === s.column)?.missingPercentage.toFixed(1) + '%' || '0%',
+                            after_pct: '0%',
+                            fill_method: s.method
+                        }))
+                    };
+                    
+                    updateProcessingLog(processingLog);
+                    setMissingColumns([]);
+                });
                 
                 if (response.summary) {
                     console.log("處理摘要:", response.summary);
@@ -248,14 +268,15 @@ export default function AdvancedMissingValuePanel() {
             setIsProcessing(false);
             setIsLoading(false);
         }
-    };
+    }, [missingColumns, getActiveData, contVars, catVars, getToken, 
+        setProcessedData, updateProcessingLog, setIsLoading, addError, clearErrors]);
 
     // 取得嚴重程度標籤
-    const getSeverityInfo = (percentage: number) => {
+    const getSeverityInfo = useCallback((percentage: number) => {
         if (percentage < 5) return { label: "低", color: "text-green-600" };
         if (percentage < 15) return { label: "中", color: "text-amber-600" };
         return { label: "高", color: "text-red-600" };
-    };
+    }, []);
 
     // 計算統計摘要
     const summary = useMemo(() => {
@@ -329,7 +350,7 @@ export default function AdvancedMissingValuePanel() {
 
                         <ScrollArea className="h-[320px] pr-2">
                             <div className="space-y-3">
-                                {missingColumns.map((col, index) => (
+                                {missingColumns.map((col) => (
                                     <div 
                                         key={col.column} 
                                         className="group bg-white border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow"
@@ -381,6 +402,7 @@ export default function AdvancedMissingValuePanel() {
                                                 <Select
                                                     value={col.selectedStrategy}
                                                     onValueChange={(value) => handleStrategyChange(col.column, value)}
+                                                    disabled={isPending}
                                                 >
                                                     <SelectTrigger className="w-40 h-8 text-xs">
                                                         <SelectValue />
@@ -413,7 +435,7 @@ export default function AdvancedMissingValuePanel() {
                                 <ActionButton2
                                     text="執行處理"
                                     onClick={handleApplyFill}
-                                    disabled={isProcessing}
+                                    disabled={isProcessing || isPending}
                                     loading={isProcessing}
                                     icon={PlayCircle}
                                     className="!h-[36px] !text-[14px] !tracking-[2px] !px-6"
@@ -425,4 +447,6 @@ export default function AdvancedMissingValuePanel() {
             </CardContent>
         </Card>
     );
-}
+});
+
+export default AdvancedMissingValuePanel;

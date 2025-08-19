@@ -1,27 +1,38 @@
-// step2/components/BoxplotChart.tsx
+// BoxplotChart.tsx - 優化版本
 "use client";
 
+import { memo, useMemo } from 'react';
 import dynamic from 'next/dynamic';
-
 import { BoxplotStatistics, ChartSeries, PLOT_COLORS } from '@/features/step2/types/types';
-
 import type { ApexOptions } from 'apexcharts';
 
-const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
+const Chart = dynamic(() => import('react-apexcharts'), { 
+    ssr: false,
+    loading: () => <div className="h-[350px] bg-gray-50 animate-pulse rounded-lg" />
+});
 
 interface BoxplotChartProps {
     statistics: BoxplotStatistics;
     selectedVariable: string;
 }
 
-export default function BoxplotChart({ statistics, selectedVariable }: BoxplotChartProps) {
+const BoxplotChart = memo(function BoxplotChart({ statistics, selectedVariable }: BoxplotChartProps) {
     const stats = statistics;
 
-    // ApexCharts 箱型圖配置
-    const options: ApexOptions = {
+    // 使用 useMemo 優化配置計算
+    const options: ApexOptions = useMemo(() => ({
         chart: {
             type: 'boxPlot',
             height: 350,
+            animations: {
+                enabled: true,
+                easing: 'easeinout',
+                speed: 400,
+                animateGradually: {
+                    enabled: true,
+                    delay: 150
+                }
+            },
             toolbar: {
                 show: true,
                 tools: {
@@ -104,7 +115,7 @@ export default function BoxplotChart({ statistics, selectedVariable }: BoxplotCh
         tooltip: {
             shared: false,
             intersect: true,
-            custom: function ({ seriesIndex, dataPointIndex, w }: any) {
+            custom: function ({ seriesIndex }: any) {
                 if (seriesIndex === 0) {
                     return `
                         <div class="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
@@ -120,37 +131,36 @@ export default function BoxplotChart({ statistics, selectedVariable }: BoxplotCh
                         </div>
                     `;
                 }
-                return `
-                    <div class="bg-white px-3 py-2 border border-gray-200 rounded shadow-sm">
-                        <span class="text-xs text-gray-600">離群值: </span>
-                        <span class="text-xs font-semibold">${w.config.series[seriesIndex].data[dataPointIndex].y.toFixed(2)}</span>
-                    </div>
-                `;
+                return '';
             }
         }
-    };
+    }), [selectedVariable, stats]);
 
     // 準備箱型圖數據
-    const series: ChartSeries[] = [{
-        name: selectedVariable,
-        type: 'boxPlot',
-        data: [{
-            x: selectedVariable,
-            y: [stats.min, stats.q1, stats.median, stats.q3, stats.max]
-        }]
-    }];
-
-    // 如果有離群值，添加散點圖
-    if (stats.outliers.length > 0) {
-        series.push({
-            name: '離群值',
-            type: 'scatter',
-            data: stats.outliers.slice(0, 50).map(val => ({
+    const series: ChartSeries[] = useMemo(() => {
+        const boxPlotSeries: ChartSeries[] = [{
+            name: selectedVariable,
+            type: 'boxPlot',
+            data: [{
                 x: selectedVariable,
-                y: val
-            }))
-        });
-    }
+                y: [stats.min, stats.q1, stats.median, stats.q3, stats.max]
+            }]
+        }];
+
+        // 如果有離群值，添加散點圖（限制最多50個點以優化性能）
+        if (stats.outliers.length > 0) {
+            boxPlotSeries.push({
+                name: '離群值',
+                type: 'scatter',
+                data: stats.outliers.slice(0, 50).map(val => ({
+                    x: selectedVariable,
+                    y: val
+                }))
+            });
+        }
+
+        return boxPlotSeries;
+    }, [selectedVariable, stats]);
 
     return (
         <>
@@ -187,4 +197,6 @@ export default function BoxplotChart({ statistics, selectedVariable }: BoxplotCh
             </div>
         </>
     );
-}
+});
+
+export default BoxplotChart;

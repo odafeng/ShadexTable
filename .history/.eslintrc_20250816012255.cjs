@@ -1,6 +1,5 @@
 module.exports = {
   root: true,
-  ignorePatterns: ["**/.history/**"], //無視.history資料夾
   parser: '@typescript-eslint/parser',
   extends: [
     'next/core-web-vitals',

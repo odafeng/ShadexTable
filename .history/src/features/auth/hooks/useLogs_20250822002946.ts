@@ -116,7 +116,7 @@ export function useLogs(options: UseLogsOptions = {}): UseLogsReturn {
   // SWR 配置
   const shouldFetch = enabled && isLoaded && isSignedIn;
   const queryKey = shouldFetch 
-    ? `/api/account/user/me/logs?page=${page}&pageSize=${pageSize}` 
+    ? `api/account/user/me/logs?page=${page}&pageSize=${pageSize}` 
     : null;
 
   const { data, error, isLoading, mutate } = useSWR<LogsResponse>(

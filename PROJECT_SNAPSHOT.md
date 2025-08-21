@@ -12,8 +12,7 @@ The following tree lists the files and folders in this repository.  Build artefa
 
 ```
 - shadytable-frontend/
-  - README.md
-  - README_SINGLE_FILE.md
+  - PROJECT_SNAPSHOT.md
   - TypeScript
   - clerk.lock
   - components.json
@@ -23,6 +22,7 @@ The following tree lists the files and folders in this repository.  Build artefa
   - next.config.ts
   - package-lock.json
   - package.json
+  - playwright.config.ts
   - postcss.config.js
   - postcss.config.mjs
   - sentry.edge.config.ts
@@ -32,6 +32,11 @@ The following tree lists the files and folders in this repository.  Build artefa
   - tsconfig.tsbuildinfo
   - verify.mjs
   - vitest.config.ts
+  - .history/
+    - src/
+      - features/
+        - step3/
+          - hooks/
   - .husky/
     - pre-commit
     - pre-push
@@ -86,6 +91,8 @@ The following tree lists the files and folders in this repository.  Build artefa
       - about_img_3.png
       - about_img_3@2x.png
     - alert/
+      - check_icon_dark.png
+      - check_icon_white.png
       - close_icon.png
       - close_icon@2x.png
       - close_icon_dark.png
@@ -94,6 +101,7 @@ The following tree lists the files and folders in this repository.  Build artefa
       - copy_white.png
       - exclamation_icon.png
       - exclamation_icon@2x.png
+      - success_icon@2x.png
     - features/
       - ai-summary.gif
       - ai-summary.mp4
@@ -292,6 +300,7 @@ The following tree lists the files and folders in this repository.  Build artefa
         - accordion.tsx
         - alert-dialog.tsx
         - alert.tsx
+        - badge.tsx
         - button.tsx
         - card.tsx
         - checkbox.tsx
@@ -327,8 +336,9 @@ The following tree lists the files and folders in this repository.  Build artefa
           - GroupSelect.tsx
           - InlineNotice.tsx
           - LightButton.tsx
-          - MultiSelect.tsx
+          - SuccessDialog.tsx
           - ToggleSwitch.tsx
+          - multiselect.tsx
     - context/
       - PointsContext.tsx
     - features/
@@ -373,43 +383,75 @@ The following tree lists the files and folders in this repository.  Build artefa
           - ErrorDisplay.tsx
           - FileUploadArea.tsx
         - hooks/
+          - useAnalysisTrigger.test.ts
           - useAnalysisTrigger.ts
+          - useAutoAnalysis.test.ts
           - useAutoAnalysis.ts
+          - useColumnAnalysis.test.ts
           - useColumnAnalysis.ts
+          - useFileValidation.test.ts
           - useFileValidation.ts
+          - usePrivacyDetection.test.ts
           - usePrivacyDetection.ts
+          - useStep1Logic.test.ts
           - useStep1Logic.ts
+          - useTableAnalysis.test.ts
           - useTableAnalysis.ts
         - pages/
           - Step1Page.tsx
         - services/
+          - autoAnalysisService.test.ts
           - autoAnalysisService.ts
-          - columnAnalysisService.ts
+          - fileAnalysisService.test.ts
           - fileAnalysisService.ts
+          - sensitiveDataDetector.test.ts
           - sensitiveDataDetector.ts
+          - tableAnalysisService.test.ts
           - tableAnalysisService.ts
         - types/
+          - test-schemas.ts
+        - __test__/
+          - AutoMode.integration.test.tsx
+          - FileUpload.integration.test.tsx
+          - test-helpers.ts
       - step2/
         - components/
+          - AdvancedMissingValuePanel.tsx
+          - BarplotChart.tsx
+          - BoxplotChart.tsx
+          - DateVariablePlaceholder.tsx
+          - VariableVisualizationPanel.tsx
         - hooks/
         - pages/
           - Step2Page.tsx
         - services/
         - types/
+          - schemas.ts
+          - types.ts
+        - __test__/
+          - AdvancedMissingValue.integration.test.tsx
+          - VariableVisualization.integration.test.tsx
       - step3/
         - types.ts
         - components/
+          - DnDTableWrapper.tsx
           - ResultsTabs.tsx
           - SortableRow.tsx
         - hooks/
+          - useAiSummary.test.ts
           - useAiSummary.ts
+          - useExport.test.ts
           - useExport.ts
+          - useTableEdit.test.ts
           - useTableEdit.ts
         - pages/
           - Step3Page.tsx
         - services/
+          - aiSummaryService.test.ts
           - aiSummaryService.ts
+          - dataTransformService.test.ts
           - dataTransformService.ts
+          - exportService.test.ts
           - exportService.ts
     - lib/
       - apiClient.test.ts
@@ -420,6 +462,7 @@ The following tree lists the files and folders in this repository.  Build artefa
       - reportError.ts
       - utils.ts
     - schemas/
+      - apiContracts.ts
       - backend.ts
       - primitives.ts
     - stores/
@@ -428,13 +471,23 @@ The following tree lists the files and folders in this repository.  Build artefa
       - analysisStore.test.ts
       - analysisStore.ts
     - tests/
+      - auth.global.setup.ts
+      - request.ts
       - setup.ts
+      - api/
+        - missing_fill.test.ts
+        - table_analyze.test.ts
+      - fixtures/
+        - Shady_test.csv
+      - scripts/
+        - diagnose-api.ts
     - types/
       - errors.ts
       - window.d.ts
     - utils/
       - error.test.ts
       - error.ts
+      - errorMatchers.ts
       - fileProcessor.test.ts
       - fileProcessor.ts
 ```
@@ -467,7 +520,10 @@ The following tree lists the files and folders in this repository.  Build artefa
 - @supabase/supabase-js@^2.50.5
 - @tanstack/react-query@^5.84.2
 - @tanstack/react-query-devtools@^5.84.2
+- add@^2.0.6
 - antd@^5.26.7
+- apexcharts@^5.3.3
+- badge@^1.0.3
 - class-variance-authority@^0.7.1
 - cloudinary@^2.7.0
 - clsx@^2.1.1
@@ -483,10 +539,16 @@ The following tree lists the files and folders in this repository.  Build artefa
 - lucide-react@^0.525.0
 - next@15.3.4
 - next-themes@^0.4.6
+- plotly@^1.0.6
+- plotly.js-dist-min@^3.1.0
 - react@^19.0.0
+- react-apexcharts@^1.7.0
 - react-dom@^19.0.0
+- react-intersection-observer@^9.16.0
 - react-tooltip@^5.29.1
+- recharts@^3.1.2
 - resend@^4.6.0
+- shadcn@^2.10.0
 - skeleton@^1.0.0
 - sonner@^2.0.6
 - sortable@^2.0.0
@@ -499,22 +561,35 @@ The following tree lists the files and folders in this repository.  Build artefa
 
 ### Development dependencies (package.json)
 - @eslint/eslintrc@^3
+- @playwright/test@^1.54.2
 - @tailwindcss/postcss@^4.1.11
+- @testing-library/jest-dom@^6.7.0
 - @testing-library/react@^16.3.0
+- @testing-library/user-event@^14.6.1
 - @types/antd@^0.12.32
 - @types/dompurify@^3.0.5
 - @types/file-saver@^2.0.7
 - @types/node@^20
+- @types/papaparse@^5.3.16
+- @types/plotly.js@^3.0.3
+- @types/plotly.js-dist-min@^2.3.4
 - @types/react@^19.1.8
 - @types/react-dom@^19
+- @typescript-eslint/eslint-plugin@^8.39.1
+- @typescript-eslint/parser@^8.39.1
+- @vitejs/plugin-react@^5.0.0
 - @vitest/ui@^3.2.4
 - autoprefixer@^10.4.21
 - cross-env@^7.0.3
-- eslint@^9
+- eslint@^9.33.0
 - eslint-config-next@15.3.4
+- eslint-plugin-import@^2.32.0
+- eslint-plugin-unused-imports@^4.1.4
 - happy-dom@^18.0.1
 - husky@^9.1.7
+- jsdom@^26.1.0
 - lint-staged@^16.1.5
+- papaparse@^5.5.3
 - postcss@^8.5.6
 - tailwindcss@^4.1.11
 - tw-animate-css@^1.3.4

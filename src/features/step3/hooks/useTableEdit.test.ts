@@ -531,11 +531,13 @@ describe('useTableEdit', () => {
     });
 
     it('應該處理 formatVariableName 返回空字串的情況', () => {
-      vi.mocked(formatVariableName).mockImplementation((name: string) => {
-        if (!name) return '';
-        if (name === 'special_case') return '';
-        return name;
-      });
+    vi.mocked(formatVariableName).mockImplementationOnce((name: string) => {
+      if (!name) return '';
+      if (name === 'special_case') return '';
+      return name;
+    }).mockImplementationOnce((name: string) => {
+      return name === 'normal' ? 'normal' : '';
+    });
 
       const rowsWithSpecialCase: TableRow[] = [
         createMockRow('special_case', '10', null, '0.05'),

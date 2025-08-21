@@ -72,23 +72,3 @@ export async function post<TReq = unknown, TRes = unknown>(
     ...rest,
   } as ExtendedRequestInit);
 }
-
-export async function get<TRes = unknown>(
-  url: string,
-  options: ExtendedRequestInit = {}
-): Promise<TRes> {
-  const { headers, ...rest } = options;
-  
-  // 組合完整 URL
-  const fullUrl = url.startsWith('http') 
-    ? url 
-    : `${process.env.NEXT_PUBLIC_API_URL}${url}`;
-    
-  return apiClient<TRes>(fullUrl, {
-    method: "GET",
-    headers: {
-      ...headers,
-    },
-    ...rest,
-  } as ExtendedRequestInit);
-}

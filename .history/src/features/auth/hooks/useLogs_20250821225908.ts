@@ -5,7 +5,6 @@ import { get } from "@/lib/apiClient";
 import { LogsResponseSchema, type LogsResponse, type UsageLog } from "@/schemas/logs";
 import { createError, ErrorCode, ErrorContext, isAppError } from "@/utils/error";
 import { reportError } from "@/lib/reportError";
-import { Json } from "@/schemas/primitives";
 
 interface UseLogsOptions {
   page?: number;
@@ -69,7 +68,7 @@ export function useLogs(options: UseLogsOptions = {}): UseLogsReturn {
             customMessage: "分析紀錄格式錯誤",
             details: { 
               zodError: parsed.error.flatten(),
-              rawResponse: response as Json,
+              rawResponse: response,
             },
           }
         );
@@ -116,7 +115,7 @@ export function useLogs(options: UseLogsOptions = {}): UseLogsReturn {
   // SWR 配置
   const shouldFetch = enabled && isLoaded && isSignedIn;
   const queryKey = shouldFetch 
-    ? `/api/account/user/me/logs?page=${page}&pageSize=${pageSize}` 
+    ? `/user/me/logs?page=${page}&pageSize=${pageSize}` 
     : null;
 
   const { data, error, isLoading, mutate } = useSWR<LogsResponse>(

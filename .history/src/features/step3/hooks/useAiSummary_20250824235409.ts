@@ -35,12 +35,6 @@ export function useAISummary() {
         throw new Error("Authentication token missing");
       }
 
-      if (!correlation_id) {
-                console.warn('⚠️ No correlation_id in AI summary, continuing without it');
-            } else {
-                console.log('📊 Using correlation_id for AI summary:', correlation_id);
-            }
-
       const coreData = createCoreSummaryData(filteredRows, exportColumns);
       
       // 傳送 correlation_id 給 API

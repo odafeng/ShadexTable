@@ -1,5 +1,4 @@
 import { useAuth } from "@clerk/nextjs";
-import { useShallow } from 'zustand/shallow';
 import { prepareExportData, isCategorySubItem } from "@/features/step3/services/dataTransformService";
 import { exportToExcel, exportToWord } from "@/features/step3/services/exportService";
 import type { TableRow, GroupCounts, BinaryMapping, CellValue } from "@/features/step3/types";
@@ -7,7 +6,6 @@ import { reportError } from "@/lib/reportError";
 import { createErrorHandler, isAppError, extractErrorMessage } from "@/utils/error";
 import type { AppError } from "@/types/errors";
 import { ErrorSeverity } from "@/types/errors";
-import { useAnalysisStore } from "@/stores/analysisStore";
 
 interface UseExportParams {
   sortedRows: TableRow[];
@@ -16,6 +14,10 @@ interface UseExportParams {
   binaryMappings: Record<string, BinaryMapping>;
   groupCounts: GroupCounts;
   groupVar?: string;
+  // 新增參數以支援關聯 ID 和檔案資訊
+  correlationId?: string;
+  fileName?: string;
+  fileSize?: number;
 }
 
 interface ExportRow extends Record<string, CellValue> {
@@ -36,22 +38,12 @@ export function useExport({
   groupLabels,
   binaryMappings,
   groupCounts,
-  groupVar
+  groupVar,
+  correlationId,
+  fileName,
+  fileSize
 }: UseExportParams) {
   const { getToken } = useAuth();
-  
-
-  const storeData = useAnalysisStore(
-    useShallow((state) => ({
-      correlation_id: state.correlation_id,
-      fileName: state.fileName,
-      fileSize: state.fileSize
-    }))
-  );
-
-  const { correlation_id, fileName, fileSize } = storeData;
-
-
   
   // 創建統一的錯誤處理器
   const handleError = createErrorHandler(
@@ -124,14 +116,7 @@ export function useExport({
    * 處理 Word 匯出
    */
   const handleExportToWord = async (): Promise<ExportResult> => {
-    try { 
-      // 檢查 correlation_id
-      if (!correlation_id) {
-        console.warn("⚠️ No correlation_id found in store");
-      } else {
-        console.log("📌 Using correlation_id from store:", correlation_id);
-      }
-      
+    try {
       // 取得認證 token
       const token = await getToken();
       
@@ -177,25 +162,18 @@ export function useExport({
           return acc;
         }, {} as Record<string, number>),
         groupLabels,
-        // 使用從 store 取得的資料
+        // 新增這些欄位以支援後端 UsageLog
         fileName: fileName || "table_export.docx",
-        fileSize: fileSize || undefined,
-        correlationId: correlation_id || undefined  // 明確傳遞 correlation_id
+        fileSize: fileSize,
+        correlationId: correlationId
       };
-
-      console.log("📤 Sending export request with:", {
-        fileName: exportData.fileName,
-        fileSize: exportData.fileSize,
-        correlationId: exportData.correlationId,
-        rowCount: exportData.resultTable.length
-      });
 
       // 執行匯出
       const result = await exportToWord(
         exportData, 
-        "Table1.docx", 
+        "ai-analysis-summary.docx", 
         token || undefined,
-        correlation_id || undefined  // 傳遞 correlation_id
+        correlationId
       );
       
       // 成功訊息
@@ -233,5 +211,59 @@ export function useExport({
     canExport,
     handleExportToExcel,
     handleExportToWord
+  };
+}
+
+// ===== 3. 可選：匯出歷史管理 Hook =====
+// features/step3/hooks/useExportHistory.ts
+
+interface ExportHistoryItem {
+  timestamp: string;
+  fileName: string;
+  storageUrl?: string;
+  storageKey?: string;
+  expiresAt?: string;
+  correlationId?: string;
+  logId?: string;
+}
+
+export function useExportHistory() {
+  const getExportHistory = (): ExportHistoryItem[] => {
+    if (typeof window === 'undefined') return [];
+    
+    try {
+      const history = localStorage.getItem('wordExportHistory');
+      return history ? JSON.parse(history) : [];
+    } catch (error) {
+      console.warn("無法讀取匯出歷史:", error);
+      return [];
+    }
+  };
+
+  const clearExportHistory = (): void => {
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem('wordExportHistory');
+      } catch (error) {
+        console.warn("無法清除匯出歷史:", error);
+      }
+    }
+  };
+
+  const getLatestExport = (): ExportHistoryItem | null => {
+    const history = getExportHistory();
+    return history.length > 0 ? history[history.length - 1] : null;
+  };
+
+  const getExportByCorrelationId = (correlationId: string): ExportHistoryItem | null => {
+    const history = getExportHistory();
+    return history.find(item => item.correlationId === correlationId) || null;
+  };
+
+  return {
+    getExportHistory,
+    clearExportHistory,
+    getLatestExport,
+    getExportByCorrelationId
   };
 }

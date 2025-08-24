@@ -1,5 +1,4 @@
 import { useAuth } from "@clerk/nextjs";
-import { useShallow } from 'zustand/shallow';
 import { prepareExportData, isCategorySubItem } from "@/features/step3/services/dataTransformService";
 import { exportToExcel, exportToWord } from "@/features/step3/services/exportService";
 import type { TableRow, GroupCounts, BinaryMapping, CellValue } from "@/features/step3/types";
@@ -40,18 +39,12 @@ export function useExport({
 }: UseExportParams) {
   const { getToken } = useAuth();
   
-
-  const storeData = useAnalysisStore(
-    useShallow((state) => ({
-      correlation_id: state.correlation_id,
-      fileName: state.fileName,
-      fileSize: state.fileSize
-    }))
-  );
-
-  const { correlation_id, fileName, fileSize } = storeData;
-
-
+  // 修正：使用單一的 selector 來避免多次訂閱
+  const { correlation_id, fileName, fileSize } = useAnalysisStore(state => ({
+    correlation_id: state.correlation_id,
+    fileName: state.fileName,
+    fileSize: state.fileSize
+  }));
   
   // 創建統一的錯誤處理器
   const handleError = createErrorHandler(
@@ -124,7 +117,7 @@ export function useExport({
    * 處理 Word 匯出
    */
   const handleExportToWord = async (): Promise<ExportResult> => {
-    try { 
+    try {
       // 檢查 correlation_id
       if (!correlation_id) {
         console.warn("⚠️ No correlation_id found in store");
@@ -193,7 +186,7 @@ export function useExport({
       // 執行匯出
       const result = await exportToWord(
         exportData, 
-        "Table1.docx", 
+        "ai-analysis-summary.docx", 
         token || undefined,
         correlation_id || undefined  // 傳遞 correlation_id
       );

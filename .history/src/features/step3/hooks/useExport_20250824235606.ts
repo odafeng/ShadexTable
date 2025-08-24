@@ -40,7 +40,8 @@ export function useExport({
 }: UseExportParams) {
   const { getToken } = useAuth();
   
-
+  // 使用 useShallow 確保只在實際值改變時才重新渲染
+  // 這樣可以避免因為物件引用改變而造成的重新渲染
   const storeData = useAnalysisStore(
     useShallow((state) => ({
       correlation_id: state.correlation_id,
@@ -48,10 +49,6 @@ export function useExport({
       fileSize: state.fileSize
     }))
   );
-
-  const { correlation_id, fileName, fileSize } = storeData;
-
-
   
   // 創建統一的錯誤處理器
   const handleError = createErrorHandler(
@@ -124,7 +121,10 @@ export function useExport({
    * 處理 Word 匯出
    */
   const handleExportToWord = async (): Promise<ExportResult> => {
-    try { 
+    try {
+      // 從 storeData 解構，避免在函數內重複訪問
+      const { correlation_id, fileName, fileSize } = storeData;
+      
       // 檢查 correlation_id
       if (!correlation_id) {
         console.warn("⚠️ No correlation_id found in store");
@@ -193,7 +193,7 @@ export function useExport({
       // 執行匯出
       const result = await exportToWord(
         exportData, 
-        "Table1.docx", 
+        "ai-analysis-summary.docx", 
         token || undefined,
         correlation_id || undefined  // 傳遞 correlation_id
       );

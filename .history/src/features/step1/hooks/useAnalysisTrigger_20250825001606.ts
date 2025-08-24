@@ -129,14 +129,12 @@ export function useAnalysisTrigger(): UseAnalysisTriggerReturn {
      * 處理手動分析模式
      */
     const handleManualAnalyze = useCallback(async (file: File) => {
-        const correlation_id = generateAndSetCorrelationId();
-        console.log('📝 手動分析模式，correlation_id:', correlation_id);
         setFile(file);
         setAutoAnalysisResult(null);
         // 給一點時間讓 UI 更新
         await new Promise(resolve => setTimeout(resolve, 1000));
         router.push("/step2");
-    }, [setFile, setAutoAnalysisResult, generateAndSetCorrelationId, router]);
+    }, [setFile, setAutoAnalysisResult, router]);
 
     /**
      * 填補遺漏值
@@ -441,7 +439,6 @@ export function useAnalysisTrigger(): UseAnalysisTriggerReturn {
                     correlation_id: correlation_id
                 }
             );
-            
 
             if (tableResponse && tableResponse.success && tableResponse.data) {
                 console.log('✅ 表格分析完成');
@@ -497,7 +494,6 @@ export function useAnalysisTrigger(): UseAnalysisTriggerReturn {
         setProcessedData,
         fillMissingValues,
         calculateMissingPercentage,
-        generateAndSetCorrelationId,
         router
     ]);
 

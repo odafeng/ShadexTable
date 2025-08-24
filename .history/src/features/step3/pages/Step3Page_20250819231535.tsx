@@ -1,7 +1,7 @@
 // app/step3/page.tsx
 "use client";
 
-import { useEffect, useMemo, Suspense } from "react";
+import { useEffect, useMemo, lazy, Suspense } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 
@@ -92,50 +92,14 @@ export default function Step3Summary() {
   // Hooks - 只在需要時初始化
   const tableEditState = useTableEdit(filteredRows, groupCounts);
   const aiSummaryState = useAISummary();
-  
-  // 使用 useMemo 穩定 useExport 的參數，避免無限循環
-  const exportParams = useMemo(() => ({
+  const exportState = useExport({
     sortedRows: tableEditState.sortedRows,
     displayNames: tableEditState.displayNames,
     groupLabels: tableEditState.groupLabels,
     binaryMappings: tableEditState.binaryMappings,
     groupCounts,
     groupVar: groupVar || undefined
-  }), [
-    tableEditState.sortedRows,
-    tableEditState.displayNames,
-    tableEditState.groupLabels,
-    tableEditState.binaryMappings,
-    groupCounts,
-    groupVar
-  ]);
-  
-  const exportState = useExport(exportParams);
-
-  // 準備欄位 - 使用 useMemo 避免重複計算
-  const { columns, exportColumns } = useMemo(() => {
-    if (!resultTable || resultTable.length === 0) {
-      return { columns: [], exportColumns: [] };
-    }
-    
-    const baseCols = ["Variable", "P", "Method", "Missing", "Normal"];
-    const groupKeys = Object.keys(resultTable[0] || {}).filter(
-      (k: string) => !baseCols.includes(k)
-    );
-    
-    return {
-      columns: ["Variable", ...groupKeys, "Normal", "P", "Method", "Missing"],
-      exportColumns: ["Variable", ...groupKeys, "P", "Method"]
-    };
-  }, [resultTable]);
-
-  // AI Summary handler wrapper - 使用 useMemo 避免重複創建
-  const handleGenerateAIResult = useMemo(
-    () => () => {
-      aiSummaryState.handleGenerateAIResult(tableEditState.sortedRows, exportColumns);
-    },
-    [aiSummaryState, tableEditState.sortedRows, exportColumns]
-  );
+  });
 
   // Loading state
   if (!resultTable || resultTable.length === 0) {
@@ -148,6 +112,19 @@ export default function Step3Summary() {
       </div>
     );
   }
+
+  // 準備欄位
+  const baseCols = ["Variable", "P", "Method", "Missing", "Normal"];
+  const groupKeys = Object.keys(resultTable[0] || {}).filter(
+    (k: string) => !baseCols.includes(k)
+  );
+  const columns = ["Variable", ...groupKeys, "Normal", "P", "Method", "Missing"];
+  const exportColumns = ["Variable", ...groupKeys, "P", "Method"];
+
+  // AI Summary handler wrapper
+  const handleGenerateAIResult = () => {
+    aiSummaryState.handleGenerateAIResult(tableEditState.sortedRows, exportColumns);
+  };
 
   return (
     <div className="bg-white">
@@ -183,7 +160,7 @@ export default function Step3Summary() {
           </Suspense>
         </div>
       </div>
-        <Footer />
-      </div>
-    );
-  }
+      <Footer />
+    </div>
+  );
+}

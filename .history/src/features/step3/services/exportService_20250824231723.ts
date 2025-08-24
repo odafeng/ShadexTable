@@ -1,5 +1,6 @@
 import { saveAs } from "file-saver";
 import * as XLSX from "xlsx";
+import { post } from "@/lib/apiClient";
 import type { ExportData, TableRow } from "@/features/step3/types";
 import { ErrorContext, ErrorCode } from "@/utils/error";
 import { createError, isAppError, CommonErrors } from "@/utils/error";
@@ -14,7 +15,7 @@ type ExportableData = TableRow[] | Record<string, unknown>[] | Array<{
 interface ExtendedExportData extends ExportData {
   fileName?: string;
   fileSize?: number;
-  correlationId?: string;  // 確保有這個欄位
+  correlationId?: string;
 }
 
 // Word 匯出回應介面
@@ -67,10 +68,7 @@ export async function exportToWord(
   correlationId?: string
 ): Promise<WordExportResponse> {
   try {
-    // 優先使用傳入的 correlationId，然後是 exportData 中的，最後生成新的
-    const correlation_id = correlationId || exportData.correlationId || crypto.randomUUID();
-    
-    console.log("🔗 Export Word with correlation_id:", correlation_id);
+    const correlation_id = correlationId || crypto.randomUUID();
     
     // 準備請求標頭
     const headers: HeadersInit = {
@@ -82,23 +80,10 @@ export async function exportToWord(
       headers["Authorization"] = `Bearer ${token}`;
     }
     
-    // 重要：加入 correlation ID 到標頭
-    headers["X-Correlation-ID"] = correlation_id;
-    
-    // 確保 exportData 包含 correlationId
-    const requestData = {
-      ...exportData,
-      correlationId: correlation_id  // 確保在 body 中也有
-    };
-    
-    console.log("📋 Request data:", {
-      hasResultTable: !!requestData.resultTable,
-      rowCount: requestData.resultTable?.length,
-      fileName: requestData.fileName,
-      fileSize: requestData.fileSize,
-      correlationId: requestData.correlationId,
-      groupVar: requestData.groupVar
-    });
+    // 如果有 correlation ID，加入到標頭
+    if (correlation_id) {
+      headers["X-Correlation-ID"] = correlation_id;
+    }
     
     // 組合完整 URL
     const url = `${process.env.NEXT_PUBLIC_API_URL}/api/table/export-word`;
@@ -107,7 +92,7 @@ export async function exportToWord(
     const response = await fetch(url, {
       method: "POST",
       headers,
-      body: JSON.stringify(requestData),
+      body: JSON.stringify(exportData),
     });
 
     if (!response.ok) {
@@ -207,7 +192,6 @@ export async function exportToWord(
       console.log("🔗 永久連結:", storageUrl);
       console.log("📅 連結有效至:", storageExpires);
       console.log("🆔 Log ID:", logId);
-      console.log("🔑 Correlation ID:", correlation_id);
       
       // 儲存到 localStorage
       if (typeof window !== 'undefined') {
@@ -221,7 +205,7 @@ export async function exportToWord(
             storageUrl,
             storageKey,
             expiresAt: storageExpires,
-            correlationId: correlation_id,  // 儲存 correlation_id
+            correlationId: correlation_id,
             logId
           });
           
@@ -262,8 +246,6 @@ export async function exportToWord(
 
     // 下載檔案
     saveAs(blob, filename);
-    
-    console.log(`✅ Word export completed with correlation_id: ${correlation_id}`);
     
     // 返回 Storage 資訊供調用者使用
     return {

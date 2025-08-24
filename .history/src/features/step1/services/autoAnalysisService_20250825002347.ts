@@ -58,7 +58,6 @@ export class AutoAnalysisService {
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
-                        'X-Correlation-ID': correlation_id
                     },
                     context: ErrorContext.ANALYSIS,
                     correlation_id,

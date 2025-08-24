@@ -183,7 +183,7 @@ export default function Step3Summary() {
           </Suspense>
         </div>
       </div>
-        <Footer />
-      </div>
-    );
-  }
+      <Footer />
+    </div>
+  );
+}

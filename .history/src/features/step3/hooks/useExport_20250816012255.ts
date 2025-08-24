@@ -1,4 +1,3 @@
-import { useAuth } from "@clerk/nextjs";
 import { prepareExportData, isCategorySubItem } from "@/features/step3/services/dataTransformService";
 import { exportToExcel, exportToWord } from "@/features/step3/services/exportService";
 import type { TableRow, GroupCounts, BinaryMapping, CellValue } from "@/features/step3/types";
@@ -28,8 +27,6 @@ export function useExport({
   groupCounts,
   groupVar
 }: UseExportParams) {
-  const { getToken } = useAuth();  // 使用 Clerk 認證
-  
   const handleError = createErrorHandler((appError) => {
     reportError(appError);
     alert(appError.userMessage);
@@ -60,9 +57,6 @@ export function useExport({
 
   const handleExportToWord = async () => {
     try {
-      // 取得認證 token
-      const token = await getToken();
-      
       const exportData = {
         resultTable: sortedRows.map((row, idx) => {
           const cleanRow: ExportRow = {};
@@ -106,8 +100,7 @@ export function useExport({
         groupLabels
       };
 
-      // 傳遞 token 給 exportToWord
-      await exportToWord(exportData, "ai-analysis-summary.docx", token || undefined);
+      await exportToWord(exportData);
     } catch (error) {
       handleError(error, "Word export");
     }

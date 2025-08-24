@@ -65,42 +65,40 @@ export default function Hero() {
               transition={{ delay: 0.6, duration: 0.6 }}
             >
               {/* 左側按鈕 */}
-              <Link href="/samples/shadex_sample.csv" passHref>
-                <motion.button
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  onMouseEnter={() => setLeftHover(true)}
-                  onMouseLeave={() => setLeftHover(false)}
-                  className="
-      rounded-full border text-[#0F2844] bg-transparent 
-      hover:bg-[#0F2844] hover:text-white border-[#0F2844] 
-      transition-all flex items-center justify-center gap-3
-      w-[265px] h-[50px] text-[21px] 
-      md:w-[300px] md:h-[65px] md:text-[25px]
-      font-normal md:font-medium
-      leading-[34px] md:leading-[37px]
-      tracking-[1.5px] md:tracking-[2.5px]
-      font-['Noto Sans TC','思源黑體',sans-serif] cursor-pointer
-    "
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                onMouseEnter={() => setLeftHover(true)}
+                onMouseLeave={() => setLeftHover(false)}
+                className="
+    rounded-full border text-[#0F2844] bg-transparent 
+    hover:bg-[#0F2844] hover:text-white border-[#0F2844] 
+    transition-all flex items-center justify-center gap-3
+    w-[265px] h-[50px] text-[21px] 
+    md:w-[300px] md:h-[65px] md:text-[25px]
+    font-normal md:font-medium
+    leading-[34px] md:leading-[37px]
+    tracking-[1.5px] md:tracking-[2.5px]
+    font-['Noto Sans TC','思源黑體',sans-serif] cursor-pointer
+  "
+              >
+                <motion.div
+                  animate={{ rotate: leftHover ? 15 : 0 }}
+                  transition={{ type: "spring", stiffness: 300 }}
                 >
-                  <motion.div
-                    animate={{ rotate: leftHover ? 15 : 0 }}
-                    transition={{ type: "spring", stiffness: 300 }}
-                  >
-                    <Image
-                      src={
-                        leftHover
-                          ? "/landing/play_13198001@2x.png"
-                          : "/landing/video_icon@2x.png"
-                      }
-                      alt="arrow"
-                      width={24}
-                      height={24}
-                    />
-                  </motion.div>
-                  下載示範資料檔
-                </motion.button>
-                </Link>
+                  <Image
+                    src={
+                      leftHover
+                        ? "/landing/play_13198001@2x.png"
+                        : "/landing/video_icon@2x.png"
+                    }
+                    alt="arrow"
+                    width={24}
+                    height={24}
+                  />
+                </motion.div>
+                觀看示範影片
+              </motion.button>
 
 
               {/* 右側按鈕 */}

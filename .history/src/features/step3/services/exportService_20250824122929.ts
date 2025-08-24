@@ -1,7 +1,6 @@
 // app/step3/services/exportService.ts
 import { saveAs } from "file-saver";
 import * as XLSX from "xlsx";
-import { useAuth } from "@clerk/nextjs";
 
 import type { ExportData, TableRow } from "@/features/step3/types";
 import { ErrorContext, ErrorCode } from "@/utils/error";
@@ -39,24 +38,15 @@ export async function exportToExcel(
 
 export async function exportToWord(
   exportData: ExportData,
-  filename: string = "ai-analysis-summary.docx",
-  token?: string  // 添加 token 參數
+  filename: string = "ai-analysis-summary.docx"
 ): Promise<void> {
   try {
-    // 準備請求標頭
-    const headers: HeadersInit = {
-      "Content-Type": "application/json",
-    };
-    
-    // 如果有提供 token，加入 Authorization 標頭
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
-    
     // 呼叫後端 API 端點 - 對齊現有 table API 路徑格式
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/table/export-word`, {
       method: "POST",
-      headers,
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify(exportData),
     });
 
